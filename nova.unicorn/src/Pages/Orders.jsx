@@ -1,0 +1,82 @@
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "../Store/hooks";
+import { getUserOrders } from "../Store/thunk";
+import Banner from "../components/Banner";
+import HeaderBanner from "../components/Header/HeaderBanner";
+import Navbar from "../components/Header/Navbar";
+
+const Orders = () => {
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const { user } = useAppSelector((state) => state.auth);
+  const { orders, status, error } = useAppSelector((state) => state.orders);
+
+  useEffect(() => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    dispatch(getUserOrders());
+  }, [dispatch, navigate, user]);
+
+  return (
+    <div className="flex flex-col items-center bg-gray-100 min-h-screen">
+      <div className="bg-primary w-full flex items-center justify-center ">
+        <Banner
+          src="images/festival.gif"
+          alt="festival"
+          className="w-full lg:w-[90%] h-[50px]"
+        />
+      </div>
+      <HeaderBanner />
+      <Navbar />
+
+      <div className="w-full lg:w-[80%] 2xl:w-[75%] py-8 px-4 lg:px-0">
+        <h1 className="text-2xl font-semibold mb-6">My Orders</h1>
+
+        {status === "loading" && <p>Loading your orders...</p>}
+        {error && <p className="text-red-500">{error}</p>}
+
+        {!orders.length && status !== "loading" && (
+          <div className="bg-white rounded-md shadow-sm p-6 text-gray-600">
+            You have no orders yet.
+          </div>
+        )}
+
+        <div className="space-y-4">
+          {orders.map((order) => (
+            <div key={order.id} className="bg-white rounded-md shadow-sm p-4">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between border-b pb-3 mb-3">
+                <div>
+                  <p className="text-xs uppercase text-gray-500">Order ID</p>
+                  <h2 className="font-semibold">{order.id}</h2>
+                </div>
+                <div>
+                  <p className="text-xs uppercase text-gray-500">Status</p>
+                  <h2 className="font-semibold capitalize">{order.status}</h2>
+                </div>
+                <div>
+                  <p className="text-xs uppercase text-gray-500">Total</p>
+                  <h2 className="font-semibold">₦{Number(order.totalAmount || 0).toFixed(2)}</h2>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                {order.items.map((item) => (
+                  <div key={`${order.id}-${item.id}`} className="flex justify-between text-sm text-gray-700">
+                    <span>{item.title} x {item.quantity}</span>
+                    <span>₦{Number(item.price * item.quantity).toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Orders;

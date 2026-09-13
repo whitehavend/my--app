@@ -1,0 +1,10 @@
+<svg width="600" height="220" viewBox="0 0 600 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="600" height="220" rx="20" fill="#0A0A0A"/>
+  <rect x="16" y="16" width="568" height="188" rx="16" stroke="#2A2A2A" stroke-width="2"/>
+  <path d="M76 136C76 105.072 101.072 80 132 80H205C235.928 80 261 105.072 261 136V156H76V136Z" fill="#F5F5F5"/>
+  <path d="M150 62L166 102L194 76L214 102L230 62L273 92L240 136L206 122L174 150L161 121L116 135L129 92L150 62Z" fill="#F5F5F5"/>
+  <circle cx="370" cy="110" r="42" fill="#111111" stroke="#F5F5F5" stroke-width="10"/>
+  <circle cx="370" cy="110" r="15" fill="#F5F5F5"/>
+  <text x="311" y="67" fill="#F5F5F5" font-size="34" font-weight="700" font-family="Arial, Helvetica, sans-serif" letter-spacing="3">UNICORN</text>
+  <text x="315" y="170" fill="#B8B8B8" font-size="20" font-weight="600" font-family="Arial, Helvetica, sans-serif" letter-spacing="5">BLACK MARKET</text>
+</svg>
