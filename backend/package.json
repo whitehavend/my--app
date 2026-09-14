@@ -1,5 +1,5 @@
 {
-  "name": "jumia-backend",
+  "name": "unicorn-backend",
   "version": "1.0.0",
   "description": "Backend API for the e-commerce storefront",
   "main": "server.js",

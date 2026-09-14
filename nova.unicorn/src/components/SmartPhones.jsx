@@ -6,6 +6,7 @@ import ProductSkeleton from "./preloader/ProductSkeleton";
 
 const SmartPhones = () => {
   const { productCategory, status } = useAppSelector((state) => state.products);
+  const safeProductCategory = Array.isArray(productCategory) ? productCategory : [];
   const navigate = useNavigate();
 
   const handleProductClick = (product) => {
@@ -30,7 +31,7 @@ const SmartPhones = () => {
             </div>
           </div>
           <div className="p-3 w-full flex overflow-x-auto space-x-2">
-            {productCategory.map((item, index) => (
+            {safeProductCategory.map((item, index) => (
               <div
                 key={index}
                 onClick={() => handleProductClick(item)}

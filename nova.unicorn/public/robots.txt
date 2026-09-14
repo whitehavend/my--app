@@ -2,4 +2,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://novaunicorn.com/sitemap.xml
+Sitemap: https://my-app-kxu8.vercel.app/sitemap.xml

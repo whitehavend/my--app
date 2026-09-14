@@ -5,7 +5,9 @@ import { getAllCategories } from "../Store/thunk";
 
 const Categories = () => {
   const dispatch = useAppDispatch();
-  const {categories} = useAppSelector((state) => state.categories);
+  const { categories } = useAppSelector((state) => state.categories);
+  const safeCategories = Array.isArray(categories) ? categories : [];
+
   useEffect(() => {
     dispatch(getAllCategories())
   },[dispatch]);
@@ -54,7 +56,7 @@ const Categories = () => {
 
   return (
     <div className="bg-white p-3 w-[18%] h-[420px] hidden lg:flex flex-col">
-      {categories.slice(0,12).map((item, index) => (
+      {safeCategories.slice(0,12).map((item, index) => (
         <div key={index} className="flex items-center text-sm text-gray-600 hover:text-primary cursor-pointer my-1 ">
           <h1 className="capitalize font-normal leading-6 ml-3 ">
             {item}

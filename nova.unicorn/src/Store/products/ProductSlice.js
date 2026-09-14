@@ -20,7 +20,12 @@ const ProductsSlice = createSlice({
       })
       .addCase(getAllProducts.fulfilled, (state, action) => {
         state.status = "success";
-        state.products = action.payload.products;  
+        const payload = action.payload;
+        state.products = Array.isArray(payload?.products)
+          ? payload.products
+          : Array.isArray(payload)
+            ? payload
+            : [];
         state.error = 'nil';
       })
       .addCase(getAllProducts.rejected, (state, action) => {
@@ -33,7 +38,12 @@ const ProductsSlice = createSlice({
       })
       .addCase(getProductByCategory.fulfilled, (state, action) => {
         state.status = "success";
-        state.productCategory = action.payload.products;  
+        const payload = action.payload;
+        state.productCategory = Array.isArray(payload?.products)
+          ? payload.products
+          : Array.isArray(payload)
+            ? payload
+            : [];
         state.error = 'nil';
       })
       .addCase(getProductByCategory.rejected, (state, action) => {

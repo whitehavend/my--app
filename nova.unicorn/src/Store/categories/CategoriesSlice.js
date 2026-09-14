@@ -19,7 +19,12 @@ const CategoriesSlice = createSlice({
       })
       .addCase(getAllCategories.fulfilled, (state, action) => {
         state.status = "success";
-        state.categories = action.payload;  
+        const payload = action.payload;
+        state.categories = Array.isArray(payload)
+          ? payload
+          : Array.isArray(payload?.categories)
+            ? payload.categories
+            : [];
         state.error = 'nil';
       })
       .addCase(getAllCategories.rejected, (state, action) => {

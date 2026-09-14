@@ -29,7 +29,7 @@ app.use(express.json());
 app.use(morgan('dev'));
 
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'ok', message: 'Jumia backend is running' });
+  res.status(200).json({ status: 'ok', message: 'Unicorn backend is running' });
 });
 
 app.use('/api', productRoutes);
