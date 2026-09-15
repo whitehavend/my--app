@@ -107,6 +107,31 @@ export const handleSignup = createAsyncThunk(
   }
 );
 
+export const createProduct = createAsyncThunk(
+  "createProduct",
+  async (productData, thunkAPI) => {
+    const token = localStorage.getItem("unicorn_token");
+
+    try {
+      const response = await axios.post(
+        `${process.env.REACT_APP_BASEURL}/products`,
+        productData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.error || error.message || "Unable to create product"
+      );
+    }
+  }
+);
+
 export const createOrder = createAsyncThunk(
   "createOrder",
   async ({ items, totalAmount, shippingAddress, paymentMethod }, thunkAPI) => {

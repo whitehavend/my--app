@@ -1,11 +1,14 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getAllProducts, getProductByCategory } from "../thunk";
+import { createProduct, getAllProducts, getProductByCategory } from "../thunk";
 
 const initialState = {
   products: [],
   status: 'idle',
   error: '',
-  productCategory: []
+  productCategory: [],
+  productStatus: 'idle',
+  productError: '',
+  createdProduct: null,
 };
 
 const ProductsSlice = createSlice({
@@ -49,6 +52,22 @@ const ProductsSlice = createSlice({
       .addCase(getProductByCategory.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload || "Unable to get products, Please try again later";  
+      })
+      .addCase(createProduct.pending, (state) => {
+        state.productStatus = 'loading';
+        state.productError = '';
+      })
+      .addCase(createProduct.fulfilled, (state, action) => {
+        state.productStatus = 'success';
+        state.productError = '';
+        state.createdProduct = action.payload?.product || null;
+        if (action.payload?.product) {
+          state.products = [action.payload.product, ...state.products];
+        }
+      })
+      .addCase(createProduct.rejected, (state, action) => {
+        state.productStatus = 'failed';
+        state.productError = action.payload || 'Unable to create product';
       });
   }
 });

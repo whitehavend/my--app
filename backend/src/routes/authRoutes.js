@@ -43,12 +43,14 @@ const createUserRecord = async (userData) => {
   return newUser;
 };
 
+const isMongoObjectId = (id) => typeof id === 'string' && /^[a-f0-9]{24}$/i.test(id) && mongoose.connection.readyState === 1;
+
 const getUserById = async (id) => {
-  if (mongoose.connection.readyState === 1) {
+  if (isMongoObjectId(id)) {
     return User.findById(id);
   }
 
-  return users.find((user) => user.id === id) || null;
+  return users.find((user) => String(user.id || user._id) === String(id)) || null;
 };
 
 const generateToken = (user) => jwt.sign(
@@ -57,6 +59,8 @@ const generateToken = (user) => jwt.sign(
     email: user.email,
     fullName: user.fullName,
     role: user.role,
+    shopName: user.shopName || '',
+    isApproved: user.isApproved ?? true,
   },
   process.env.JWT_SECRET || 'dev_secret_key',
   { expiresIn: '7d' }
@@ -179,7 +183,13 @@ router.get('/me', authMiddleware, async (req, res) => {
 
 router.get('/vendors/pending', async (req, res) => {
   try {
-    const pendingVendors = await User.find({ role: 'vendor', isApproved: false }).select('-password');
+    let pendingVendors = [];
+
+    if (mongoose.connection.readyState === 1) {
+      pendingVendors = await User.find({ role: 'vendor', isApproved: false }).select('-password');
+    } else {
+      pendingVendors = users.filter((user) => user.role === 'vendor' && user.isApproved === false);
+    }
 
     return res.status(200).json({
       message: 'Pending vendor list retrieved successfully',
@@ -195,7 +205,13 @@ router.patch('/vendors/:id/approve', async (req, res) => {
   const { id } = req.params;
 
   try {
-    const vendor = await User.findById(id);
+    let vendor;
+
+    if (mongoose.connection.readyState === 1) {
+      vendor = await User.findById(id);
+    } else {
+      vendor = users.find((user) => (user.id || user._id) === id);
+    }
 
     if (!vendor) {
       return res.status(404).json({ error: 'Vendor not found' });
@@ -206,7 +222,10 @@ router.patch('/vendors/:id/approve', async (req, res) => {
     }
 
     vendor.isApproved = true;
-    await vendor.save();
+
+    if (mongoose.connection.readyState === 1) {
+      await vendor.save();
+    }
 
     return res.status(200).json({
       message: 'Vendor approved successfully',
