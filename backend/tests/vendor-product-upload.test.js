@@ -2,8 +2,8 @@ const baseUrl = 'http://localhost:5001';
 
 async function request(path, options = {}) {
   const response = await fetch(`${baseUrl}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
     ...options,
+    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
   });
 
   const text = await response.text();
