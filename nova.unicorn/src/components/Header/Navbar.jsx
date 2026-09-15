@@ -120,7 +120,7 @@ const Navbar = () => {
             </Link>
           </div>
           <div className="flex">
-            <Link to="/login">
+            <Link to={user ? "/account" : "/login"}>
               <BsPerson className="w-6 h-6 " />
             </Link>
             <Link to="/cart">

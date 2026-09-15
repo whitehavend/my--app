@@ -1,12 +1,23 @@
-import { Navigate, Link } from "react-router-dom";
-import { useAppSelector } from "../Store/hooks";
+import { Navigate, Link, useNavigate } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "../Store/hooks";
+import { clearCart } from "../Store/cart/CartSlice";
+import { logout } from "../Store/auth/AuthSlice";
 
 const Account = () => {
   const { user } = useAppSelector((state) => state.auth);
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
 
   if (!user) {
     return <Navigate to="/login" replace />;
   }
+
+  const signOutHandler = () => {
+    dispatch(clearCart());
+    dispatch(logout());
+    localStorage.removeItem("unicorn_token");
+    navigate("/");
+  };
 
   return (
     <main className="min-h-[60vh] bg-gray-50 px-4 py-10">
@@ -47,6 +58,13 @@ const Account = () => {
             </>
           )}
         </dl>
+
+        <button
+          onClick={signOutHandler}
+          className="mt-8 rounded-md border border-red-500 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+        >
+          Log out
+        </button>
       </section>
     </main>
   );
