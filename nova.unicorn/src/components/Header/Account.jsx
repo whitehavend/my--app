@@ -4,6 +4,7 @@ import { FaRegEnvelope } from "react-icons/fa";
 import { MdOutlineFavoriteBorder, MdCreditCard } from "react-icons/md";
 import { useAppDispatch, useAppSelector } from "../../Store/hooks";
 import { clearCart } from "../../Store/cart/CartSlice";
+import { logout } from "../../Store/auth/AuthSlice";
 
 const Account = () => {
   const dispatch = useAppDispatch();
@@ -12,6 +13,7 @@ const Account = () => {
 
   const signOutHandler = () => {
     dispatch(clearCart());
+    dispatch(logout());
     localStorage.removeItem("unicorn_token");
     navigate("/");
   };
@@ -33,10 +35,13 @@ const Account = () => {
       )}
 
       <div className="border-t-2 border-[#f1f1f2] mt-2 ">
-        <p className="group flex items-center p-3 hover:bg-[#f1f1f2] hover:font-semibold transition-all duration-[300]  cursor-pointer">
+        <button
+          onClick={() => navigate(user ? "/account" : "/login")}
+          className="group flex items-center p-3 hover:bg-[#f1f1f2] hover:font-semibold transition-all duration-[300] cursor-pointer w-full text-left"
+        >
           <HiOutlineUser className="text-2xl" />
           <span className="text-[grey] pl-2 text-sm group-hover:text-[black]">My Account</span>
-        </p>
+        </button>
 
         <button
           onClick={() => navigate(user ? "/orders" : "/login")}

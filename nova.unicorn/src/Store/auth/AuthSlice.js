@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { approveVendor, getPendingVendors, handleLogin, handleSignup } from "../thunk";
+import { approveVendor, getCurrentUser, getPendingVendors, handleLogin, handleSignup } from "../thunk";
 
 const initialState = {
   auth: "",
@@ -17,6 +17,13 @@ const AuthSlice = createSlice({
   reducers: {
     resetNotify: (state) => {
       state.notify = false;
+    },
+    logout: (state) => {
+      state.auth = "";
+      state.status = "idle";
+      state.error = "";
+      state.notify = false;
+      state.user = "";
     },
   },
   extraReducers: (builder) => {
@@ -71,6 +78,24 @@ const AuthSlice = createSlice({
         state.error = action.payload || "Unable to sign up, Please try again later";
       })
 
+      .addCase(getCurrentUser.fulfilled, (state, action) => {
+        const user = action.payload?.user || {};
+        state.user = {
+          uid: user.id || user.uid,
+          email: user.email,
+          displayName: user.fullName || user.displayName,
+          role: user.role || "customer",
+          shopName: user.shopName || "",
+          isApproved: user.isApproved ?? true,
+          accessToken: action.payload?.token || "",
+        };
+        state.status = "success";
+      })
+      .addCase(getCurrentUser.rejected, (state) => {
+        state.user = "";
+        state.status = "idle";
+      })
+
       .addCase(getPendingVendors.pending, (state) => {
         state.pendingStatus = "loading";
         state.error = "nil";
@@ -110,5 +135,5 @@ const AuthSlice = createSlice({
   },
 });
 
-export const { resetNotify } = AuthSlice.actions;
+export const { resetNotify, logout } = AuthSlice.actions;
 export default AuthSlice.reducer;

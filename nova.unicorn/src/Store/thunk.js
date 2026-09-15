@@ -107,6 +107,31 @@ export const handleSignup = createAsyncThunk(
   }
 );
 
+export const getCurrentUser = createAsyncThunk(
+  "getCurrentUser",
+  async (_, thunkAPI) => {
+    const token = localStorage.getItem("unicorn_token");
+
+    if (!token) {
+      return thunkAPI.rejectWithValue("No active session");
+    }
+
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BASEURL}/auth/me`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      return { ...response.data, token };
+    } catch (error) {
+      localStorage.removeItem("unicorn_token");
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.error || error.message || "Unable to restore session"
+      );
+    }
+  }
+);
+
 export const createProduct = createAsyncThunk(
   "createProduct",
   async (productData, thunkAPI) => {
