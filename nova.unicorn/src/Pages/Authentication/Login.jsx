@@ -146,6 +146,14 @@ const LoginPage = () => {
                   }`}
                 />
                 {errors.fullName && <p className="text-red-500 text-xs mt-[-0.75rem] mb-4">{errors.fullName.message}</p>}
+
+                <input
+                  type="text"
+                  placeholder="Username"
+                  {...register("username", { required: "Username is required" })}
+                  className={`p-4 border border-gray-400 focus:border-primary w-full my-4 outline-none rounded-md placeholder:text-gray-500 ${errors.username && "border-red-500"}`}
+                />
+                {errors.username && <p className="text-red-500 text-xs mt-[-0.75rem] mb-4">{errors.username.message}</p>}
               </>
             )}
 
@@ -187,6 +195,26 @@ const LoginPage = () => {
                   }`}
                 />
                 {errors.phoneNumber && <p className="text-red-500 text-xs mt-[-0.75rem] mb-4">{errors.phoneNumber.message}</p>}
+
+                <input
+                  type="text"
+                  placeholder="Shop address"
+                  {...register("shopAddress", { required: "Shop address is required for vendors" })}
+                  className={`p-4 border border-gray-400 focus:border-primary w-full my-4 outline-none rounded-md placeholder:text-gray-500 ${errors.shopAddress && "border-red-500"}`}
+                />
+                {errors.shopAddress && <p className="text-red-500 text-xs mt-[-0.75rem] mb-4">{errors.shopAddress.message}</p>}
+              </>
+            )}
+
+            {!isLogin && selectedRole === "customer" && (
+              <>
+                <input
+                  type="text"
+                  placeholder="Delivery address"
+                  {...register("deliveryAddress", { required: "Delivery address is required for customers" })}
+                  className={`p-4 border border-gray-400 focus:border-primary w-full my-4 outline-none rounded-md placeholder:text-gray-500 ${errors.deliveryAddress && "border-red-500"}`}
+                />
+                {errors.deliveryAddress && <p className="text-red-500 text-xs mt-[-0.75rem] mb-4">{errors.deliveryAddress.message}</p>}
               </>
             )}
 

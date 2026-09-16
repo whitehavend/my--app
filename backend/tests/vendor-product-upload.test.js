@@ -24,11 +24,13 @@ async function request(path, options = {}) {
     method: 'POST',
     body: JSON.stringify({
       fullName: 'Upload Vendor',
+      username: `upload-vendor-${Date.now()}`,
       email,
       password: 'Password123',
       role: 'vendor',
       shopName: 'Upload Shop',
       phoneNumber: '08030000000',
+      shopAddress: '1 Upload Street',
       businessName: 'Upload Ltd',
     }),
   });
@@ -75,6 +77,7 @@ async function request(path, options = {}) {
     body: JSON.stringify({
       email,
       password: 'Password123',
+      role: 'vendor',
     }),
   });
 

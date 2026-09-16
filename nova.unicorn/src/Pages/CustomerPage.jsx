@@ -3,6 +3,7 @@ import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { getAllProducts } from "../Store/thunk";
 import { addToCart } from "../Store/cart/CartSlice";
 import { Link, useNavigate } from "react-router-dom";
+import { FiHeadphones, FiSearch, FiSettings, FiShoppingCart, FiUser } from "react-icons/fi";
 
 const CustomerPage = () => {
   const dispatch = useAppDispatch();
@@ -50,24 +51,45 @@ const CustomerPage = () => {
   });
 
   return (
-    <main className="min-h-screen bg-gray-100 px-4 py-8">
-      <div className="mx-auto max-w-6xl">
-        <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div><p className="text-sm font-medium uppercase tracking-[0.2em] text-primary">Customer marketplace</p><h1 className="mt-2 text-3xl font-bold">Shop vendor products</h1></div>
-          <Link to="/cart" className="rounded-md bg-primary px-4 py-3 text-center text-sm font-medium text-white">View cart</Link>
+    <main className="min-h-screen bg-gray-100">
+      <header className="border-b border-gray-200 bg-white shadow-sm">
+        <div className="mx-auto grid max-w-7xl items-center gap-4 px-4 py-4 lg:grid-cols-[180px_minmax(260px,1fr)_360px]">
+          <Link to="/" className="flex items-center gap-2 text-xl font-black uppercase tracking-[0.16em] text-gray-900">Nova Unicorn</Link>
+          <div className="relative">
+            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search products, brands, or categories" aria-label="Search products, brands, or categories" className="w-full rounded-md border border-gray-300 bg-gray-50 p-3 pl-11 outline-none focus:border-primary focus:bg-white" />
+          </div>
+          <nav className="flex items-center justify-between gap-2 text-sm text-gray-700" aria-label="Customer navigation">
+            <Link to={user ? "/account" : "/login"} className="flex items-center gap-2 rounded-md px-2 py-2 hover:bg-gray-100"><FiUser /><span>{user?.username || "My account"}</span></Link>
+            <button type="button" onClick={() => window.alert("Our assistance team is available to help you with your order.")} className="flex items-center gap-2 rounded-md px-2 py-2 hover:bg-gray-100"><FiHeadphones /><span>Assistance</span></button>
+            <Link to="/cart" className="flex items-center gap-2 rounded-md px-2 py-2 hover:bg-gray-100"><FiShoppingCart /><span>Cart</span></Link>
+          </nav>
         </div>
-        <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search products, brands, or categories" className="mb-6 w-full rounded-md border border-gray-300 bg-white p-4 outline-none focus:border-primary" />
-        {status === "loading" && <p>Loading products...</p>}
-        {error && <p className="text-red-600">{error}</p>}
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      </header>
+
+      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 lg:grid-cols-[190px_minmax(0,1fr)]">
+        <aside className="h-fit rounded-md bg-white p-4 shadow-sm">
+          <h2 className="flex items-center gap-2 border-b border-gray-200 pb-4 text-sm font-semibold uppercase tracking-wider"><FiSettings /> Settings</h2>
+          <div className="space-y-2 pt-4 text-sm text-gray-600">
+            <Link to={user ? "/account" : "/login"} className="block rounded-md px-3 py-2 hover:bg-gray-100 hover:text-primary">Account settings</Link>
+            <Link to="/orders" className="block rounded-md px-3 py-2 hover:bg-gray-100 hover:text-primary">Order history</Link>
+          </div>
+        </aside>
+
+        <section>
+          <div className="mb-6"><p className="text-sm font-medium uppercase tracking-[0.2em] text-primary">Customer marketplace</p><h1 className="mt-2 text-3xl font-bold">Products from our vendors</h1><p className="mt-2 text-gray-600">Browse, search, and shop vendor listings.</p></div>
+          {status === "loading" && <p>Loading products...</p>}
+          {error && <p className="text-red-600">{error}</p>}
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {visibleProducts.map((product) => (
             <article key={product._id || product.id} className="overflow-hidden rounded-md bg-white shadow-sm">
               <img src={product.images?.[0]} alt={product.title} className="h-48 w-full object-cover" />
               <div className="p-4"><p className="text-xs uppercase text-gray-500">{product.brand} · {product.category}</p><h2 className="mt-2 text-lg font-semibold capitalize">{product.title}</h2><p className="mt-2 line-clamp-2 text-sm text-gray-600">{product.description}</p><p className="mt-3 text-xl font-bold">₦{Number(product.salePrice ?? product.price).toLocaleString()}</p><div className="mt-4 flex gap-2"><button onClick={() => handleSave(product._id || product.id)} className="flex-1 rounded-md border border-primary px-3 py-3 text-sm font-medium text-primary hover:bg-gray-50">{savedItems.includes(product._id || product.id) ? "Saved" : "Save item"}</button><button onClick={() => handleAddToCart(product)} className="flex-1 rounded-md bg-primary px-3 py-3 text-sm font-medium text-white hover:bg-primary100">Add to cart</button></div></div>
             </article>
           ))}
-        </div>
-        {!visibleProducts.length && status !== "loading" && <p className="rounded-md bg-white p-6 text-gray-600">No products match your search.</p>}
+          </div>
+          {!visibleProducts.length && status !== "loading" && <p className="rounded-md bg-white p-6 text-gray-600">No products match your search.</p>}
+        </section>
       </div>
     </main>
   );

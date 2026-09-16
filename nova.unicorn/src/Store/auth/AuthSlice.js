@@ -42,12 +42,15 @@ const AuthSlice = createSlice({
           uid: user.id || user.uid,
           email: user.email,
           displayName: user.fullName || user.displayName,
+          username: user.username || "",
           role: user.role || "customer",
           shopName: user.shopName || "",
           isApproved: user.isApproved ?? true,
           phoneNumber: user.phoneNumber || "",
           countryCode: user.countryCode || "",
           advertSocials: user.advertSocials || {},
+          deliveryAddress: user.deliveryAddress || "",
+          shopAddress: user.shopAddress || "",
           accessToken: action.payload?.token || user.accessToken || "",
         };
       })
@@ -70,12 +73,15 @@ const AuthSlice = createSlice({
           uid: user.id || user.uid,
           email: user.email,
           displayName: user.fullName || user.displayName,
+          username: user.username || "",
           role: user.role || "customer",
           shopName: user.shopName || "",
           isApproved: user.isApproved ?? true,
           phoneNumber: user.phoneNumber || "",
           countryCode: user.countryCode || "",
           advertSocials: user.advertSocials || {},
+          deliveryAddress: user.deliveryAddress || "",
+          shopAddress: user.shopAddress || "",
           accessToken: action.payload?.token || user.accessToken || "",
         };
       })
@@ -90,12 +96,15 @@ const AuthSlice = createSlice({
           uid: user.id || user.uid,
           email: user.email,
           displayName: user.fullName || user.displayName,
+          username: user.username || "",
           role: user.role || "customer",
           shopName: user.shopName || "",
           isApproved: user.isApproved ?? true,
           phoneNumber: user.phoneNumber || "",
           countryCode: user.countryCode || "",
           advertSocials: user.advertSocials || {},
+          deliveryAddress: user.deliveryAddress || "",
+          shopAddress: user.shopAddress || "",
           accessToken: action.payload?.token || "",
         };
         state.status = "success";

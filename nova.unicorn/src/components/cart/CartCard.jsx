@@ -24,8 +24,9 @@ const CartCard = () => {
     handleUpdateCart(cart.id, newQuantity);
   };
 
-  const handleRemoveFromCart = (id) => {
-    dispatch(deleteFromCart({ productId}));
+  const handleRemoveFromCart = () => {
+    dispatch(deleteFromCart({ productId }));
+    setShowModal(false);
   };
 
   const openModal = (id) => {
@@ -36,7 +37,7 @@ const CartCard = () => {
   return (
     <div className="flex flex-col items-start bg-white shadow-md rounded-md w-full">
       <h1 className="font-semibold border-b w-full p-3 text-base">
-        Cart ({carts?.length})
+        Cart ({carts.reduce((total, cart) => total + cart.quantity, 0)} items)
       </h1>
       {showModal && (
         <Deletion

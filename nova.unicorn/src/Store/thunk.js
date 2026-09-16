@@ -80,12 +80,15 @@ export const handleSignup = createAsyncThunk(
     const payload = data?.data ?? data;
     const {
       fullName,
+      username,
       email,
       password,
       role = "customer",
       shopName,
       phoneNumber,
       businessName,
+      deliveryAddress,
+      shopAddress,
       countryCode,
       advertSocials,
       advertUsernames,
@@ -101,7 +104,7 @@ export const handleSignup = createAsyncThunk(
     try {
       const response = await axios.post(
         `${process.env.REACT_APP_BASEURL}/auth/signup`,
-        { fullName, email, password, role, shopName, phoneNumber, businessName, countryCode, advertSocials: selectedAdvertSocials }
+        { fullName, username, email, password, role, shopName, phoneNumber, businessName, countryCode, advertSocials: selectedAdvertSocials, deliveryAddress, shopAddress }
       );
 
       if (response.data?.token) {
@@ -137,6 +140,25 @@ export const getCurrentUser = createAsyncThunk(
       localStorage.removeItem("unicorn_token");
       return thunkAPI.rejectWithValue(
         error.response?.data?.error || error.message || "Unable to restore session"
+      );
+    }
+  }
+);
+
+export const deleteAccount = createAsyncThunk(
+  "deleteAccount",
+  async (_, thunkAPI) => {
+    const token = localStorage.getItem("unicorn_token");
+
+    try {
+      const response = await axios.delete(
+        `${process.env.REACT_APP_BASEURL}/auth/me`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.error || error.message || "Unable to delete account"
       );
     }
   }

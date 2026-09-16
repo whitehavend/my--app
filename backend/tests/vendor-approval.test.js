@@ -22,11 +22,13 @@ async function request(path, options = {}) {
     method: 'POST',
     body: JSON.stringify({
       fullName: 'Vendor Approver Test',
+      username: `vendor-approver-${Date.now()}`,
       email: `vendor-approve-${Date.now()}@example.com`,
       password: 'Password123',
       role: 'vendor',
       shopName: 'Approve Me Shop',
       phoneNumber: '08020000000',
+      shopAddress: '2 Approval Street',
       businessName: 'Approve Me Ltd',
     }),
   });

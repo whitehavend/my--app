@@ -69,6 +69,7 @@ const generateToken = (user) => jwt.sign(
 const serializeUser = (user) => ({
   id: user.id || user._id,
   fullName: user.fullName,
+  username: user.username || '',
   email: user.email,
   role: user.role,
   shopName: user.shopName || '',
@@ -76,24 +77,33 @@ const serializeUser = (user) => ({
   phoneNumber: user.phoneNumber || '',
   countryCode: user.countryCode || '',
   businessName: user.businessName || '',
-  advertSocials: user.advertSocials ? Object.fromEntries(user.advertSocials) : {},
+  deliveryAddress: user.deliveryAddress || '',
+  shopAddress: user.shopAddress || '',
+  advertSocials: user.advertSocials
+    ? user.advertSocials instanceof Map
+      ? Object.fromEntries(user.advertSocials)
+      : user.advertSocials
+    : {},
 });
 
 router.post('/signup', async (req, res) => {
   const {
     fullName,
+    username,
     email,
     password,
     role = 'customer',
     shopName,
     phoneNumber,
     businessName,
+    deliveryAddress,
+    shopAddress,
     countryCode,
     advertSocials = {},
   } = req.body;
 
-  if (!fullName || !email || !password) {
-    return res.status(400).json({ error: 'All fields are required' });
+  if (!fullName || !username || !email || !password) {
+    return res.status(400).json({ error: 'Full name, username, email, and password are required' });
   }
 
   if (!['customer', 'vendor', 'advert', 'logistic'].includes(role)) {
@@ -104,6 +114,14 @@ router.post('/signup', async (req, res) => {
     return res.status(400).json({
       error: 'Shop name and phone number are required for vendor registration',
     });
+  }
+
+  if (role === 'customer' && !deliveryAddress) {
+    return res.status(400).json({ error: 'Delivery address is required for customer registration' });
+  }
+
+  if (role === 'vendor' && !shopAddress) {
+    return res.status(400).json({ error: 'Shop address is required for vendor registration' });
   }
 
   if (role === 'advert' && (!phoneNumber || !countryCode)) {
@@ -144,6 +162,7 @@ router.post('/signup', async (req, res) => {
 
     const userData = {
       fullName,
+      username: username.trim(),
       email: email.toLowerCase(),
       password: await bcrypt.hash(password, 10),
       role,
@@ -151,6 +170,8 @@ router.post('/signup', async (req, res) => {
       shopName: role === 'vendor' ? shopName : '',
       phoneNumber: role === 'customer' ? '' : phoneNumber,
       businessName: role === 'vendor' ? businessName || '' : '',
+      deliveryAddress: role === 'customer' ? deliveryAddress.trim() : '',
+      shopAddress: role === 'vendor' ? shopAddress.trim() : '',
       countryCode: role === 'advert' || role === 'logistic' ? countryCode : '',
       advertSocials: role === 'advert' ? normalizedAdvertSocials : {},
     };
@@ -222,6 +243,29 @@ router.get('/me', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error('Get current user error:', error);
     return res.status(500).json({ error: 'Unable to retrieve user' });
+  }
+});
+
+router.delete('/me', authMiddleware, async (req, res) => {
+  try {
+    if (!isMongoObjectId(req.user.id)) {
+      const userIndex = users.findIndex((user) => String(user.id || user._id) === String(req.user.id));
+      if (userIndex === -1) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      users.splice(userIndex, 1);
+      return res.status(200).json({ message: 'Account deleted successfully' });
+    }
+
+    const deletedUser = await User.findByIdAndDelete(req.user.id);
+    if (!deletedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    return res.status(200).json({ message: 'Account deleted successfully' });
+  } catch (error) {
+    console.error('Delete account error:', error);
+    return res.status(500).json({ error: 'Unable to delete account' });
   }
 });
 
