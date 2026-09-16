@@ -4,8 +4,7 @@ import { getAllProducts } from "../Store/thunk";
 import { addToCart } from "../Store/cart/CartSlice";
 import { Link, useNavigate } from "react-router-dom";
 import { FiHeadphones, FiSearch, FiSettings, FiShoppingCart, FiUser } from "react-icons/fi";
-import BestDeals from "../components/BestDeals";
-import FlashSales from "../components/FlashSales";
+import ComingSoonBanner from "../components/ComingSoonBanner";
 
 const CustomerPage = () => {
   const dispatch = useAppDispatch();
@@ -82,19 +81,17 @@ const CustomerPage = () => {
           <div className="mb-6"><p className="text-sm font-medium uppercase tracking-[0.2em] text-primary">Customer marketplace</p><h1 className="mt-2 text-3xl font-bold">Products from our vendors</h1><p className="mt-2 text-gray-600">Browse, search, and shop vendor listings.</p></div>
           {status === "loading" && <p>Loading products...</p>}
           {error && <p className="text-red-600">{error}</p>}
-          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-          {visibleProducts.map((product) => (
-            <article key={product._id || product.id} className="overflow-hidden rounded-md bg-white shadow-sm">
-              <img src={product.images?.[0]} alt={product.title} className="h-48 w-full object-cover" />
-              <div className="p-4"><p className="text-xs uppercase text-gray-500">{product.brand} · {product.category}</p><h2 className="mt-2 text-lg font-semibold capitalize">{product.title}</h2><p className="mt-2 line-clamp-2 text-sm text-gray-600">{product.description}</p><p className="mt-3 text-xl font-bold">₦{Number(product.salePrice ?? product.price).toLocaleString()}</p><div className="mt-4 flex gap-2"><button onClick={() => handleSave(product._id || product.id)} className="flex-1 rounded-md border border-primary px-3 py-3 text-sm font-medium text-primary hover:bg-gray-50">{savedItems.includes(product._id || product.id) ? "Saved" : "Save item"}</button><button onClick={() => handleAddToCart(product)} className="flex-1 rounded-md bg-primary px-3 py-3 text-sm font-medium text-white hover:bg-primary100">Add to cart</button></div></div>
-            </article>
-          ))}
-          </div>
-          {!visibleProducts.length && status !== "loading" && <p className="rounded-md bg-white p-6 text-gray-600">No products match your search.</p>}
-          <div className="mt-8 space-y-6">
-            <BestDeals />
-            <FlashSales />
-          </div>
+          {status !== "loading" && !visibleProducts.length && <ComingSoonBanner label="Vendor marketplace" />}
+          {visibleProducts.length > 0 && (
+            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {visibleProducts.map((product) => (
+                <article key={product._id || product.id} className="overflow-hidden rounded-md bg-white shadow-sm">
+                  <img src={product.images?.[0]} alt={product.title} className="h-48 w-full object-cover" />
+                  <div className="p-4"><p className="text-xs uppercase text-gray-500">{product.brand} · {product.category}</p><h2 className="mt-2 text-lg font-semibold capitalize">{product.title}</h2><p className="mt-2 line-clamp-2 text-sm text-gray-600">{product.description}</p><p className="mt-3 text-xl font-bold">₦{Number(product.salePrice ?? product.price).toLocaleString()}</p><div className="mt-4 flex gap-2"><button onClick={() => handleSave(product._id || product.id)} className="flex-1 rounded-md border border-primary px-3 py-3 text-sm font-medium text-primary hover:bg-gray-50">{savedItems.includes(product._id || product.id) ? "Saved" : "Save item"}</button><button onClick={() => handleAddToCart(product)} className="flex-1 rounded-md bg-primary px-3 py-3 text-sm font-medium text-white hover:bg-primary100">Add to cart</button></div></div>
+                </article>
+              ))}
+            </div>
+          )}
         </section>
       </div>
     </main>
