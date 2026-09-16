@@ -43,32 +43,22 @@ async function request(path, options = {}) {
   const token = signup.data.token;
   const vendorId = signup.data.user?.id || signup.data.user?._id;
 
-  const blockedCreate = await request('/api/products', {
+  const immediateProduct = await request('/api/products', {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify({
-      title: 'Blocked Vendor Product',
-      brand: 'Blocked Brand',
+      title: 'Immediate Vendor Product',
+      brand: 'Immediate Brand',
       category: 'smartphones',
       price: 249.99,
       stock: 10,
-      description: 'This should be rejected before approval.',
-      images: ['https://example.com/blocked.png'],
+      description: 'This should be accepted immediately after vendor signup.',
+      images: ['https://example.com/immediate.png'],
     }),
   });
 
-  if (blockedCreate.status !== 403) {
-    console.error('FAIL: unapproved vendor product creation status', blockedCreate.status, blockedCreate.data);
-    process.exit(1);
-  }
-
-  const approval = await request(`/api/auth/vendors/${vendorId}/approve`, {
-    method: 'PATCH',
-    headers: { Authorization: `Bearer ${token}` },
-  });
-
-  if (approval.status !== 200) {
-    console.error('FAIL: vendor approval status', approval.status, approval.data);
+  if (immediateProduct.status !== 201) {
+    console.error('FAIL: immediate vendor product creation status', immediateProduct.status, immediateProduct.data);
     process.exit(1);
   }
 
@@ -92,7 +82,7 @@ async function request(path, options = {}) {
     method: 'POST',
     headers: { Authorization: `Bearer ${approvedToken}` },
     body: JSON.stringify({
-      title: 'Approved Vendor Product',
+      title: 'Second Immediate Vendor Product',
       brand: 'Nova Brand',
       category: 'smartphones',
       price: 399.99,

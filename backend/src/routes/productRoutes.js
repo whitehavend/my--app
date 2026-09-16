@@ -90,11 +90,7 @@ router.post('/products', authMiddleware, async (req, res) => {
     }
 
     if (!currentUser || currentUser.role !== 'vendor') {
-      return res.status(403).json({ error: 'Only approved vendors can upload products' });
-    }
-
-    if (currentUser.isApproved === false || req.user.isApproved === false) {
-      return res.status(403).json({ error: 'Your vendor account is not approved yet' });
+      return res.status(403).json({ error: 'Only vendors can upload products' });
     }
 
     if (!title || !brand || !category || !description || price === undefined || stock === undefined) {

@@ -1,6 +1,4 @@
 import React, { useEffect } from "react";
-import HeaderBanner from "../components/Header/HeaderBanner";
-import Navbar from "../components/Header/Navbar";
 import EmptyCart from "../components/cart/EmptyCart";
 import CartCard from "../components/cart/CartCard";
 import CartSummary from "../components/cart/CartSummary";
@@ -26,8 +24,6 @@ const Cart = () => {
       <div className="flex h-14 w-full items-center justify-center bg-primary px-4 text-center text-white">
         <span className="text-lg font-black uppercase tracking-[0.22em]">Nova Unicorn</span>
       </div>
-      <HeaderBanner />
-      <Navbar />
       {notify && <Alert message={status} />}
       {carts.length === 0 ? (
         <div className="w-full flex flex-col items-start justify-between px-4 lg:px-0 lg:w-[80%] 2xl:w-[75%] my-4 ">

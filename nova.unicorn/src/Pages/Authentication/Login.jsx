@@ -332,7 +332,7 @@ const LoginPage = () => {
               {status === "loading" ? <MiniLoader /> : (isLogin ? "Log in" : "Create Account")}
             </button>
           </form>
-          {error && <p className="text-red-500 text-xs">{error}</p>}
+          {error && error !== "nil" && <p className="text-red-500 text-xs">{error}</p>}
           <p className="text-xs w-[60%] text-center">
             By continuing you agree to Unicorn’s <br />
             <span className="underline text-primary">Terms and Conditions</span>

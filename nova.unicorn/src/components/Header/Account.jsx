@@ -51,7 +51,7 @@ const Account = () => {
           <span className="text-[grey] pl-2 text-sm group-hover:text-[black]">Orders</span>
         </button>
 
-        {user && user.role === "vendor" && user.isApproved !== false && (
+        {user && user.role === "vendor" && (
           <button
             onClick={() => navigate("/vendor/products/new")}
             className="group flex w-full items-center p-3 hover:bg-[#f1f1f2] hover:font-semibold transition-all duration-[300] cursor-pointer text-left"

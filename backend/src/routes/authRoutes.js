@@ -166,7 +166,7 @@ router.post('/signup', async (req, res) => {
       email: email.toLowerCase(),
       password: await bcrypt.hash(password, 10),
       role,
-      isApproved: role !== 'vendor',
+      isApproved: true,
       shopName: role === 'vendor' ? shopName : '',
       phoneNumber: role === 'customer' ? '' : phoneNumber,
       businessName: role === 'vendor' ? businessName || '' : '',

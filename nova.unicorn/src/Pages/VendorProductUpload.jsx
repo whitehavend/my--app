@@ -36,12 +36,12 @@ const VendorProductUpload = () => {
     );
   }
 
-  if (user.role !== "vendor" || user.isApproved === false) {
+  if (user.role !== "vendor") {
     return (
       <div className="min-h-[60vh] flex items-center justify-center px-6 py-10">
         <div className="max-w-md text-center">
-          <h1 className="text-2xl font-bold mb-2">Approval required</h1>
-          <p className="text-gray-600">Your vendor account must be approved before you can upload new products.</p>
+          <h1 className="text-2xl font-bold mb-2">Vendor access required</h1>
+          <p className="text-gray-600">Only vendor accounts can upload new products.</p>
         </div>
       </div>
     );

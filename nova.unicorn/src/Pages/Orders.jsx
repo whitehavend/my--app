@@ -2,9 +2,6 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { getUserOrders } from "../Store/thunk";
-import Banner from "../components/Banner";
-import HeaderBanner from "../components/Header/HeaderBanner";
-import Navbar from "../components/Header/Navbar";
 
 const Orders = () => {
   const navigate = useNavigate();
@@ -23,15 +20,9 @@ const Orders = () => {
 
   return (
     <div className="flex flex-col items-center bg-gray-100 min-h-screen">
-      <div className="bg-primary w-full flex items-center justify-center ">
-        <Banner
-          src="images/festival.gif"
-          alt="festival"
-          className="w-full lg:w-[90%] h-[50px]"
-        />
+      <div className="flex h-14 w-full items-center justify-center bg-primary px-4 text-center text-white">
+        <span className="text-lg font-black uppercase tracking-[0.22em]">Nova Unicorn</span>
       </div>
-      <HeaderBanner />
-      <Navbar />
 
       <div className="w-full lg:w-[80%] 2xl:w-[75%] py-8 px-4 lg:px-0">
         <h1 className="text-2xl font-semibold mb-6">My Orders</h1>
