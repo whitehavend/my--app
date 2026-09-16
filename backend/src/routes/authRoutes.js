@@ -74,7 +74,9 @@ const serializeUser = (user) => ({
   shopName: user.shopName || '',
   isApproved: user.isApproved ?? true,
   phoneNumber: user.phoneNumber || '',
+  countryCode: user.countryCode || '',
   businessName: user.businessName || '',
+  advertSocials: user.advertSocials ? Object.fromEntries(user.advertSocials) : {},
 });
 
 router.post('/signup', async (req, res) => {
@@ -86,14 +88,16 @@ router.post('/signup', async (req, res) => {
     shopName,
     phoneNumber,
     businessName,
+    countryCode,
+    advertSocials = {},
   } = req.body;
 
   if (!fullName || !email || !password) {
     return res.status(400).json({ error: 'All fields are required' });
   }
 
-  if (!['customer', 'vendor'].includes(role)) {
-    return res.status(400).json({ error: 'Role must be customer or vendor' });
+  if (!['customer', 'vendor', 'advert'].includes(role)) {
+    return res.status(400).json({ error: 'Role must be customer, vendor, or advert' });
   }
 
   if (role === 'vendor' && (!shopName || !phoneNumber)) {
@@ -102,7 +106,31 @@ router.post('/signup', async (req, res) => {
     });
   }
 
+  if (role === 'advert' && (!phoneNumber || !countryCode)) {
+    return res.status(400).json({
+      error: 'Phone number and country code are required for Advert registration',
+    });
+  }
+
+  if (role === 'advert' && (typeof advertSocials !== 'object' || Array.isArray(advertSocials))) {
+    return res.status(400).json({ error: 'Advert social media details are invalid' });
+  }
+
   try {
+    let invalidAdvertPlatform = '';
+    const normalizedAdvertSocials = Object.entries(advertSocials).reduce((socials, [platform, username]) => {
+      if (typeof username !== 'string' || !username.trim()) {
+        invalidAdvertPlatform = platform;
+        return socials;
+      }
+      socials[platform] = username.trim();
+      return socials;
+    }, {});
+
+    if (invalidAdvertPlatform) {
+      return res.status(400).json({ error: `A username is required for ${invalidAdvertPlatform}` });
+    }
+
     const existingUser = await getUserByEmail(email);
     if (existingUser) {
       return res.status(409).json({ error: 'User already exists' });
@@ -113,16 +141,18 @@ router.post('/signup', async (req, res) => {
       email: email.toLowerCase(),
       password: await bcrypt.hash(password, 10),
       role,
-      isApproved: role === 'customer',
+      isApproved: role !== 'vendor',
       shopName: role === 'vendor' ? shopName : '',
-      phoneNumber: role === 'vendor' ? phoneNumber : '',
+      phoneNumber: role === 'customer' ? '' : phoneNumber,
       businessName: role === 'vendor' ? businessName || '' : '',
+      countryCode: role === 'advert' ? countryCode : '',
+      advertSocials: role === 'advert' ? normalizedAdvertSocials : {},
     };
 
     const newUser = await createUserRecord(userData);
 
     return res.status(201).json({
-      message: role === 'vendor' ? 'Vendor registration submitted successfully' : 'User created successfully',
+      message: role === 'vendor' ? 'Vendor registration submitted successfully' : role === 'advert' ? 'Advert account created successfully' : 'User created successfully',
       user: serializeUser(newUser),
       token: generateToken(newUser),
     });

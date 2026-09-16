@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['customer', 'vendor'],
+      enum: ['customer', 'vendor', 'advert'],
       default: 'customer',
     },
     isApproved: {
@@ -36,6 +36,15 @@ const userSchema = new mongoose.Schema(
     phoneNumber: {
       type: String,
       default: '',
+    },
+    countryCode: {
+      type: String,
+      default: '',
+    },
+    advertSocials: {
+      type: Map,
+      of: String,
+      default: {},
     },
     businessName: {
       type: String,

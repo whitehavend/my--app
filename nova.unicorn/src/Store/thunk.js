@@ -86,12 +86,22 @@ export const handleSignup = createAsyncThunk(
       shopName,
       phoneNumber,
       businessName,
+      countryCode,
+      advertSocials,
+      advertUsernames,
     } = payload || {};
+
+    const selectedAdvertSocials = Object.entries(advertSocials || {}).reduce((socials, [platform, selected]) => {
+      if (selected) {
+        socials[platform] = advertUsernames?.[platform] || "";
+      }
+      return socials;
+    }, {});
 
     try {
       const response = await axios.post(
         `${process.env.REACT_APP_BASEURL}/auth/signup`,
-        { fullName, email, password, role, shopName, phoneNumber, businessName }
+        { fullName, email, password, role, shopName, phoneNumber, businessName, countryCode, advertSocials: selectedAdvertSocials }
       );
 
       if (response.data?.token) {

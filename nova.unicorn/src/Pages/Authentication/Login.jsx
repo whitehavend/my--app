@@ -6,11 +6,13 @@ import Alert from "../../components/Alert";
 import { resetNotify } from "../../Store/auth/AuthSlice";
 import MiniLoader from "../../components/preloader/MiniLoader";
 import { useForm } from "react-hook-form";
+import { HiEye, HiEyeOff } from "react-icons/hi";
 
 const LoginPage = () => {
   const { auth, error, notify, status } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
   const [isLogin, setIsLogin] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const {
     register,
@@ -23,6 +25,8 @@ const LoginPage = () => {
     },
   });
   const selectedRole = watch("role", "customer");
+  const selectedPlatforms = watch("advertSocials", {});
+  const advertPlatforms = ["Instagram", "TikTok", "YouTube", "Facebook", "X"];
   useEffect(() => {
     if (notify) {
       setTimeout(() => {
@@ -107,6 +111,10 @@ const LoginPage = () => {
                       />
                       Vendor
                     </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input type="radio" value="advert" {...register("role")} />
+                      Advert
+                    </label>
                   </div>
                 </div>
 
@@ -163,14 +171,82 @@ const LoginPage = () => {
               </>
             )}
 
-            <input
-              type="password"
-              placeholder="Password"
-              {...register("password", { required: "Password is required", minLength: { value: 6, message: "Password must be at least 6 characters" } })}
-              className={`p-4 border border-gray-400 focus:border-primary w-full my-4 outline-none rounded-md placeholder:text-gray-500 ${
-                errors.password && "border-red-500"
-              }`}
-            />
+            {!isLogin && selectedRole === "advert" && (
+              <>
+                <div className="my-4">
+                  <label className="mb-2 block text-sm font-medium text-gray-700">Phone number</label>
+                  <div className="flex gap-2">
+                    <select
+                      aria-label="Country code"
+                      {...register("countryCode", { required: "Country code is required" })}
+                      className="w-28 rounded-md border border-gray-400 bg-white p-4 outline-none focus:border-primary"
+                    >
+                      <option value="">Code</option>
+                      <option value="+1">+1</option>
+                      <option value="+44">+44</option>
+                      <option value="+234">+234</option>
+                      <option value="+254">+254</option>
+                      <option value="+27">+27</option>
+                      <option value="+91">+91</option>
+                    </select>
+                    <input
+                      type="tel"
+                      placeholder="Phone number"
+                      {...register("phoneNumber", { required: "Phone number is required" })}
+                      className="min-w-0 flex-1 rounded-md border border-gray-400 p-4 outline-none focus:border-primary"
+                    />
+                  </div>
+                  {errors.countryCode && <p className="mt-1 text-xs text-red-500">{errors.countryCode.message}</p>}
+                  {errors.phoneNumber && <p className="mt-1 text-xs text-red-500">{errors.phoneNumber.message}</p>}
+                </div>
+
+                <fieldset className="my-5">
+                  <legend className="mb-2 text-sm font-medium text-gray-700">Advertising platforms</legend>
+                  <div className="space-y-3">
+                    {advertPlatforms.map((platform) => {
+                      const fieldName = `advertSocials.${platform.toLowerCase()}`;
+                      const isSelected = Boolean(selectedPlatforms?.[platform.toLowerCase()]);
+                      return (
+                        <div key={platform}>
+                          <label className="flex items-center gap-2 text-sm">
+                            <input type="checkbox" {...register(fieldName)} />
+                            {platform}
+                          </label>
+                          {isSelected && (
+                            <input
+                              type="text"
+                              placeholder={`${platform} username`}
+                              {...register(`advertUsernames.${platform.toLowerCase()}`, { required: `${platform} username is required` })}
+                              className="mt-2 w-full rounded-md border border-gray-400 p-3 outline-none focus:border-primary"
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </fieldset>
+              </>
+            )}
+
+            <div className="relative my-4">
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
+                {...register("password", { required: "Password is required", minLength: { value: 6, message: "Password must be at least 6 characters" } })}
+                className={`p-4 pr-12 border border-gray-400 focus:border-primary w-full outline-none rounded-md placeholder:text-gray-500 ${
+                  errors.password && "border-red-500 "
+                }`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((visible) => !visible)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                title={showPassword ? "Hide password" : "Show password"}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-primary"
+              >
+                {showPassword ? <HiEyeOff className="h-5 w-5" /> : <HiEye className="h-5 w-5" />}
+              </button>
+            </div>
             {errors.password && <p className="text-red-500 text-xs mt-[-0.75rem] mb-4">{errors.password.message}</p>}
 
             <button
