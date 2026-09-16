@@ -106,24 +106,18 @@ const Navbar = () => {
               <BsPerson className="w-6 h-6" />
               <span>{user?.username || "Account"}</span>
             </Link>
-            <Link to="/" className="flex items-center gap-2">
-              <div className="flex items-center gap-2">
-                <span className="font-mono uppercase text-[1.65rem] font-black tracking-[0.18em] leading-none text-black">
-                  Nova
-                </span>
-                <img src="images/unicorn-horn-black.svg" alt="Unicorn horn" className="w-5 h-5" />
-              </div>
-              <span className="font-mono uppercase text-[1.1rem] font-semibold tracking-[0.32em] text-black">
-                Unicorn
+            <Link to="/" className="flex items-center">
+              <span className="font-mono text-lg font-black uppercase tracking-[0.16em] text-black">
+                NOVA
               </span>
             </Link>
           </div>
-          <div className="flex">
-            <Link to="/orders" className="ml-3 flex items-center gap-1 text-xs">
+          <div className="flex min-w-0 items-center gap-2">
+            <Link to="/orders" className="flex shrink-0 items-center gap-1 text-[11px]">
               <BsBox2 className="h-5 w-5" />
               <span>Orders</span>
             </Link>
-            <Link to="/saved-items" className="ml-3 flex items-center gap-1 text-xs">
+            <Link to="/saved-items" className="flex shrink-0 items-center gap-1 text-[11px]">
               <FaRegHeart className="h-5 w-5" />
               <span>Saved</span>
             </Link>
