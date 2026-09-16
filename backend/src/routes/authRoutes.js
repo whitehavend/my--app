@@ -110,9 +110,9 @@ router.post('/signup', async (req, res) => {
     return res.status(400).json({ error: 'Role must be customer, vendor, advert, or logistic' });
   }
 
-  if (role === 'vendor' && (!shopName || !phoneNumber)) {
+  if (!phoneNumber || !countryCode) {
     return res.status(400).json({
-      error: 'Shop name and phone number are required for vendor registration',
+      error: 'Phone number and country code are required for registration',
     });
   }
 
@@ -122,18 +122,6 @@ router.post('/signup', async (req, res) => {
 
   if (role === 'vendor' && !shopAddress) {
     return res.status(400).json({ error: 'Shop address is required for vendor registration' });
-  }
-
-  if (role === 'advert' && (!phoneNumber || !countryCode)) {
-    return res.status(400).json({
-      error: 'Phone number and country code are required for Advert registration',
-    });
-  }
-
-  if (role === 'logistic' && (!phoneNumber || !countryCode)) {
-    return res.status(400).json({
-      error: 'Phone number and country code are required for Logistic registration',
-    });
   }
 
   if (role === 'advert' && (typeof advertSocials !== 'object' || Array.isArray(advertSocials))) {
@@ -168,11 +156,11 @@ router.post('/signup', async (req, res) => {
       role,
       isApproved: true,
       shopName: role === 'vendor' ? shopName : '',
-      phoneNumber: role === 'customer' ? '' : phoneNumber,
+      phoneNumber,
       businessName: role === 'vendor' ? businessName || '' : '',
       deliveryAddress: role === 'customer' ? deliveryAddress.trim() : '',
       shopAddress: role === 'vendor' ? shopAddress.trim() : '',
-      countryCode: role === 'advert' || role === 'logistic' ? countryCode : '',
+      countryCode,
       advertSocials: role === 'advert' ? normalizedAdvertSocials : {},
     };
 

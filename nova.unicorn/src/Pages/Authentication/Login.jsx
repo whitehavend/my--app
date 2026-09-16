@@ -7,6 +7,7 @@ import { resetNotify } from "../../Store/auth/AuthSlice";
 import MiniLoader from "../../components/preloader/MiniLoader";
 import { useForm } from "react-hook-form";
 import { HiEye, HiEyeOff } from "react-icons/hi";
+import CountryPhoneField from "../../components/CountryPhoneField";
 
 const LoginPage = () => {
   const { auth, error, notify, status, user } = useAppSelector((state) => state.auth);
@@ -186,15 +187,7 @@ const LoginPage = () => {
                 />
                 {errors.shopName && <p className="text-red-500 text-xs mt-[-0.75rem] mb-4">{errors.shopName.message}</p>}
 
-                <input
-                  type="tel"
-                  placeholder="Phone Number"
-                  {...register("phoneNumber", { required: isLogin ? false : "Phone number is required for vendors" })}
-                  className={`p-4 border border-gray-400 focus:border-primary w-full my-4 outline-none rounded-md placeholder:text-gray-500 ${
-                    errors.phoneNumber && "border-red-500"
-                  }`}
-                />
-                {errors.phoneNumber && <p className="text-red-500 text-xs mt-[-0.75rem] mb-4">{errors.phoneNumber.message}</p>}
+                <CountryPhoneField register={register} errors={errors} />
 
                 <input
                   type="text"
@@ -220,32 +213,7 @@ const LoginPage = () => {
 
             {!isLogin && selectedRole === "advert" && (
               <>
-                <div className="my-4">
-                  <label className="mb-2 block text-sm font-medium text-gray-700">Phone number</label>
-                  <div className="flex gap-2">
-                    <select
-                      aria-label="Country code"
-                      {...register("countryCode", { required: "Country code is required" })}
-                      className="w-28 rounded-md border border-gray-400 bg-white p-4 outline-none focus:border-primary"
-                    >
-                      <option value="">Code</option>
-                      <option value="+1">+1</option>
-                      <option value="+44">+44</option>
-                      <option value="+234">+234</option>
-                      <option value="+254">+254</option>
-                      <option value="+27">+27</option>
-                      <option value="+91">+91</option>
-                    </select>
-                    <input
-                      type="tel"
-                      placeholder="Phone number"
-                      {...register("phoneNumber", { required: "Phone number is required" })}
-                      className="min-w-0 flex-1 rounded-md border border-gray-400 p-4 outline-none focus:border-primary"
-                    />
-                  </div>
-                  {errors.countryCode && <p className="mt-1 text-xs text-red-500">{errors.countryCode.message}</p>}
-                  {errors.phoneNumber && <p className="mt-1 text-xs text-red-500">{errors.phoneNumber.message}</p>}
-                </div>
+                <CountryPhoneField register={register} errors={errors} />
 
                 <fieldset className="my-5">
                   <legend className="mb-2 text-sm font-medium text-gray-700">Advertising platforms</legend>
@@ -276,33 +244,10 @@ const LoginPage = () => {
             )}
 
             {!isLogin && selectedRole === "logistic" && (
-              <div className="my-4">
-                <label className="mb-2 block text-sm font-medium text-gray-700">Phone number</label>
-                <div className="flex gap-2">
-                  <select
-                    aria-label="Country code"
-                    {...register("countryCode", { required: "Country code is required" })}
-                    className="w-28 rounded-md border border-gray-400 bg-white p-4 outline-none focus:border-primary"
-                  >
-                    <option value="">Code</option>
-                    <option value="+1">+1</option>
-                    <option value="+44">+44</option>
-                    <option value="+234">+234</option>
-                    <option value="+254">+254</option>
-                    <option value="+27">+27</option>
-                    <option value="+91">+91</option>
-                  </select>
-                  <input
-                    type="tel"
-                    placeholder="Phone number"
-                    {...register("phoneNumber", { required: "Phone number is required" })}
-                    className="min-w-0 flex-1 rounded-md border border-gray-400 p-4 outline-none focus:border-primary"
-                  />
-                </div>
-                {errors.countryCode && <p className="mt-1 text-xs text-red-500">{errors.countryCode.message}</p>}
-                {errors.phoneNumber && <p className="mt-1 text-xs text-red-500">{errors.phoneNumber.message}</p>}
-              </div>
+              <CountryPhoneField register={register} errors={errors} />
             )}
+
+            {!isLogin && selectedRole === "customer" && <CountryPhoneField register={register} errors={errors} />}
 
             <div className="relative my-4">
               <input
