@@ -1,19 +1,17 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { AiOutlineShoppingCart } from "react-icons/ai";
 import { BiSearchAlt2 } from "react-icons/bi";
 import { BsPerson } from "react-icons/bs";
+import { BsBox2 } from "react-icons/bs";
 import { FaChevronDown } from "react-icons/fa";
 import { FaRegCircleQuestion } from "react-icons/fa6";
-import { IoMdClose, IoMdMenu } from "react-icons/io";
-import Sidebar from "../Sidebar";
+import { FaRegHeart } from "react-icons/fa";
 import { useAppSelector } from "../../Store/hooks";
 import { formatEmail } from "../../utils/formatEmail";
 import Help from "./Help";
 import Account from "./Account";
 
 const Navbar = () => {
-  const [nav, setNav] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showAcct, setShowAcct] = useState(false);
   const { user } = useAppSelector((state) => state.auth);
@@ -86,12 +84,13 @@ const Navbar = () => {
                   <FaChevronDown className=" w-3 h-3  " />
                 </div>
                 {showHelp && <Help />}
-                <Link
-                  to="/cart"
-                  className="flex items-center px-3 text-black hover:text-primary cursor-pointer"
-                >
-                  <AiOutlineShoppingCart className="w-5 h-5 " />
-                  <span className="mx-3 ">Cart</span>
+                <Link to="/orders" className="flex items-center gap-2 px-3 text-black hover:text-primary">
+                  <BsBox2 className="w-5 h-5" />
+                  <span>Orders</span>
+                </Link>
+                <Link to="/saved-items" className="flex items-center gap-2 px-3 text-black hover:text-primary">
+                  <FaRegHeart className="w-5 h-5" />
+                  <span>Saved items</span>
                 </Link>
               </div>
             </div>
@@ -101,12 +100,6 @@ const Navbar = () => {
         {/* mobile */}
         <div className="flex items-center justify-between p-4 bg-white lg:hidden">
           <div className="flex">
-            <div
-              className="block text-3xl lg:hidden"
-              onClick={() => setNav(!nav)}
-            >
-              <IoMdMenu />
-            </div>
             <Link to="/" className="flex items-center ml-3 gap-2">
               <div className="flex items-center gap-2">
                 <span className="font-mono uppercase text-[1.65rem] font-black tracking-[0.18em] leading-none text-black">
@@ -123,43 +116,15 @@ const Navbar = () => {
             <Link to={user ? "/account" : "/login"}>
               <BsPerson className="w-6 h-6 " />
             </Link>
-            <Link to="/cart">
-              <AiOutlineShoppingCart className="w-6 h-6  ml-3" />
+            <Link to="/orders" className="ml-3 flex items-center gap-1 text-xs">
+              <BsBox2 className="h-5 w-5" />
+              <span>Orders</span>
+            </Link>
+            <Link to="/saved-items" className="ml-3 flex items-center gap-1 text-xs">
+              <FaRegHeart className="h-5 w-5" />
+              <span>Saved</span>
             </Link>
           </div>
-          {nav && (
-            <div
-              className="fixed inset-0 bg-black opacity-30 z-10"
-              onClick={() => setNav(false)}
-            ></div>
-          )}
-          <ul
-            onClick={() => setNav(!nav)}
-            className={`absolute top-[0px] z-20 bg-gray-50 items-center w-[80%] left-0  h-full ${
-              nav ? "block" : "hidden"
-            }`}
-          >
-            <div className="flex py-4">
-              <div
-                className="block text-3xl lg:hidden"
-                onClick={() => setNav(!nav)}
-              >
-                <IoMdClose />
-              </div>
-              <Link to="/" className="flex items-center ml-3 gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono uppercase text-[1.65rem] font-black tracking-[0.18em] leading-none text-black">
-                    Nova
-                  </span>
-                  <img src="images/unicorn-horn-black.svg" alt="Unicorn horn" className="w-5 h-5" />
-                </div>
-                <span className="font-mono uppercase text-[1.1rem] font-semibold tracking-[0.32em] text-black">
-                  Unicorn
-                </span>
-              </Link>
-            </div>
-            <Sidebar />
-          </ul>
         </div>
       </nav>
     </>
