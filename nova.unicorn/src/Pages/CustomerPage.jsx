@@ -4,6 +4,8 @@ import { getAllProducts } from "../Store/thunk";
 import { addToCart } from "../Store/cart/CartSlice";
 import { Link, useNavigate } from "react-router-dom";
 import { FiHeadphones, FiSearch, FiSettings, FiShoppingCart, FiUser } from "react-icons/fi";
+import BestDeals from "../components/BestDeals";
+import FlashSales from "../components/FlashSales";
 
 const CustomerPage = () => {
   const dispatch = useAppDispatch();
@@ -89,6 +91,10 @@ const CustomerPage = () => {
           ))}
           </div>
           {!visibleProducts.length && status !== "loading" && <p className="rounded-md bg-white p-6 text-gray-600">No products match your search.</p>}
+          <div className="mt-8 space-y-6">
+            <BestDeals />
+            <FlashSales />
+          </div>
         </section>
       </div>
     </main>

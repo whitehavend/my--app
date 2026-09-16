@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { MdDiscount } from "react-icons/md";
 import { FaChevronRight } from "react-icons/fa6";
+import { useAppSelector } from "../Store/hooks";
+import ComingSoonBanner from "./ComingSoonBanner";
 
 const FlashSales = () => {
+  const { products } = useAppSelector((state) => state.products);
   const [timeLeft, setTimeLeft] = useState(6 * 60 * 60 * 1000);
 
   useEffect(() => {
@@ -26,80 +29,18 @@ const FlashSales = () => {
     return `${hours}h : ${minutes}m : ${seconds}s`;
   };
 
-  const salesItems = [
-    {
-      image: "images/flashsales/ac.jpg",
-      name: "air conditioner",
-      price: "₦250,000",
-      discountedPrice: "₦205,000",
-      itemsLeft: 34,
-      percentage: 20,
-    },
-    {
-      image: "images/flashsales/ace-pb.jpg",
-      name: "power bank",
-      price: "₦8,000",
-      discountedPrice: "₦7,000",
-      itemsLeft: 4,
-      percentage: 12,
-    },
-    {
-      image: "images/flashsales/bag.jpg",
-      name: "bag",
-      price: "₦23,500",
-      discountedPrice: "₦20,000",
-      itemsLeft: 51,
-      percentage: 46,
-    },
-    {
-      image: "images/flashsales/iron.jpg",
-      name: " Iron",
-      price: "₦17,800",
-      discountedPrice: "₦16,500",
-      itemsLeft: 4,
-      percentage: 4,
-    },
-    {
-      image: "images/flashsales/kettle.jpg",
-      name: "kettle",
-      price: "₦25,000",
-      discountedPrice: "₦22,000",
-      itemsLeft: 87,
-      percentage: 64,
-    },
-    {
-      image: "images/flashsales/nivea.jpg",
-      name: "air conditioner",
-      price: "₦4,570",
-      discountedPrice: "₦3,980",
-      itemsLeft: 23,
-      percentage: 25,
-    },
-    {
-      image: "images/flashsales/shoes.jpg",
-      name: "shoes",
-      price: "₦7,000",
-      discountedPrice: "₦6,230",
-      itemsLeft: 123,
-      percentage: 59,
-    },
-    {
-      image: "images/flashsales/sneakers.jpg",
-      name: "sneakers",
-      price: "₦8,700",
-      discountedPrice: "₦7,800",
-      itemsLeft: 48,
-      percentage: 35,
-    },
-    {
-      image: "images/flashsales/socks.jpg",
-      name: "socks",
-      price: "₦2,500",
-      discountedPrice: "₦1890",
-      itemsLeft: 78,
-      percentage: 62,
-    },
-  ];
+  const salesItems = products
+    .filter((product) => product.vendorId && product.salePrice !== null && product.salePrice !== undefined)
+    .map((product) => ({
+      image: product.images?.[0],
+      name: product.title,
+      price: `₦${Number(product.compareAtPrice ?? product.price).toLocaleString()}`,
+      discountedPrice: `₦${Number(product.salePrice).toLocaleString()}`,
+      itemsLeft: product.stock,
+      percentage: product.stock ? Math.min(100, Math.max(5, product.stock)) : 0,
+    }));
+
+  if (!salesItems.length) return <ComingSoonBanner label="Flash sales" />;
 
   return (
     <div className="bg-white rounded-md shadow-sm w-full overflow-hidden">
