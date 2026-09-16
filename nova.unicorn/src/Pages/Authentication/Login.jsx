@@ -9,7 +9,7 @@ import { useForm } from "react-hook-form";
 import { HiEye, HiEyeOff } from "react-icons/hi";
 
 const LoginPage = () => {
-  const { auth, error, notify, status } = useAppSelector((state) => state.auth);
+  const { auth, error, notify, status, user } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
@@ -31,10 +31,10 @@ const LoginPage = () => {
     if (notify) {
       setTimeout(() => {
         dispatch(resetNotify());
-        navigate("/");
+        navigate(`/${user?.role || "customer"}`);
       }, 1000); 
     }
-  }, [notify, dispatch, navigate]);
+  }, [notify, dispatch, navigate, user]);
 
   const onSubmit = async (data) => {
     if (isLogin) {

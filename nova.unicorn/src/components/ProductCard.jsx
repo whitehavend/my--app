@@ -10,6 +10,7 @@ const ProductCard = ({ product }) => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { notify } = useAppSelector((state) => state.carts);
+  const { user } = useAppSelector((state) => state.auth);
   useEffect(() => {
     if (notify) {
       setTimeout(() => {
@@ -20,6 +21,10 @@ const ProductCard = ({ product }) => {
   }, [notify, navigate, dispatch]);
 
   const handleAddToCart = (product, quantity) => {
+    if (!user || user.role !== "customer") {
+      navigate("/login");
+      return;
+    }
     dispatch(addToCart({ product, quantity }));
   };
 

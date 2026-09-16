@@ -45,6 +45,9 @@ const AuthSlice = createSlice({
           role: user.role || "customer",
           shopName: user.shopName || "",
           isApproved: user.isApproved ?? true,
+          phoneNumber: user.phoneNumber || "",
+          countryCode: user.countryCode || "",
+          advertSocials: user.advertSocials || {},
           accessToken: action.payload?.token || user.accessToken || "",
         };
       })
@@ -70,6 +73,9 @@ const AuthSlice = createSlice({
           role: user.role || "customer",
           shopName: user.shopName || "",
           isApproved: user.isApproved ?? true,
+          phoneNumber: user.phoneNumber || "",
+          countryCode: user.countryCode || "",
+          advertSocials: user.advertSocials || {},
           accessToken: action.payload?.token || user.accessToken || "",
         };
       })
@@ -87,9 +93,15 @@ const AuthSlice = createSlice({
           role: user.role || "customer",
           shopName: user.shopName || "",
           isApproved: user.isApproved ?? true,
+          phoneNumber: user.phoneNumber || "",
+          countryCode: user.countryCode || "",
+          advertSocials: user.advertSocials || {},
           accessToken: action.payload?.token || "",
         };
         state.status = "success";
+      })
+      .addCase(getCurrentUser.pending, (state) => {
+        state.status = "loading";
       })
       .addCase(getCurrentUser.rejected, (state) => {
         state.user = "";
