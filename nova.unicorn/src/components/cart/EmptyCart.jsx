@@ -1,12 +1,13 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { FiShoppingCart } from "react-icons/fi";
 
 const EmptyCart = () => {
   const navigate = useNavigate();
 
   return (
     <div className="flex items-center justify-center flex-col py-10  lg:bg-white lg:shadow-md rounded-md w-full mb-4">
-      <img src="images/cart-empty.svg" alt="empty cart" />
+      <FiShoppingCart aria-label="Shopping cart" className="h-24 w-24 text-gray-400" />
       <h1 className="font-semibold text-base leading-5 py-4">
         Your cart is empty!
       </h1>
