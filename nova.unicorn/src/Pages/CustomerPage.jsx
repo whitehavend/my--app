@@ -73,14 +73,15 @@ const CustomerPage = () => {
           <h2 className="flex items-center gap-2 border-b border-gray-200 pb-4 text-sm font-semibold uppercase tracking-wider"><FiSettings /> Settings</h2>
           <div className="space-y-2 pt-4 text-sm text-gray-600">
             <Link to={user ? "/account" : "/login"} className="block rounded-md px-3 py-2 hover:bg-gray-100 hover:text-primary">Account settings</Link>
-            <Link to="/orders" className="block rounded-md px-3 py-2 hover:bg-gray-100 hover:text-primary">Order history</Link>
+            <Link to="/orders" className="block rounded-md px-3 py-2 hover:bg-gray-100 hover:text-primary">Orders</Link>
+            <Link to={user ? "/saved-items" : "/login"} className="block rounded-md px-3 py-2 hover:bg-gray-100 hover:text-primary">Saved items</Link>
           </div>
         </aside>
 
         <section>
           <div className="mb-6"><p className="text-sm font-medium uppercase tracking-[0.2em] text-primary">Customer marketplace</p><h1 className="mt-2 text-3xl font-bold">Products from our vendors</h1><p className="mt-2 text-gray-600">Browse, search, and shop vendor listings.</p></div>
           {status === "loading" && <p>Loading products...</p>}
-          {error && <p className="text-red-600">{error}</p>}
+          {error && error !== "nil" && <p className="text-red-600">{error}</p>}
           {status !== "loading" && !visibleProducts.length && <ComingSoonBanner label="Vendor marketplace" />}
           {visibleProducts.length > 0 && (
             <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">

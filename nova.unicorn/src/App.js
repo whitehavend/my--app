@@ -15,6 +15,7 @@ import CustomerPage from "./Pages/CustomerPage";
 import VendorPage from "./Pages/VendorPage";
 import AdvertPage from "./Pages/AdvertPage";
 import LogisticPage from "./Pages/LogisticPage";
+import SavedItems from "./Pages/SavedItems";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -30,6 +31,7 @@ function App() {
       <Routes>
         <Route path="/" element={<CustomerPage />} />
         <Route path="/customer" element={<CustomerPage />} />
+        <Route path="/saved-items" element={<ProtectedRoleRoute role="customer"><SavedItems /></ProtectedRoleRoute>} />
         <Route path="/vendor" element={<ProtectedRoleRoute role="vendor"><VendorPage /></ProtectedRoleRoute>} />
         <Route path="/advert" element={<ProtectedRoleRoute role="advert"><AdvertPage /></ProtectedRoleRoute>} />
         <Route path="/logistic" element={<ProtectedRoleRoute role="logistic"><LogisticPage /></ProtectedRoleRoute>} />
