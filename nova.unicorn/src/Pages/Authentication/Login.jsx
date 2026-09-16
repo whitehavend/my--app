@@ -90,6 +90,21 @@ const LoginPage = () => {
             Type your email to log in to your Nova-Unicorn account.
           </p>
           <form onSubmit={handleSubmit(onSubmit)} className="w-full">
+            {isLogin && (
+              <div className="mb-4">
+                <label className="mb-2 block text-sm font-medium text-gray-700">Account type</label>
+                <select
+                  {...register("role")}
+                  className="w-full rounded-md border border-gray-400 bg-white p-4 outline-none focus:border-primary"
+                >
+                  <option value="customer">Customer</option>
+                  <option value="vendor">Vendor</option>
+                  <option value="advert">Advert</option>
+                  <option value="logistic">Logistic</option>
+                </select>
+              </div>
+            )}
+
             {!isLogin && (
               <>
                 <div className="mb-4">
@@ -114,6 +129,10 @@ const LoginPage = () => {
                     <label className="flex items-center gap-2 text-sm">
                       <input type="radio" value="advert" {...register("role")} />
                       Advert
+                    </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input type="radio" value="logistic" {...register("role")} />
+                      Logistic
                     </label>
                   </div>
                 </div>
@@ -226,6 +245,35 @@ const LoginPage = () => {
                   </div>
                 </fieldset>
               </>
+            )}
+
+            {!isLogin && selectedRole === "logistic" && (
+              <div className="my-4">
+                <label className="mb-2 block text-sm font-medium text-gray-700">Phone number</label>
+                <div className="flex gap-2">
+                  <select
+                    aria-label="Country code"
+                    {...register("countryCode", { required: "Country code is required" })}
+                    className="w-28 rounded-md border border-gray-400 bg-white p-4 outline-none focus:border-primary"
+                  >
+                    <option value="">Code</option>
+                    <option value="+1">+1</option>
+                    <option value="+44">+44</option>
+                    <option value="+234">+234</option>
+                    <option value="+254">+254</option>
+                    <option value="+27">+27</option>
+                    <option value="+91">+91</option>
+                  </select>
+                  <input
+                    type="tel"
+                    placeholder="Phone number"
+                    {...register("phoneNumber", { required: "Phone number is required" })}
+                    className="min-w-0 flex-1 rounded-md border border-gray-400 p-4 outline-none focus:border-primary"
+                  />
+                </div>
+                {errors.countryCode && <p className="mt-1 text-xs text-red-500">{errors.countryCode.message}</p>}
+                {errors.phoneNumber && <p className="mt-1 text-xs text-red-500">{errors.phoneNumber.message}</p>}
+              </div>
             )}
 
             <div className="relative my-4">

@@ -96,8 +96,8 @@ router.post('/signup', async (req, res) => {
     return res.status(400).json({ error: 'All fields are required' });
   }
 
-  if (!['customer', 'vendor', 'advert'].includes(role)) {
-    return res.status(400).json({ error: 'Role must be customer, vendor, or advert' });
+  if (!['customer', 'vendor', 'advert', 'logistic'].includes(role)) {
+    return res.status(400).json({ error: 'Role must be customer, vendor, advert, or logistic' });
   }
 
   if (role === 'vendor' && (!shopName || !phoneNumber)) {
@@ -109,6 +109,12 @@ router.post('/signup', async (req, res) => {
   if (role === 'advert' && (!phoneNumber || !countryCode)) {
     return res.status(400).json({
       error: 'Phone number and country code are required for Advert registration',
+    });
+  }
+
+  if (role === 'logistic' && (!phoneNumber || !countryCode)) {
+    return res.status(400).json({
+      error: 'Phone number and country code are required for Logistic registration',
     });
   }
 
@@ -145,14 +151,14 @@ router.post('/signup', async (req, res) => {
       shopName: role === 'vendor' ? shopName : '',
       phoneNumber: role === 'customer' ? '' : phoneNumber,
       businessName: role === 'vendor' ? businessName || '' : '',
-      countryCode: role === 'advert' ? countryCode : '',
+      countryCode: role === 'advert' || role === 'logistic' ? countryCode : '',
       advertSocials: role === 'advert' ? normalizedAdvertSocials : {},
     };
 
     const newUser = await createUserRecord(userData);
 
     return res.status(201).json({
-      message: role === 'vendor' ? 'Vendor registration submitted successfully' : role === 'advert' ? 'Advert account created successfully' : 'User created successfully',
+      message: role === 'vendor' ? 'Vendor registration submitted successfully' : role === 'advert' ? 'Advert account created successfully' : role === 'logistic' ? 'Logistic account created successfully' : 'User created successfully',
       user: serializeUser(newUser),
       token: generateToken(newUser),
     });
@@ -167,10 +173,14 @@ router.post('/signup', async (req, res) => {
 });
 
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, role = 'customer' } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password are required' });
+  }
+
+  if (!['customer', 'vendor', 'advert', 'logistic'].includes(role)) {
+    return res.status(400).json({ error: 'Choose a valid account type' });
   }
 
   try {
@@ -178,6 +188,10 @@ router.post('/login', async (req, res) => {
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (user.role !== role) {
+      return res.status(401).json({ error: 'The selected account type does not match this account' });
     }
 
     const passwordMatches = await bcrypt.compare(password, user.password);

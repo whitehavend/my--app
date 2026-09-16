@@ -53,12 +53,12 @@ export const handleLogin = createAsyncThunk(
   "handleLogin",
   async ({ data }, thunkAPI) => {
     const payload = data?.data ?? data;
-    const { email, password } = payload || {};
+    const { email, password, role = "customer" } = payload || {};
 
     try {
       const response = await axios.post(
         `${process.env.REACT_APP_BASEURL}/auth/login`,
-        { email, password }
+        { email, password, role }
       );
 
       if (response.data?.token) {
