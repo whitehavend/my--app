@@ -102,7 +102,11 @@ const Navbar = () => {
         {/* mobile */}
         <div className="flex items-center justify-between p-4 bg-white lg:hidden">
           <div className="flex">
-            <Link to="/" className="flex items-center ml-3 gap-2">
+            <Link to={user ? "/account" : "/login"} className="mr-3 flex items-center gap-1 text-xs">
+              <BsPerson className="w-6 h-6" />
+              <span>{user?.username || "Account"}</span>
+            </Link>
+            <Link to="/" className="flex items-center gap-2">
               <div className="flex items-center gap-2">
                 <span className="font-mono uppercase text-[1.65rem] font-black tracking-[0.18em] leading-none text-black">
                   Nova
@@ -115,10 +119,6 @@ const Navbar = () => {
             </Link>
           </div>
           <div className="flex">
-            <Link to={user ? "/account" : "/login"} className="mr-3 flex items-center gap-1 text-xs">
-              <BsPerson className="w-6 h-6 " />
-              <span>{user?.username || "Account"}</span>
-            </Link>
             <Link to="/orders" className="ml-3 flex items-center gap-1 text-xs">
               <BsBox2 className="h-5 w-5" />
               <span>Orders</span>
