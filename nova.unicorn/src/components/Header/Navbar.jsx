@@ -35,7 +35,19 @@ const Navbar = () => {
       <nav className="w-full ">
         <div className="items-center shadow-md justify-center hidden py-4  bg-white lg:flex">
           <div className="w-[80%] flex items-center justify-between ">
-            <Link to="/" className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
+              <div
+                onClick={openAcct}
+                className={`flex items-center text-black hover:text-primary cursor-pointer ${
+                  showAcct && "bg-gray-100 rounded-md"
+                }`}
+              >
+                <BsPerson className="w-5 h-5" />
+                <span className="mx-2">{user?.username || name || "Account"}</span>
+                <FaChevronDown className="w-3 h-3" />
+              </div>
+              {showAcct && <Account />}
+              <Link to="/" className="flex items-center gap-2">
               <div className="flex items-center gap-2">
                 <span className="font-mono uppercase text-[1.65rem] font-black tracking-[0.18em] leading-none text-black">
                   Nova
@@ -45,7 +57,8 @@ const Navbar = () => {
               <span className="font-mono uppercase text-[1.1rem] font-semibold tracking-[0.32em] text-black">
                 Unicorn
               </span>
-            </Link>
+              </Link>
+            </div>
             <div className="flex w-[80%]">
               <div className="flex flex-1 items-center">
                 <div className="relative flex-1">
@@ -62,17 +75,6 @@ const Navbar = () => {
               </div>
 
               <div className="flex ml-2">
-                <div
-                  onClick={openAcct}
-                  className={`flex items-center px-3 text-black hover:text-primary cursor-pointer ${
-                    showAcct && "bg-gray-100 rounded-md"
-                  }`}
-                >
-                  <BsPerson className="w-5 h-5 " />
-                  <span className="mx-3 ">{name ? name : "Account"}</span>
-                  <FaChevronDown className=" w-3 h-3  " />
-                </div>
-                {showAcct && <Account />}
                 <div
                   onClick={openHelp}
                   className={`flex items-center px-3 text-black hover:text-primary cursor-pointer ${
@@ -113,8 +115,9 @@ const Navbar = () => {
             </Link>
           </div>
           <div className="flex">
-            <Link to={user ? "/account" : "/login"}>
+            <Link to={user ? "/account" : "/login"} className="mr-3 flex items-center gap-1 text-xs">
               <BsPerson className="w-6 h-6 " />
+              <span>{user?.username || "Account"}</span>
             </Link>
             <Link to="/orders" className="ml-3 flex items-center gap-1 text-xs">
               <BsBox2 className="h-5 w-5" />
