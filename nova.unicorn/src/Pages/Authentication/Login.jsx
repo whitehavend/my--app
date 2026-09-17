@@ -61,13 +61,17 @@ const LoginPage = () => {
       try {
         const idToken = await firebaseUser.getIdToken();
         const role = sessionStorage.getItem("google_login_role") || "customer";
-        sessionStorage.removeItem("google_login_role");
         const response = await dispatch(handleGoogleLogin({ idToken, role }));
 
         if (isMounted && handleGoogleLogin.rejected.match(response)) {
+          googleLoginHandled.current = false;
           setGoogleError(response.payload || "Unable to log in with Google");
+          return;
         }
+
+        sessionStorage.removeItem("google_login_role");
       } catch (googleError) {
+        googleLoginHandled.current = false;
         if (isMounted) {
           setGoogleError(googleErrorMessages[googleError.code] || `Unable to sign in with Google (${googleError.code || "unknown error"})`);
         }

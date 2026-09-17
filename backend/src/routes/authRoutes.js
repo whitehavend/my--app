@@ -233,13 +233,17 @@ router.post('/google', async (req, res) => {
   try {
     const tokenResponse = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`);
     const googleUser = await tokenResponse.json();
+    const firebaseProjectId = process.env.FIREBASE_PROJECT_ID || 'minitasker-e75bdf47';
+    const expectedIssuer = `https://securetoken.google.com/${firebaseProjectId}`;
+    const validAudience = googleUser.aud === firebaseProjectId;
+    const validIssuer = !googleUser.iss || googleUser.iss === expectedIssuer;
 
-    if (!tokenResponse.ok || googleUser.aud !== (process.env.FIREBASE_PROJECT_ID || 'minitasker-e75bdf47')) {
+    if (!tokenResponse.ok || !validAudience || !validIssuer) {
       return res.status(401).json({ error: 'Google authentication could not be verified' });
     }
 
     const email = String(googleUser.email || '').toLowerCase();
-    if (!email || googleUser.email_verified !== 'true') {
+    if (!email || (googleUser.email_verified !== 'true' && googleUser.email_verified !== true)) {
       return res.status(401).json({ error: 'A verified Google account is required' });
     }
 
