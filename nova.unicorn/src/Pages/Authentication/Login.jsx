@@ -8,8 +8,16 @@ import MiniLoader from "../../components/preloader/MiniLoader";
 import { useForm } from "react-hook-form";
 import { HiEye, HiEyeOff } from "react-icons/hi";
 import CountryPhoneField from "../../components/CountryPhoneField";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { GoogleAuthProvider, getRedirectResult, signInWithRedirect } from "firebase/auth";
 import { auth as firebaseAuth } from "../../firebaseConfig";
+
+const googleErrorMessages = {
+  "auth/popup-closed-by-user": "Google sign-in was cancelled",
+  "auth/popup-blocked": "Your browser blocked the Google sign-in popup. Allow popups and try again.",
+  "auth/unauthorized-domain": "This website is not authorized for Google sign-in in Firebase.",
+  "auth/operation-not-allowed": "Google sign-in is not enabled in Firebase Authentication.",
+  "auth/invalid-api-key": "The Firebase API key is invalid. Check REACT_APP_FIREBASE_KEY.",
+};
 
 const LoginPage = () => {
   const { auth, error, notify, status, user } = useAppSelector((state) => state.auth);
@@ -39,6 +47,37 @@ const LoginPage = () => {
       }, 1000); 
     }
   }, [notify, dispatch, navigate, user]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const completeGoogleRedirect = async () => {
+      try {
+        const result = await getRedirectResult(firebaseAuth);
+        if (!result?.user) {
+          return;
+        }
+
+        const idToken = await result.user.getIdToken();
+        const role = sessionStorage.getItem("google_login_role") || "customer";
+        sessionStorage.removeItem("google_login_role");
+        const response = await dispatch(handleGoogleLogin({ idToken, role }));
+
+        if (isMounted && handleGoogleLogin.rejected.match(response)) {
+          setGoogleError(response.payload || "Unable to log in with Google");
+        }
+      } catch (googleError) {
+        if (isMounted) {
+          setGoogleError(googleErrorMessages[googleError.code] || `Unable to sign in with Google (${googleError.code || "unknown error"})`);
+        }
+      }
+    };
+
+    completeGoogleRedirect();
+    return () => {
+      isMounted = false;
+    };
+  }, [dispatch]);
 
   const onSubmit = async (data) => {
     if (isLogin) {
@@ -70,19 +109,14 @@ const LoginPage = () => {
     });
   };
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignIn = () => {
     setGoogleError("");
-    try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(firebaseAuth, provider);
-      const idToken = await result.user.getIdToken();
-      const response = await dispatch(handleGoogleLogin({ idToken, role: selectedRole }));
-      if (handleGoogleLogin.rejected.match(response)) {
-        setGoogleError(response.payload || "Unable to log in with Google");
-      }
-    } catch (googleError) {
-      setGoogleError(googleError.code === "auth/popup-closed-by-user" ? "Google sign-in was cancelled" : "Unable to sign in with Google");
-    }
+    sessionStorage.setItem("google_login_role", selectedRole);
+    const provider = new GoogleAuthProvider();
+    signInWithRedirect(firebaseAuth, provider).catch((googleError) => {
+      sessionStorage.removeItem("google_login_role");
+      setGoogleError(googleErrorMessages[googleError.code] || `Unable to sign in with Google (${googleError.code || "unknown error"})`);
+    });
   };
 
 

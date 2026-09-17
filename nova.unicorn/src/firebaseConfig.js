@@ -8,13 +8,12 @@ import { getFirestore } from "firebase/firestore";
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: `${process.env.REACT_APP_FIREBASE_KEY}`,
-  authDomain: "nova-unicorn-cfae8.firebaseapp.com",
-  projectId: "nova-unicorn-cfae8",
-  storageBucket: "nova-unicorn-cfae8.appspot.com",
-  messagingSenderId: "654148363121",
-  appId: "1:654148363121:web:77780bf98f200fa8330cd0",
-  measurementId: "G-BCZCWYW71K"
+  apiKey: "AIzaSyBMk6twqrPNUxzI9mXjQVLKvA-Zj-iPEbQ",
+  authDomain: "minitasker-e75bdf47.firebaseapp.com",
+  projectId: "minitasker-e75bdf47",
+  storageBucket: "minitasker-e75bdf47.firebasestorage.app",
+  messagingSenderId: "298306799940",
+  appId: "1:298306799940:web:37cbedfae5edadfa552f11"
 };
 
 // Initialize Firebase

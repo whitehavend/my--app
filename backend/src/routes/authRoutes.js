@@ -234,7 +234,7 @@ router.post('/google', async (req, res) => {
     const tokenResponse = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`);
     const googleUser = await tokenResponse.json();
 
-    if (!tokenResponse.ok || googleUser.aud !== (process.env.FIREBASE_PROJECT_ID || 'nova-unicorn-cfae8')) {
+    if (!tokenResponse.ok || googleUser.aud !== (process.env.FIREBASE_PROJECT_ID || 'minitasker-e75bdf47')) {
       return res.status(401).json({ error: 'Google authentication could not be verified' });
     }
 
