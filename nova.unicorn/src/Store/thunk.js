@@ -126,6 +126,23 @@ export const handleSignup = createAsyncThunk(
   }
 );
 
+export const handleGoogleLogin = createAsyncThunk(
+  "handleGoogleLogin",
+  async ({ idToken, role = "customer" }, thunkAPI) => {
+    try {
+      const response = await axios.post(`${apiBaseUrl}/auth/google`, { idToken, role });
+
+      if (response.data?.token) {
+        localStorage.setItem("unicorn_token", response.data.token);
+      }
+
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.error || error.message || "Google login failed");
+    }
+  }
+);
+
 export const getCurrentUser = createAsyncThunk(
   "getCurrentUser",
   async (_, thunkAPI) => {

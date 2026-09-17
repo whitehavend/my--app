@@ -219,6 +219,66 @@ router.post('/login', async (req, res) => {
   }
 });
 
+router.post('/google', async (req, res) => {
+  const { idToken, role = 'customer' } = req.body;
+
+  if (!idToken) {
+    return res.status(400).json({ error: 'Google authentication token is required' });
+  }
+
+  if (!['customer', 'vendor', 'advert', 'logistic'].includes(role)) {
+    return res.status(400).json({ error: 'Choose a valid account type' });
+  }
+
+  try {
+    const tokenResponse = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`);
+    const googleUser = await tokenResponse.json();
+
+    if (!tokenResponse.ok || googleUser.aud !== (process.env.FIREBASE_PROJECT_ID || 'nova-unicorn-cfae8')) {
+      return res.status(401).json({ error: 'Google authentication could not be verified' });
+    }
+
+    const email = String(googleUser.email || '').toLowerCase();
+    if (!email || googleUser.email_verified !== 'true') {
+      return res.status(401).json({ error: 'A verified Google account is required' });
+    }
+
+    let user = await getUserByEmail(email);
+
+    if (user && user.role !== role) {
+      return res.status(401).json({ error: 'The selected account type does not match this account' });
+    }
+
+    if (!user) {
+      const fullName = googleUser.name || email.split('@')[0];
+      user = await createUserRecord({
+        fullName,
+        username: googleUser.email.split('@')[0],
+        email,
+        password: await bcrypt.hash(`google:${googleUser.sub}`, 10),
+        role,
+        isApproved: true,
+        shopName: '',
+        phoneNumber: '',
+        businessName: '',
+        deliveryAddress: '',
+        shopAddress: '',
+        countryCode: '',
+        advertSocials: {},
+      });
+    }
+
+    return res.status(200).json({
+      message: 'Google login successful',
+      user: serializeUser(user),
+      token: generateToken(user),
+    });
+  } catch (error) {
+    console.error('Google login error:', error);
+    return res.status(500).json({ error: 'Unable to log in with Google' });
+  }
+});
+
 router.get('/me', authMiddleware, async (req, res) => {
   try {
     const user = await getUserById(req.user.id);

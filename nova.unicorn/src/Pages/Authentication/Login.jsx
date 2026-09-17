@@ -1,19 +1,22 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../Store/hooks";
-import { handleLogin, handleSignup } from "../../Store/thunk";
+import { handleGoogleLogin, handleLogin, handleSignup } from "../../Store/thunk";
 import Alert from "../../components/Alert";
 import { resetNotify } from "../../Store/auth/AuthSlice";
 import MiniLoader from "../../components/preloader/MiniLoader";
 import { useForm } from "react-hook-form";
 import { HiEye, HiEyeOff } from "react-icons/hi";
 import CountryPhoneField from "../../components/CountryPhoneField";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { auth as firebaseAuth } from "../../firebaseConfig";
 
 const LoginPage = () => {
   const { auth, error, notify, status, user } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [googleError, setGoogleError] = useState("");
   const navigate = useNavigate();
   const {
     register,
@@ -67,15 +70,20 @@ const LoginPage = () => {
     });
   };
 
-  // const handleGoogleLogin = async () => {
-  //   try {
-  //     const provider = new GoogleAuthProvider(); 
-  //     const result = await signInWithPopup(auth, provider);
-  //     console.log("User logged in with Google successfully:", result.user);
-  //   } catch (error) {
-  //     console.error("Google login error:", error.message);
-  //   }
-  // };
+  const handleGoogleSignIn = async () => {
+    setGoogleError("");
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(firebaseAuth, provider);
+      const idToken = await result.user.getIdToken();
+      const response = await dispatch(handleGoogleLogin({ idToken, role: selectedRole }));
+      if (handleGoogleLogin.rejected.match(response)) {
+        setGoogleError(response.payload || "Unable to log in with Google");
+      }
+    } catch (googleError) {
+      setGoogleError(googleError.code === "auth/popup-closed-by-user" ? "Google sign-in was cancelled" : "Unable to sign in with Google");
+    }
+  };
 
 
   return (
@@ -278,6 +286,7 @@ const LoginPage = () => {
             </button>
           </form>
           {error && error !== "nil" && <p className="text-red-500 text-xs">{error}</p>}
+          {googleError && <p className="text-red-500 text-xs">{googleError}</p>}
           <p className="text-xs w-[60%] text-center">
             By continuing you agree to Unicorn’s <br />
             <span className="underline text-primary">Terms and Conditions</span>
@@ -288,7 +297,7 @@ const LoginPage = () => {
           >
             {isLogin ? "Create Account" : "Log in"}
           </button>
-          <button className="w-full border flex items-center justify-center border-gray-500 hover:border-gray-600  p-4 rounded-md shadow-md mt-4 mb-2">
+          <button type="button" onClick={handleGoogleSignIn} disabled={status === "loading"} className="w-full border flex items-center justify-center border-gray-500 hover:border-gray-600 p-4 rounded-md shadow-md mt-4 mb-2 disabled:cursor-not-allowed disabled:opacity-60">
             Log in with Google{" "}
             <img
               src="images/Google_Icons.webp"

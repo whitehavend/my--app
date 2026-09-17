@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { approveVendor, getCurrentUser, getPendingVendors, handleLogin, handleSignup } from "../thunk";
+import { approveVendor, getCurrentUser, getPendingVendors, handleGoogleLogin, handleLogin, handleSignup } from "../thunk";
 
 const initialState = {
   auth: "",
@@ -88,6 +88,37 @@ const AuthSlice = createSlice({
       .addCase(handleSignup.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload || "Unable to sign up, Please try again later";
+      })
+
+      .addCase(handleGoogleLogin.pending, (state) => {
+        state.status = "loading";
+        state.error = "nil";
+      })
+      .addCase(handleGoogleLogin.fulfilled, (state, action) => {
+        const user = action.payload?.user || {};
+        state.status = "success";
+        state.auth = action.payload?.message || "Google login successful";
+        state.error = "nil";
+        state.notify = true;
+        state.user = {
+          uid: user.id || user.uid,
+          email: user.email,
+          displayName: user.fullName || user.displayName,
+          username: user.username || "",
+          role: user.role || "customer",
+          shopName: user.shopName || "",
+          isApproved: user.isApproved ?? true,
+          phoneNumber: user.phoneNumber || "",
+          countryCode: user.countryCode || "",
+          advertSocials: user.advertSocials || {},
+          deliveryAddress: user.deliveryAddress || "",
+          shopAddress: user.shopAddress || "",
+          accessToken: action.payload?.token || "",
+        };
+      })
+      .addCase(handleGoogleLogin.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload || "Unable to log in with Google";
       })
 
       .addCase(getCurrentUser.fulfilled, (state, action) => {
