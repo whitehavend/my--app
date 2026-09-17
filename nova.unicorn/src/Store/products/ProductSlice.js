@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createProduct, getAllProducts, getProductByCategory } from "../thunk";
+import { createProduct, getAllProducts, getProductByCategory, getVendorProducts } from "../thunk";
 
 const initialState = {
   products: [],
@@ -68,6 +68,19 @@ const ProductsSlice = createSlice({
       .addCase(createProduct.rejected, (state, action) => {
         state.productStatus = 'failed';
         state.productError = action.payload || 'Unable to create product';
+      })
+      .addCase(getVendorProducts.pending, (state) => {
+        state.status = 'loading';
+        state.error = '';
+      })
+      .addCase(getVendorProducts.fulfilled, (state, action) => {
+        state.status = 'success';
+        state.products = action.payload?.products || [];
+        state.error = '';
+      })
+      .addCase(getVendorProducts.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload || 'Unable to fetch uploaded products';
       });
   }
 });

@@ -53,6 +53,22 @@ router.get('/products', async (req, res) => {
   }
 });
 
+router.get('/products/vendor/mine', authMiddleware, async (req, res) => {
+  try {
+    if (shouldUseDemoData()) {
+      return res.status(200).json({
+        products: demoProducts.filter((product) => String(product.vendorId) === String(req.user.id)).sort((first, second) => new Date(second.createdAt) - new Date(first.createdAt)),
+      });
+    }
+
+    const products = await Product.find({ vendorId: String(req.user.id) }).sort({ createdAt: -1 });
+    return res.status(200).json({ products });
+  } catch (error) {
+    console.error('Get vendor products error:', error);
+    return res.status(500).json({ error: 'Unable to fetch uploaded products' });
+  }
+});
+
 router.post('/products', authMiddleware, async (req, res) => {
   try {
     const {

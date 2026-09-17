@@ -1,12 +1,18 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
+const configuredBaseUrl = process.env.REACT_APP_BASEURL || "";
+const isLocalHost = configuredBaseUrl.includes("localhost") || configuredBaseUrl.includes("127.0.0.1");
+const apiBaseUrl = isLocalHost && typeof window !== "undefined" && window.location.hostname !== "localhost"
+  ? configuredBaseUrl.replace(/(localhost|127\.0\.0\.1)/, window.location.hostname)
+  : configuredBaseUrl;
+
 export const getAllProducts = createAsyncThunk(
   "getAllProducts",
   async (_, thunkAPI) => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_BASEURL}/products`
+        `${apiBaseUrl}/products`
       );
       return response.data;
     } catch (error) {
@@ -22,7 +28,7 @@ export const getProductByCategory = createAsyncThunk(
   async (_, thunkAPI) => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_BASEURL}/products/category/smartphones`
+        `${apiBaseUrl}/products/category/smartphones`
       );
       return response.data;
     } catch (error) {
@@ -38,7 +44,7 @@ export const getAllCategories = createAsyncThunk(
   async (_, thunkAPI) => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_BASEURL}/products/category-list`
+        `${apiBaseUrl}/products/category-list`
       );
       return response.data;
     } catch (error) {
@@ -57,7 +63,7 @@ export const handleLogin = createAsyncThunk(
 
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_BASEURL}/auth/login`,
+        `${apiBaseUrl}/auth/login`,
         { email, password, role }
       );
 
@@ -103,7 +109,7 @@ export const handleSignup = createAsyncThunk(
 
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_BASEURL}/auth/signup`,
+        `${apiBaseUrl}/auth/signup`,
         { fullName, username, email, password, role, shopName, phoneNumber, businessName, countryCode, advertSocials: selectedAdvertSocials, deliveryAddress, shopAddress }
       );
 
@@ -131,7 +137,7 @@ export const getCurrentUser = createAsyncThunk(
 
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_BASEURL}/auth/me`,
+        `${apiBaseUrl}/auth/me`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -152,7 +158,7 @@ export const deleteAccount = createAsyncThunk(
 
     try {
       const response = await axios.delete(
-        `${process.env.REACT_APP_BASEURL}/auth/me`,
+        `${apiBaseUrl}/auth/me`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       return response.data;
@@ -171,7 +177,7 @@ export const createProduct = createAsyncThunk(
 
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_BASEURL}/products`,
+        `${apiBaseUrl}/products`,
         productData,
         {
           headers: {
@@ -196,7 +202,7 @@ export const createOrder = createAsyncThunk(
 
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_BASEURL}/orders`,
+        `${apiBaseUrl}/orders`,
         { items, totalAmount, shippingAddress, paymentMethod },
         {
           headers: {
@@ -221,7 +227,7 @@ export const getUserOrders = createAsyncThunk(
 
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_BASEURL}/orders/my-orders`,
+        `${apiBaseUrl}/orders/my-orders`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -238,6 +244,38 @@ export const getUserOrders = createAsyncThunk(
   }
 );
 
+export const getVendorProducts = createAsyncThunk(
+  "getVendorProducts",
+  async (_, thunkAPI) => {
+    const token = localStorage.getItem("unicorn_token");
+
+    try {
+      const response = await axios.get(`${apiBaseUrl}/products/vendor/mine`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.error || error.message || "Unable to fetch uploaded products");
+    }
+  }
+);
+
+export const getVendorOrders = createAsyncThunk(
+  "getVendorOrders",
+  async (_, thunkAPI) => {
+    const token = localStorage.getItem("unicorn_token");
+
+    try {
+      const response = await axios.get(`${apiBaseUrl}/orders/vendor`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.error || error.message || "Unable to fetch fulfillment orders");
+    }
+  }
+);
+
 export const getPendingVendors = createAsyncThunk(
   "getPendingVendors",
   async (_, thunkAPI) => {
@@ -245,7 +283,7 @@ export const getPendingVendors = createAsyncThunk(
 
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_BASEURL}/auth/vendors/pending`,
+        `${apiBaseUrl}/auth/vendors/pending`,
         token
           ? {
               headers: {
@@ -271,7 +309,7 @@ export const approveVendor = createAsyncThunk(
 
     try {
       const response = await axios.patch(
-        `${process.env.REACT_APP_BASEURL}/auth/vendors/${vendorId}/approve`,
+        `${apiBaseUrl}/auth/vendors/${vendorId}/approve`,
         {},
         {
           headers: {

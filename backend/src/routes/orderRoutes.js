@@ -1,6 +1,7 @@
 const express = require('express');
 const authMiddleware = require('../middleware/authMiddleware');
 const Order = require('../models/Order');
+const Product = require('../models/Product');
 
 const router = express.Router();
 
@@ -45,6 +46,21 @@ router.get('/my-orders', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error('Fetch user orders error:', error);
     return res.status(500).json({ error: 'Unable to fetch orders' });
+  }
+});
+
+router.get('/vendor', authMiddleware, async (req, res) => {
+  try {
+    const products = await Product.find({ vendorId: String(req.user.id) }).select('_id');
+    const productIds = products.map((product) => String(product._id));
+    const orders = productIds.length
+      ? await Order.find({ 'items.productId': { $in: productIds } }).sort({ createdAt: -1 })
+      : [];
+
+    return res.status(200).json({ orders });
+  } catch (error) {
+    console.error('Fetch vendor orders error:', error);
+    return res.status(500).json({ error: 'Unable to fetch fulfillment orders' });
   }
 });
 

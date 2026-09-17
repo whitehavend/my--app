@@ -13,6 +13,9 @@ import { getCurrentUser } from "./Store/thunk";
 import ProtectedRoleRoute from "./components/ProtectedRoleRoute";
 import CustomerPage from "./Pages/CustomerPage";
 import VendorPage from "./Pages/VendorPage";
+import VendorOrders from "./Pages/VendorOrders";
+import VendorProducts from "./Pages/VendorProducts";
+import VendorHelp from "./Pages/VendorHelp";
 import AdvertPage from "./Pages/AdvertPage";
 import LogisticPage from "./Pages/LogisticPage";
 import SavedItems from "./Pages/SavedItems";
@@ -32,7 +35,11 @@ function App() {
         <Route path="/" element={<CustomerPage />} />
         <Route path="/customer" element={<CustomerPage />} />
         <Route path="/saved-items" element={<ProtectedRoleRoute role="customer"><SavedItems /></ProtectedRoleRoute>} />
-        <Route path="/vendor" element={<ProtectedRoleRoute role="vendor"><VendorPage /></ProtectedRoleRoute>} />
+        <Route path="/vendor" element={<ProtectedRoleRoute role="vendor"><VendorPage><VendorProductUpload /></VendorPage></ProtectedRoleRoute>} />
+        <Route path="/vendor/orders" element={<ProtectedRoleRoute role="vendor"><VendorPage><VendorOrders /></VendorPage></ProtectedRoleRoute>} />
+        <Route path="/vendor/products" element={<ProtectedRoleRoute role="vendor"><VendorPage><VendorProducts /></VendorPage></ProtectedRoleRoute>} />
+        <Route path="/vendor/products/new" element={<ProtectedRoleRoute role="vendor"><VendorPage><VendorProductUpload /></VendorPage></ProtectedRoleRoute>} />
+        <Route path="/vendor/help" element={<ProtectedRoleRoute role="vendor"><VendorPage><VendorHelp /></VendorPage></ProtectedRoleRoute>} />
         <Route path="/advert" element={<ProtectedRoleRoute role="advert"><AdvertPage /></ProtectedRoleRoute>} />
         <Route path="/logistic" element={<ProtectedRoleRoute role="logistic"><LogisticPage /></ProtectedRoleRoute>} />
         <Route path="/:productName" element={<Product />} />
@@ -41,7 +48,6 @@ function App() {
         <Route path="/orders" element={<Orders />} />
         <Route path="/account" element={<Account />} />
         <Route path="/admin/vendors" element={<AdminVendors />} />
-        <Route path="/vendor/products/new" element={<VendorProductUpload />} />
       </Routes>
       <Footer />
     </Router>

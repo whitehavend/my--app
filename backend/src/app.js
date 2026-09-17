@@ -12,9 +12,18 @@ const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:3000,https:/
   .map((origin) => origin.trim())
   .filter(Boolean);
 
+const isPrivateNetworkOrigin = (origin) => {
+  try {
+    const { hostname } = new URL(origin);
+    return /^(localhost|127\.0\.0\.1|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3})$/.test(hostname);
+  } catch {
+    return false;
+  }
+};
+
 const corsOptions = {
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(origin) || isPrivateNetworkOrigin(origin)) {
       callback(null, true);
       return;
     }
