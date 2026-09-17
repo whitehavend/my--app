@@ -8,6 +8,7 @@ const authMiddleware = require('../middleware/authMiddleware');
 const User = require('../models/User');
 
 const router = express.Router();
+const vendorTypes = ['retailshopvendor', 'cardealer', 'realestate', 'pharmacy', 'agrovet'];
 
 const getFirebaseAuth = () => {
   if (!getApps().length) {
@@ -89,6 +90,7 @@ const serializeUser = (user) => ({
   username: user.username || '',
   email: user.email,
   role: user.role,
+  vendorType: user.vendorType || '',
   shopName: user.shopName || '',
   isApproved: user.isApproved ?? true,
   phoneNumber: user.phoneNumber || '',
@@ -110,6 +112,7 @@ router.post('/signup', async (req, res) => {
     email,
     password,
     role = 'customer',
+    vendorType = '',
     shopName,
     phoneNumber,
     businessName,
@@ -125,6 +128,10 @@ router.post('/signup', async (req, res) => {
 
   if (!['customer', 'vendor', 'advert', 'logistic'].includes(role)) {
     return res.status(400).json({ error: 'Role must be customer, vendor, advert, or logistic' });
+  }
+
+  if (role === 'vendor' && !vendorTypes.includes(vendorType)) {
+    return res.status(400).json({ error: 'Choose a valid vendor type' });
   }
 
   if (!phoneNumber || !countryCode) {
@@ -171,6 +178,7 @@ router.post('/signup', async (req, res) => {
       email: email.toLowerCase(),
       password: await bcrypt.hash(password, 10),
       role,
+      vendorType: role === 'vendor' ? vendorType : '',
       isApproved: true,
       shopName: role === 'vendor' ? shopName : '',
       phoneNumber,
@@ -199,7 +207,7 @@ router.post('/signup', async (req, res) => {
 });
 
 router.post('/login', async (req, res) => {
-  const { email, password, role = 'customer' } = req.body;
+  const { email, password, role = 'customer', vendorType = '' } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password are required' });
@@ -207,6 +215,10 @@ router.post('/login', async (req, res) => {
 
   if (!['customer', 'vendor', 'advert', 'logistic'].includes(role)) {
     return res.status(400).json({ error: 'Choose a valid account type' });
+  }
+
+  if (role === 'vendor' && !vendorTypes.includes(vendorType)) {
+    return res.status(400).json({ error: 'Choose a valid vendor type' });
   }
 
   try {
@@ -218,6 +230,10 @@ router.post('/login', async (req, res) => {
 
     if (user.role !== role) {
       return res.status(401).json({ error: 'The selected account type does not match this account' });
+    }
+
+    if (role === 'vendor' && user.vendorType !== vendorType) {
+      return res.status(401).json({ error: 'The selected vendor type does not match this account' });
     }
 
     const passwordMatches = await bcrypt.compare(password, user.password);
@@ -237,7 +253,7 @@ router.post('/login', async (req, res) => {
 });
 
 router.post('/google', async (req, res) => {
-  const { idToken, role = 'customer' } = req.body;
+  const { idToken, role = 'customer', vendorType = '' } = req.body;
 
   console.log('Google token received:', {
     type: typeof idToken,
@@ -253,6 +269,10 @@ router.post('/google', async (req, res) => {
     return res.status(400).json({ error: 'Choose a valid account type' });
   }
 
+  if (role === 'vendor' && !vendorTypes.includes(vendorType)) {
+    return res.status(400).json({ error: 'Choose a valid vendor type' });
+  }
+
   try {
     const firebaseUser = await getFirebaseAuth().verifyIdToken(idToken);
     const email = String(firebaseUser.email || '').toLowerCase();
@@ -266,6 +286,10 @@ router.post('/google', async (req, res) => {
       return res.status(401).json({ error: 'The selected account type does not match this account' });
     }
 
+    if (user && role === 'vendor' && user.vendorType !== vendorType) {
+      return res.status(401).json({ error: 'The selected vendor type does not match this account' });
+    }
+
     if (!user) {
       const fullName = firebaseUser.name || email.split('@')[0];
       user = await createUserRecord({
@@ -274,6 +298,7 @@ router.post('/google', async (req, res) => {
         email,
         password: await bcrypt.hash(`google:${firebaseUser.uid}`, 10),
         role,
+        vendorType: role === 'vendor' ? vendorType : '',
         isApproved: true,
         shopName: '',
         phoneNumber: '',

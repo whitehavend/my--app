@@ -16,6 +16,7 @@ import VendorPage from "./Pages/VendorPage";
 import VendorOrders from "./Pages/VendorOrders";
 import VendorProducts from "./Pages/VendorProducts";
 import VendorHelp from "./Pages/VendorHelp";
+import VendorTypePage from "./Pages/VendorTypePage";
 import AdvertPage from "./Pages/AdvertPage";
 import LogisticPage from "./Pages/LogisticPage";
 import SavedItems from "./Pages/SavedItems";
@@ -36,6 +37,11 @@ function App() {
         <Route path="/customer" element={<CustomerPage />} />
         <Route path="/saved-items" element={<ProtectedRoleRoute role="customer"><SavedItems /></ProtectedRoleRoute>} />
         <Route path="/vendor" element={<ProtectedRoleRoute role="vendor"><VendorPage><VendorProductUpload /></VendorPage></ProtectedRoleRoute>} />
+        <Route path="/vendor/retailshopvendor" element={<ProtectedRoleRoute role="vendor" vendorType="retailshopvendor"><VendorPage><VendorProductUpload /></VendorPage></ProtectedRoleRoute>} />
+        <Route path="/vendor/cardealer" element={<ProtectedRoleRoute role="vendor" vendorType="cardealer"><VendorTypePage vendorType="cardealer" /></ProtectedRoleRoute>} />
+        <Route path="/vendor/realestate" element={<ProtectedRoleRoute role="vendor" vendorType="realestate"><VendorTypePage vendorType="realestate" /></ProtectedRoleRoute>} />
+        <Route path="/vendor/pharmacy" element={<ProtectedRoleRoute role="vendor" vendorType="pharmacy"><VendorTypePage vendorType="pharmacy" /></ProtectedRoleRoute>} />
+        <Route path="/vendor/agrovet" element={<ProtectedRoleRoute role="vendor" vendorType="agrovet"><VendorTypePage vendorType="agrovet" /></ProtectedRoleRoute>} />
         <Route path="/vendor/orders" element={<ProtectedRoleRoute role="vendor"><VendorPage><VendorOrders /></VendorPage></ProtectedRoleRoute>} />
         <Route path="/vendor/products" element={<ProtectedRoleRoute role="vendor"><VendorPage><VendorProducts /></VendorPage></ProtectedRoleRoute>} />
         <Route path="/vendor/products/new" element={<ProtectedRoleRoute role="vendor"><VendorPage><VendorProductUpload /></VendorPage></ProtectedRoleRoute>} />

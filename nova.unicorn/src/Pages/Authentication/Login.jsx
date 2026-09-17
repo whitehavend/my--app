@@ -19,6 +19,14 @@ const googleErrorMessages = {
   "auth/invalid-api-key": "The Firebase API key is invalid. Check REACT_APP_FIREBASE_KEY.",
 };
 
+const vendorTypes = [
+  { value: "retailshopvendor", label: "Retail shop vendor" },
+  { value: "cardealer", label: "Car dealer" },
+  { value: "realestate", label: "Real estate" },
+  { value: "pharmacy", label: "Pharmacy" },
+  { value: "agrovet", label: "Agrovet" },
+];
+
 const LoginPage = () => {
   const { auth, error, notify, status, user } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
@@ -32,18 +40,17 @@ const LoginPage = () => {
     watch,
     formState: { errors },
   } = useForm({
-    defaultValues: {
-      role: "customer",
-    },
+    defaultValues: { role: "customer", vendorType: "" },
   });
   const selectedRole = watch("role", "customer");
+  const selectedVendorType = watch("vendorType", "");
   const selectedPlatforms = watch("advertSocials", {});
   const advertPlatforms = ["Instagram", "TikTok", "YouTube", "Facebook", "X"];
   useEffect(() => {
     if (notify) {
       setTimeout(() => {
         dispatch(resetNotify());
-        navigate(`/${user?.role || "customer"}`);
+        navigate(user?.role === "vendor" ? `/vendor/${user.vendorType || "retailshopvendor"}` : `/${user?.role || "customer"}`);
       }, 1000); 
     }
   }, [notify, dispatch, navigate, user]);
@@ -80,13 +87,18 @@ const LoginPage = () => {
 
   const handleGoogleSignIn = () => {
     setGoogleError("");
+    if (selectedRole === "vendor" && !selectedVendorType) {
+      setGoogleError("Select a vendor type before continuing with Google");
+      return;
+    }
+
     const provider = new GoogleAuthProvider();
     const signInPromise = signInWithPopup(firebaseAuth, provider);
 
     signInPromise
       .then(async ({ user: firebaseUser }) => {
         const idToken = await firebaseUser.getIdToken();
-        const response = await dispatch(handleGoogleLogin({ idToken, role: selectedRole }));
+        const response = await dispatch(handleGoogleLogin({ idToken, role: selectedRole, vendorType: selectedVendorType }));
         if (handleGoogleLogin.rejected.match(response)) {
           setGoogleError(response.payload || "Unable to log in with Google");
         }
@@ -122,6 +134,20 @@ const LoginPage = () => {
                   <option value="advert">Advert</option>
                   <option value="logistic">Logistic</option>
                 </select>
+              </div>
+            )}
+
+            {selectedRole === "vendor" && (
+              <div className="mb-4">
+                <label className="mb-2 block text-sm font-medium text-gray-700">Vendor type</label>
+                <select
+                  {...register("vendorType", { required: "Vendor type is required" })}
+                  className="w-full rounded-md border border-gray-400 bg-white p-4 outline-none focus:border-primary"
+                >
+                  <option value="">Select vendor type</option>
+                  {vendorTypes.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
+                </select>
+                {errors.vendorType && <p className="mt-1 text-xs text-red-500">{errors.vendorType.message}</p>}
               </div>
             )}
 

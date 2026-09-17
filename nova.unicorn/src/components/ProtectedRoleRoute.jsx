@@ -1,7 +1,7 @@
 import { Navigate } from "react-router-dom";
 import { useAppSelector } from "../Store/hooks";
 
-const ProtectedRoleRoute = ({ role, children }) => {
+const ProtectedRoleRoute = ({ role, vendorType, children }) => {
   const { user, status } = useAppSelector((state) => state.auth);
 
   if (!user && status === "loading" && localStorage.getItem("unicorn_token")) {
@@ -14,6 +14,10 @@ const ProtectedRoleRoute = ({ role, children }) => {
 
   if (user.role !== role) {
     return <Navigate to={`/${user.role}`} replace />;
+  }
+
+  if (role === "vendor" && vendorType && user.vendorType !== vendorType) {
+    return <Navigate to={`/vendor/${user.vendorType || "retailshopvendor"}`} replace />;
   }
 
   return children;

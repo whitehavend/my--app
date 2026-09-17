@@ -59,12 +59,12 @@ export const handleLogin = createAsyncThunk(
   "handleLogin",
   async ({ data }, thunkAPI) => {
     const payload = data?.data ?? data;
-    const { email, password, role = "customer" } = payload || {};
+    const { email, password, role = "customer", vendorType = "" } = payload || {};
 
     try {
       const response = await axios.post(
         `${apiBaseUrl}/auth/login`,
-        { email, password, role }
+        { email, password, role, vendorType }
       );
 
       if (response.data?.token) {
@@ -90,6 +90,7 @@ export const handleSignup = createAsyncThunk(
       email,
       password,
       role = "customer",
+      vendorType = "",
       shopName,
       phoneNumber,
       businessName,
@@ -110,7 +111,7 @@ export const handleSignup = createAsyncThunk(
     try {
       const response = await axios.post(
         `${apiBaseUrl}/auth/signup`,
-        { fullName, username, email, password, role, shopName, phoneNumber, businessName, countryCode, advertSocials: selectedAdvertSocials, deliveryAddress, shopAddress }
+        { fullName, username, email, password, role, vendorType, shopName, phoneNumber, businessName, countryCode, advertSocials: selectedAdvertSocials, deliveryAddress, shopAddress }
       );
 
       if (response.data?.token) {
@@ -128,9 +129,9 @@ export const handleSignup = createAsyncThunk(
 
 export const handleGoogleLogin = createAsyncThunk(
   "handleGoogleLogin",
-  async ({ idToken, role = "customer" }, thunkAPI) => {
+  async ({ idToken, role = "customer", vendorType = "" }, thunkAPI) => {
     try {
-      const response = await axios.post(`${apiBaseUrl}/auth/google`, { idToken, role });
+      const response = await axios.post(`${apiBaseUrl}/auth/google`, { idToken, role, vendorType });
 
       if (response.data?.token) {
         localStorage.setItem("unicorn_token", response.data.token);

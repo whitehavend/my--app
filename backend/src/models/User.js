@@ -28,6 +28,11 @@ const userSchema = new mongoose.Schema(
       enum: ['customer', 'vendor', 'advert', 'logistic'],
       default: 'customer',
     },
+    vendorType: {
+      type: String,
+      enum: ['retailshopvendor', 'cardealer', 'realestate', 'pharmacy', 'agrovet', ''],
+      default: '',
+    },
     isApproved: {
       type: Boolean,
       default: function () {
