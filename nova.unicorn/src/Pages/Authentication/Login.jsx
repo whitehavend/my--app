@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../Store/hooks";
 import { handleGoogleLogin, handleLogin, handleSignup } from "../../Store/thunk";
@@ -8,7 +8,7 @@ import MiniLoader from "../../components/preloader/MiniLoader";
 import { useForm } from "react-hook-form";
 import { HiEye, HiEyeOff } from "react-icons/hi";
 import CountryPhoneField from "../../components/CountryPhoneField";
-import { GoogleAuthProvider, getRedirectResult, onAuthStateChanged, signInWithRedirect } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth as firebaseAuth } from "../../firebaseConfig";
 
 const googleErrorMessages = {
@@ -25,7 +25,6 @@ const LoginPage = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [googleError, setGoogleError] = useState("");
-  const googleLoginHandled = useRef(false);
   const navigate = useNavigate();
   const {
     register,
@@ -48,53 +47,6 @@ const LoginPage = () => {
       }, 1000); 
     }
   }, [notify, dispatch, navigate, user]);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const completeGoogleLogin = async (firebaseUser) => {
-      if (!firebaseUser || googleLoginHandled.current) {
-        return;
-      }
-
-      googleLoginHandled.current = true;
-      try {
-        const idToken = await firebaseUser.getIdToken();
-        const role = sessionStorage.getItem("google_login_role") || "customer";
-        const response = await dispatch(handleGoogleLogin({ idToken, role }));
-
-        if (isMounted && handleGoogleLogin.rejected.match(response)) {
-          googleLoginHandled.current = false;
-          setGoogleError(response.payload || "Unable to log in with Google");
-          return;
-        }
-
-        sessionStorage.removeItem("google_login_role");
-      } catch (googleError) {
-        googleLoginHandled.current = false;
-        if (isMounted) {
-          setGoogleError(googleErrorMessages[googleError.code] || `Unable to sign in with Google (${googleError.code || "unknown error"})`);
-        }
-      }
-    };
-
-    const unsubscribe = onAuthStateChanged(firebaseAuth, (firebaseUser) => {
-      completeGoogleLogin(firebaseUser);
-    });
-
-    getRedirectResult(firebaseAuth)
-      .then((result) => completeGoogleLogin(result?.user))
-      .catch((googleError) => {
-        if (isMounted) {
-          setGoogleError(googleErrorMessages[googleError.code] || `Unable to sign in with Google (${googleError.code || "unknown error"})`);
-        }
-      });
-
-    return () => {
-      isMounted = false;
-      unsubscribe();
-    };
-  }, [dispatch]);
 
   const onSubmit = async (data) => {
     if (isLogin) {
@@ -128,12 +80,20 @@ const LoginPage = () => {
 
   const handleGoogleSignIn = () => {
     setGoogleError("");
-    sessionStorage.setItem("google_login_role", selectedRole);
     const provider = new GoogleAuthProvider();
-    signInWithRedirect(firebaseAuth, provider).catch((googleError) => {
-      sessionStorage.removeItem("google_login_role");
-      setGoogleError(googleErrorMessages[googleError.code] || `Unable to sign in with Google (${googleError.code || "unknown error"})`);
-    });
+    const signInPromise = signInWithPopup(firebaseAuth, provider);
+
+    signInPromise
+      .then(async ({ user: firebaseUser }) => {
+        const idToken = await firebaseUser.getIdToken();
+        const response = await dispatch(handleGoogleLogin({ idToken, role: selectedRole }));
+        if (handleGoogleLogin.rejected.match(response)) {
+          setGoogleError(response.payload || "Unable to log in with Google");
+        }
+      })
+      .catch((googleError) => {
+        setGoogleError(googleErrorMessages[googleError.code] || `Unable to sign in with Google (${googleError.code || "unknown error"})`);
+      });
   };
 
 

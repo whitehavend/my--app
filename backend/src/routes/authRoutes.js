@@ -239,6 +239,12 @@ router.post('/login', async (req, res) => {
 router.post('/google', async (req, res) => {
   const { idToken, role = 'customer' } = req.body;
 
+  console.log('Google token received:', {
+    type: typeof idToken,
+    length: typeof idToken === 'string' ? idToken.length : 0,
+    segments: typeof idToken === 'string' ? idToken.split('.').length : 0,
+  });
+
   if (!idToken) {
     return res.status(400).json({ error: 'Google authentication token is required' });
   }
