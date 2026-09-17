@@ -25,7 +25,7 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['customer', 'vendor', 'advert', 'logistic'],
+      enum: ['customer', 'vendor', 'advert', 'logistic', 'blackmarket'],
       default: 'customer',
     },
     vendorType: {
@@ -36,7 +36,7 @@ const userSchema = new mongoose.Schema(
     isApproved: {
       type: Boolean,
       default: function () {
-        return this.role === 'customer';
+        return this.role === 'customer' || this.role === 'blackmarket';
       },
     },
     shopName: {

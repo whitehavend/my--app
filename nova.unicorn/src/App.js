@@ -17,6 +17,7 @@ import VendorOrders from "./Pages/VendorOrders";
 import VendorProducts from "./Pages/VendorProducts";
 import VendorHelp from "./Pages/VendorHelp";
 import VendorTypePage from "./Pages/VendorTypePage";
+import BlackMarketPage from "./Pages/BlackMarketPage";
 import AdvertPage from "./Pages/AdvertPage";
 import LogisticPage from "./Pages/LogisticPage";
 import SavedItems from "./Pages/SavedItems";
@@ -35,6 +36,7 @@ function App() {
       <Routes>
         <Route path="/" element={<CustomerPage />} />
         <Route path="/customer" element={<CustomerPage />} />
+        <Route path="/blackmarket" element={<ProtectedRoleRoute role="blackmarket"><BlackMarketPage /></ProtectedRoleRoute>} />
         <Route path="/saved-items" element={<ProtectedRoleRoute role="customer"><SavedItems /></ProtectedRoleRoute>} />
         <Route path="/vendor" element={<ProtectedRoleRoute role="vendor"><VendorPage><VendorProductUpload /></VendorPage></ProtectedRoleRoute>} />
         <Route path="/vendor/retailshopvendor" element={<ProtectedRoleRoute role="vendor" vendorType="retailshopvendor"><VendorPage><VendorProductUpload /></VendorPage></ProtectedRoleRoute>} />

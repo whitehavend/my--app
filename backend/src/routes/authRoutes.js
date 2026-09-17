@@ -126,8 +126,8 @@ router.post('/signup', async (req, res) => {
     return res.status(400).json({ error: 'Full name, username, email, and password are required' });
   }
 
-  if (!['customer', 'vendor', 'advert', 'logistic'].includes(role)) {
-    return res.status(400).json({ error: 'Role must be customer, vendor, advert, or logistic' });
+  if (!['customer', 'vendor', 'advert', 'logistic', 'blackmarket'].includes(role)) {
+    return res.status(400).json({ error: 'Role must be customer, vendor, advert, logistic, or black market' });
   }
 
   if (role === 'vendor' && !vendorTypes.includes(vendorType)) {
@@ -140,8 +140,8 @@ router.post('/signup', async (req, res) => {
     });
   }
 
-  if (role === 'customer' && !deliveryAddress) {
-    return res.status(400).json({ error: 'Delivery address is required for customer registration' });
+  if (['customer', 'blackmarket'].includes(role) && !deliveryAddress) {
+    return res.status(400).json({ error: 'Delivery address is required for this account' });
   }
 
   if (role === 'vendor' && !shopAddress) {
@@ -183,7 +183,7 @@ router.post('/signup', async (req, res) => {
       shopName: role === 'vendor' ? shopName : '',
       phoneNumber,
       businessName: role === 'vendor' ? businessName || '' : '',
-      deliveryAddress: role === 'customer' ? deliveryAddress.trim() : '',
+      deliveryAddress: ['customer', 'blackmarket'].includes(role) ? deliveryAddress.trim() : '',
       shopAddress: role === 'vendor' ? shopAddress.trim() : '',
       countryCode,
       advertSocials: role === 'advert' ? normalizedAdvertSocials : {},
@@ -192,7 +192,7 @@ router.post('/signup', async (req, res) => {
     const newUser = await createUserRecord(userData);
 
     return res.status(201).json({
-      message: role === 'vendor' ? 'Vendor registration submitted successfully' : role === 'advert' ? 'Advert account created successfully' : role === 'logistic' ? 'Logistic account created successfully' : 'User created successfully',
+      message: role === 'vendor' ? 'Vendor registration submitted successfully' : role === 'advert' ? 'Advert account created successfully' : role === 'logistic' ? 'Logistic account created successfully' : role === 'blackmarket' ? 'Black market account created successfully' : 'User created successfully',
       user: serializeUser(newUser),
       token: generateToken(newUser),
     });
@@ -213,7 +213,7 @@ router.post('/login', async (req, res) => {
     return res.status(400).json({ error: 'Email and password are required' });
   }
 
-  if (!['customer', 'vendor', 'advert', 'logistic'].includes(role)) {
+  if (!['customer', 'vendor', 'advert', 'logistic', 'blackmarket'].includes(role)) {
     return res.status(400).json({ error: 'Choose a valid account type' });
   }
 
@@ -265,7 +265,7 @@ router.post('/google', async (req, res) => {
     return res.status(400).json({ error: 'Google authentication token is required' });
   }
 
-  if (!['customer', 'vendor', 'advert', 'logistic'].includes(role)) {
+  if (!['customer', 'vendor', 'advert', 'logistic', 'blackmarket'].includes(role)) {
     return res.status(400).json({ error: 'Choose a valid account type' });
   }
 

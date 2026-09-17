@@ -50,7 +50,7 @@ const LoginPage = () => {
     if (notify) {
       setTimeout(() => {
         dispatch(resetNotify());
-        navigate(user?.role === "vendor" ? `/vendor/${user.vendorType || "retailshopvendor"}` : `/${user?.role || "customer"}`);
+        navigate(user?.role === "vendor" ? `/vendor/${user.vendorType || "retailshopvendor"}` : user?.role === "blackmarket" ? "/blackmarket" : `/${user?.role || "customer"}`);
       }, 1000); 
     }
   }, [notify, dispatch, navigate, user]);
@@ -133,6 +133,7 @@ const LoginPage = () => {
                   <option value="vendor">Vendor</option>
                   <option value="advert">Advert</option>
                   <option value="logistic">Logistic</option>
+                  <option value="blackmarket">Black market</option>
                 </select>
               </div>
             )}
@@ -179,6 +180,10 @@ const LoginPage = () => {
                     <label className="flex items-center gap-2 text-sm">
                       <input type="radio" value="logistic" {...register("role")} />
                       Logistic
+                    </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input type="radio" value="blackmarket" {...register("role")} />
+                      Black market
                     </label>
                   </div>
                 </div>
@@ -244,7 +249,7 @@ const LoginPage = () => {
               </>
             )}
 
-            {!isLogin && selectedRole === "customer" && (
+            {!isLogin && ["customer", "blackmarket"].includes(selectedRole) && (
               <>
                 <input
                   type="text"
@@ -292,7 +297,7 @@ const LoginPage = () => {
               <CountryPhoneField register={register} errors={errors} />
             )}
 
-            {!isLogin && selectedRole === "customer" && <CountryPhoneField register={register} errors={errors} />}
+            {!isLogin && ["customer", "blackmarket"].includes(selectedRole) && <CountryPhoneField register={register} errors={errors} />}
 
             <div className="relative my-4">
               <input
