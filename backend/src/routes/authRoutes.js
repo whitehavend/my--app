@@ -2,10 +2,27 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { cert, getApps, initializeApp } = require('firebase-admin/app');
+const { getAuth } = require('firebase-admin/auth');
 const authMiddleware = require('../middleware/authMiddleware');
 const User = require('../models/User');
 
 const router = express.Router();
+
+const getFirebaseAuth = () => {
+  if (!getApps().length) {
+    const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+    if (!serviceAccount) {
+      throw new Error('FIREBASE_SERVICE_ACCOUNT_JSON is not configured');
+    }
+
+    initializeApp({
+      credential: cert(JSON.parse(serviceAccount)),
+    });
+  }
+
+  return getAuth();
+};
 
 const users = [
   {
@@ -231,19 +248,9 @@ router.post('/google', async (req, res) => {
   }
 
   try {
-    const tokenResponse = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`);
-    const googleUser = await tokenResponse.json();
-    const firebaseProjectId = process.env.FIREBASE_PROJECT_ID || 'minitasker-e75bdf47';
-    const expectedIssuer = `https://securetoken.google.com/${firebaseProjectId}`;
-    const validAudience = googleUser.aud === firebaseProjectId;
-    const validIssuer = !googleUser.iss || googleUser.iss === expectedIssuer;
-
-    if (!tokenResponse.ok || !validAudience || !validIssuer) {
-      return res.status(401).json({ error: 'Google authentication could not be verified' });
-    }
-
-    const email = String(googleUser.email || '').toLowerCase();
-    if (!email || (googleUser.email_verified !== 'true' && googleUser.email_verified !== true)) {
+    const firebaseUser = await getFirebaseAuth().verifyIdToken(idToken);
+    const email = String(firebaseUser.email || '').toLowerCase();
+    if (!email || !firebaseUser.email_verified) {
       return res.status(401).json({ error: 'A verified Google account is required' });
     }
 
@@ -254,12 +261,12 @@ router.post('/google', async (req, res) => {
     }
 
     if (!user) {
-      const fullName = googleUser.name || email.split('@')[0];
+      const fullName = firebaseUser.name || email.split('@')[0];
       user = await createUserRecord({
         fullName,
-        username: googleUser.email.split('@')[0],
+        username: email.split('@')[0],
         email,
-        password: await bcrypt.hash(`google:${googleUser.sub}`, 10),
+        password: await bcrypt.hash(`google:${firebaseUser.uid}`, 10),
         role,
         isApproved: true,
         shopName: '',
@@ -279,6 +286,12 @@ router.post('/google', async (req, res) => {
     });
   } catch (error) {
     console.error('Google login error:', error);
+    if (error.message === 'FIREBASE_SERVICE_ACCOUNT_JSON is not configured') {
+      return res.status(503).json({ error: 'Google login is not configured on the server' });
+    }
+    if (error.code === 'auth/id-token-expired' || error.code === 'auth/id-token-revoked' || error.code === 'auth/argument-error') {
+      return res.status(401).json({ error: 'Google authentication token is invalid or expired' });
+    }
     return res.status(500).json({ error: 'Unable to log in with Google' });
   }
 });
