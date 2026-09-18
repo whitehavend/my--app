@@ -7,7 +7,7 @@ const orderRoutes = require('./routes/orderRoutes');
 
 const app = express();
 
-const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:3000,https://my-app-kxu8.vercel.app')
+const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:3000,https://novaunicorn.vercel.app,https://my-app-1-ggdw.onrender.com')
   .split(',')
   .map((origin) => origin.trim())
   .filter(Boolean);
