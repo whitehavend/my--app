@@ -3,10 +3,52 @@ import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { createProduct } from "../Store/thunk";
 
-const defaultForm = {
+const vendorCategoryOptions = {
+  shopvendor: [
+    { value: "smartphones", label: "Smartphones" },
+    { value: "laptops", label: "Laptops" },
+    { value: "gaming", label: "Gaming" },
+    { value: "accessories", label: "Accessories" },
+    { value: "appliances", label: "Appliances" },
+    { value: "fashion", label: "Fashion" },
+    { value: "electronics-and-gadgets", label: "Electronics and gadgets" },
+    { value: "home-and-lifestyle", label: "Home and lifestyle" },
+    { value: "groceries", label: "Groceries" },
+    { value: "beauty", label: "Beauty" },
+    { value: "automobile-parts", label: "Automobile parts" },
+    { value: "books-and-games", label: "Books and games" },
+    { value: "baby-products", label: "Baby products" },
+  ],
+  cardealer: [
+    { value: "passenger-and-light-vehicles", label: "Passenger and light vehicles" },
+    { value: "heavy-vehicles", label: "Heavy vehicles" },
+  ],
+  realestate: [
+    { value: "land", label: "Land" },
+    { value: "residential", label: "Residential" },
+    { value: "commercial", label: "Commercial" },
+    { value: "industry", label: "Industry" },
+  ],
+  pharmacy: [
+    { value: "pom", label: "POM" },
+    { value: "otc", label: "OTC" },
+    { value: "therapeutic", label: "Therapeutic" },
+  ],
+  agrovet: [
+    { value: "animals", label: "Animals" },
+    { value: "crops", label: "Crops" },
+  ],
+  blackmarket: [
+    { value: "featured-finds", label: "Featured finds" },
+    { value: "special-access", label: "Special access" },
+    { value: "exclusive-drops", label: "Exclusive drops" },
+  ],
+};
+
+const getDefaultForm = (selectedVendorType = "retailshopvendor") => ({
   title: "",
   brand: "",
-  category: "smartphones",
+  category: vendorCategoryOptions[selectedVendorType]?.[0]?.value || "smartphones",
   description: "",
   price: "",
   salePrice: "",
@@ -24,14 +66,15 @@ const defaultForm = {
   location: "",
   contactInfo: "",
   massVolume: "",
-};
+});
 
 const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const { productStatus, productError } = useAppSelector((state) => state.products);
-  const [formData, setFormData] = useState(defaultForm);
+  const [formData, setFormData] = useState(() => getDefaultForm(vendorType));
+  const categoryOptions = vendorCategoryOptions[vendorType] || vendorCategoryOptions.shopvendor;
 
   if (!user) {
     return (
@@ -84,7 +127,7 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
     const resultAction = await dispatch(createProduct(payload));
 
     if (createProduct.fulfilled.match(resultAction)) {
-      setFormData(defaultForm);
+      setFormData(getDefaultForm(vendorType));
       navigate("/");
     }
   };
@@ -111,30 +154,11 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">Category</label>
             <select name="category" value={formData.category} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary">
-              <option value="smartphones">Smartphones</option>
-              <option value="laptops">Laptops</option>
-              <option value="gaming">Gaming</option>
-              <option value="accessories">Accessories</option>
-              <option value="appliances">Appliances</option>
-              <option value="fashion">Fashion</option>
-              <option value="electronics-and-gadgets">Electronics and gadgets</option>
-              <option value="home-and-lifestyle">Home and lifestyle</option>
-              <option value="groceries">Groceries</option>
-              <option value="beauty">Beauty</option>
-              <option value="automobile-parts">Automobile parts</option>
-              <option value="books-and-games">Books and games</option>
-              <option value="baby-products">Baby products</option>
-              <option value="passenger-and-light-vehicles">Passenger and light vehicles</option>
-              <option value="heavy-vehicles">Heavy vehicles</option>
-              <option value="land">Land</option>
-              <option value="residential">Residential</option>
-              <option value="commercial">Commercial</option>
-              <option value="industry">Industry</option>
-              <option value="pom">POM</option>
-              <option value="otc">OTC</option>
-              <option value="therapeutic">Therapeutic</option>
-              <option value="animals">Animals</option>
-              <option value="crops">Crops</option>
+              {categoryOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </div>
 
