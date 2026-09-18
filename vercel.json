@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "nova.unicorn/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build"
+      }
+    }
+  ],
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/nova.unicorn/index.html" }
+  ],
+  "ignoreCommand": "if [ \"$VERCEL_GIT_REPO_PATH\" = \"$VERCEL_GIT_REPO_PATH\" ]; then exit 0; fi; if [ -d backend ]; then exit 0; fi; exit 1"
+}
