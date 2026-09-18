@@ -210,38 +210,40 @@ router.post('/signup', async (req, res) => {
 router.post('/login', async (req, res) => {
   const { email, password, role = '', vendorType = '' } = req.body;
 
+  console.log('LOGIN received body:', { email, role, vendorType, hasPassword: Boolean(password) });
+
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password are required' });
   }
 
-  if (role && !['customer', 'vendor', 'advert', 'logistic', 'blackmarket'].includes(role)) {
-    return res.status(400).json({ error: 'Choose a valid account type' });
-  }
-
-  if (role === 'vendor' && vendorType && !vendorTypes.includes(vendorType)) {
-    return res.status(400).json({ error: 'Choose a valid vendor type' });
-  }
-
   try {
-    const user = await getUserByEmail(email);
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const user = await User.findOne({ email: normalizedEmail });
+
+    console.log('LOGIN User.findOne({ email }) result:', user ? {
+      id: user._id,
+      email: user.email,
+      role: user.role,
+      vendorType: user.vendorType,
+    } : null);
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    if (role === 'vendor' && vendorType && user.vendorType && user.vendorType !== vendorType) {
-      return res.status(401).json({ error: 'The selected vendor type does not match this account' });
-    }
-
     const passwordMatches = await bcrypt.compare(password, user.password);
+    console.log('LOGIN password match result:', passwordMatches);
+
     if (!passwordMatches) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
+    const token = generateToken(user);
+
     return res.status(200).json({
       message: 'Login successful',
       user: serializeUser(user),
-      token: generateToken(user),
+      token,
     });
   } catch (error) {
     console.error('Login error:', error);
