@@ -1,12 +1,31 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const configuredBaseUrl = process.env.REACT_APP_BASEURL || "http://localhost:5001/api";
+const defaultLocalApiBaseUrl = "http://localhost:5001/api";
+const defaultRemoteApiBaseUrl = "https://my--app.onrender.com/api";
+
+const configuredBaseUrl = process.env.REACT_APP_BASEURL || defaultLocalApiBaseUrl;
 const normalizedBaseUrl = configuredBaseUrl.replace(/\/$/, "");
-const isLocalHost = normalizedBaseUrl.includes("localhost") || normalizedBaseUrl.includes("127.0.0.1");
-const apiBaseUrl = isLocalHost && typeof window !== "undefined" && window.location.hostname !== "localhost"
-  ? normalizedBaseUrl.replace(/(localhost|127\.0\.0\.1)/, window.location.hostname)
-  : normalizedBaseUrl;
+
+const currentHostname = typeof window !== "undefined" ? window.location.hostname : "";
+const isLocalHostname = ["localhost", "127.0.0.1"].includes(currentHostname);
+const isLanHostname = /^\d{1,3}(?:\.\d{1,3}){3}$/.test(currentHostname);
+
+const apiBaseUrl = (() => {
+  if (process.env.REACT_APP_BASEURL) {
+    return normalizedBaseUrl;
+  }
+
+  if (isLocalHostname || isLanHostname) {
+    return `http://${currentHostname || "localhost"}:5001/api`;
+  }
+
+  if (currentHostname) {
+    return defaultRemoteApiBaseUrl;
+  }
+
+  return defaultLocalApiBaseUrl;
+})();
 
 export const getAllProducts = createAsyncThunk(
   "getAllProducts",
