@@ -1,31 +1,10 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const defaultLocalApiBaseUrl = "http://localhost:5001/api";
-const defaultRemoteApiBaseUrl = "https://my--app.onrender.com/api";
-
-const configuredBaseUrl = process.env.REACT_APP_BASEURL || defaultLocalApiBaseUrl;
+const defaultRemoteApiBaseUrl = "https://my-app-1-ggdw.onrender.com/api";
+const configuredBaseUrl = process.env.REACT_APP_BASEURL || defaultRemoteApiBaseUrl;
 const normalizedBaseUrl = configuredBaseUrl.replace(/\/$/, "");
-
-const currentHostname = typeof window !== "undefined" ? window.location.hostname : "";
-const isLocalHostname = ["localhost", "127.0.0.1"].includes(currentHostname);
-const isLanHostname = /^\d{1,3}(?:\.\d{1,3}){3}$/.test(currentHostname);
-
-const apiBaseUrl = (() => {
-  if (process.env.REACT_APP_BASEURL) {
-    return normalizedBaseUrl;
-  }
-
-  if (isLocalHostname || isLanHostname) {
-    return `http://${currentHostname || "localhost"}:5001/api`;
-  }
-
-  if (currentHostname) {
-    return defaultRemoteApiBaseUrl;
-  }
-
-  return defaultLocalApiBaseUrl;
-})();
+const apiBaseUrl = normalizedBaseUrl;
 
 export const getAllProducts = createAsyncThunk(
   "getAllProducts",
