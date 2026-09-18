@@ -46,6 +46,8 @@ const createUserRecord = async (userData) => {
   return User.create(userData);
 };
 
+const normalizeEmail = (email) => String(email || '').trim().toLowerCase();
+
 const isMongoObjectId = (id) => typeof id === 'string' && /^[a-f0-9]{24}$/i.test(id) && mongoose.connection.readyState === 1;
 
 const getUserById = async (id) => {
@@ -107,7 +109,9 @@ router.post('/signup', async (req, res) => {
     advertSocials = {},
   } = req.body;
 
-  if (!fullName || !username || !email || !password) {
+  const normalizedEmail = normalizeEmail(email);
+
+  if (!fullName || !username || !normalizedEmail || !password) {
     return res.status(400).json({ error: 'Full name, username, email, and password are required' });
   }
 
@@ -162,7 +166,7 @@ router.post('/signup', async (req, res) => {
     }
 
     try {
-      const existingUser = await getUserByEmail(email);
+      const existingUser = await getUserByEmail(normalizedEmail);
       if (existingUser) {
         return res.status(409).json({ error: 'User already exists' });
       }
@@ -174,18 +178,18 @@ router.post('/signup', async (req, res) => {
     }
 
     const userData = {
-      fullName,
-      username: username.trim(),
-      email: email.toLowerCase(),
-      password: await bcrypt.hash(password, 10),
+      fullName: String(fullName).trim(),
+      username: String(username).trim(),
+      email: normalizedEmail,
+      password: await bcrypt.hash(String(password), 10),
       role,
-      vendorType: role === 'vendor' ? vendorType : '',
+      vendorType: role === 'vendor' ? String(vendorType).trim() : '',
       isApproved: true,
-      shopName: role === 'vendor' ? shopName : '',
+      shopName: role === 'vendor' ? String(shopName || '').trim() : '',
       phoneNumber: normalizedPhone,
-      businessName: role === 'vendor' ? businessName || '' : '',
-      deliveryAddress: ['customer', 'blackmarket'].includes(role) ? deliveryAddress.trim() : '',
-      shopAddress: role === 'vendor' ? shopAddress.trim() : '',
+      businessName: role === 'vendor' ? String(businessName || '').trim() : '',
+      deliveryAddress: ['customer', 'blackmarket'].includes(role) ? String(deliveryAddress || '').trim() : '',
+      shopAddress: role === 'vendor' ? String(shopAddress || '').trim() : '',
       countryCode: normalizedCountryCode,
       advertSocials: role === 'advert' ? normalizedAdvertSocials : {},
     };
@@ -217,7 +221,7 @@ router.post('/login', async (req, res) => {
   }
 
   try {
-    const normalizedEmail = String(email).trim().toLowerCase();
+    const normalizedEmail = normalizeEmail(email);
     const user = await User.findOne({ email: normalizedEmail });
 
     console.log('LOGIN User.findOne({ email }) result:', user ? {
@@ -228,10 +232,10 @@ router.post('/login', async (req, res) => {
     } : null);
 
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: 'User not found. Please create an account first.' });
     }
 
-    const passwordMatches = await bcrypt.compare(password, user.password);
+    const passwordMatches = await bcrypt.compare(String(password), user.password);
     console.log('LOGIN password match result:', passwordMatches);
 
     if (!passwordMatches) {
@@ -248,6 +252,16 @@ router.post('/login', async (req, res) => {
   } catch (error) {
     console.error('Login error:', error);
     return res.status(500).json({ error: 'Unable to log in' });
+  }
+});
+
+router.get('/debug-users', async (req, res) => {
+  try {
+    const users = await User.find({}).select('email role vendorType fullName username').limit(20).lean();
+    res.json({ count: users.length, users });
+  } catch (error) {
+    console.error('debug-users error:', error);
+    res.status(500).json({ error: 'Unable to fetch users' });
   }
 });
 
