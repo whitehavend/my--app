@@ -69,6 +69,43 @@ router.get('/products/vendor/mine', authMiddleware, async (req, res) => {
   }
 });
 
+router.delete('/products/:id', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (shouldUseDemoData()) {
+      const productIndex = demoProducts.findIndex((product) => String(product._id) === String(id));
+
+      if (productIndex === -1) {
+        return res.status(404).json({ error: 'Product not found' });
+      }
+
+      const product = demoProducts[productIndex];
+      if (String(product.vendorId) !== String(req.user.id)) {
+        return res.status(403).json({ error: 'You can only delete your own uploaded products' });
+      }
+
+      demoProducts.splice(productIndex, 1);
+      return res.status(200).json({ message: 'Product deleted successfully', productId: id });
+    }
+
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    if (String(product.vendorId) !== String(req.user.id)) {
+      return res.status(403).json({ error: 'You can only delete your own uploaded products' });
+    }
+
+    await Product.findByIdAndDelete(id);
+    return res.status(200).json({ message: 'Product deleted successfully', productId: id });
+  } catch (error) {
+    console.error('Delete product error:', error);
+    return res.status(500).json({ error: 'Unable to delete product' });
+  }
+});
+
 router.post('/products', authMiddleware, async (req, res) => {
   try {
     const {
@@ -86,6 +123,10 @@ router.post('/products', authMiddleware, async (req, res) => {
       weight,
       description,
       images,
+      vendorName,
+      vendorContactInfo,
+      vendorDescription,
+      vendorType,
     } = req.body;
 
     const isMongoObjectId = (id) => typeof id === 'string' && /^[a-f0-9]{24}$/i.test(id) && mongoose.connection.readyState === 1;
@@ -109,9 +150,9 @@ router.post('/products', authMiddleware, async (req, res) => {
       return res.status(403).json({ error: 'Only vendors can upload products' });
     }
 
-    if (!title || !brand || !category || !description || price === undefined || stock === undefined) {
+    if (!title || !brand || !category || !description || price === undefined || stock === undefined || !vendorName || !vendorContactInfo || !vendorDescription) {
       return res.status(400).json({
-        error: 'Title, brand, category, description, price, and stock are required',
+        error: 'Title, brand, category, description, price, stock, vendor name, contact info, and vendor description are required',
       });
     }
 
@@ -146,7 +187,10 @@ router.post('/products', authMiddleware, async (req, res) => {
           description: description.trim(),
           images: normalizedImages,
           vendorId: currentUser.id || currentUser._id,
-          vendorName: currentUser.shopName || currentUser.fullName || '',
+          vendorName: vendorName || currentUser.shopName || currentUser.fullName || '',
+          vendorContactInfo: vendorContactInfo || '',
+          vendorDescription: vendorDescription || description,
+          vendorType: vendorType || currentUser.role || '',
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };
@@ -171,7 +215,10 @@ router.post('/products', authMiddleware, async (req, res) => {
         description: description.trim(),
         images: normalizedImages,
         vendorId: currentUser.id || currentUser._id,
-        vendorName: currentUser.shopName || currentUser.fullName || '',
+        vendorName: vendorName || currentUser.shopName || currentUser.fullName || '',
+        vendorContactInfo: vendorContactInfo || '',
+        vendorDescription: vendorDescription || description,
+        vendorType: vendorType || currentUser.role || '',
       });
 
       return res.status(201).json({ message: 'Product created successfully', product });

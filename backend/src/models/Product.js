@@ -87,6 +87,18 @@ const productSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    vendorContactInfo: {
+      type: String,
+      default: '',
+    },
+    vendorDescription: {
+      type: String,
+      default: '',
+    },
+    vendorType: {
+      type: String,
+      default: '',
+    },
   },
   {
     timestamps: true,

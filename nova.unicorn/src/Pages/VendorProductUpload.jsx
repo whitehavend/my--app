@@ -76,6 +76,35 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
   const [formData, setFormData] = useState(() => getDefaultForm(vendorType));
   const categoryOptions = vendorCategoryOptions[vendorType] || vendorCategoryOptions.shopvendor;
 
+  const handleImageFiles = async (event) => {
+    const files = Array.from(event.target.files || []);
+    if (!files.length) return;
+
+    const fileDataUrls = await Promise.all(
+      files.map(
+        (file) =>
+          new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result));
+            reader.onerror = () => reject(new Error("Unable to read image file"));
+            reader.readAsDataURL(file);
+          })
+      )
+    );
+
+    setFormData((prev) => {
+      const existingImages = (prev.images || "")
+        .split(",")
+        .map((value) => value.trim())
+        .filter(Boolean);
+
+      return {
+        ...prev,
+        images: [...existingImages, ...fileDataUrls].join(", "),
+      };
+    });
+  };
+
   if (!user) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center px-6 py-10">
@@ -106,6 +135,11 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
+    const normalizedImages = (formData.images || "")
+      .split(",")
+      .map((image) => image.trim())
+      .filter(Boolean);
+
     const payload = {
       ...formData,
       title: formData.title || formData.brand || "Vendor listing",
@@ -114,13 +148,13 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
       compareAtPrice: formData.compareAtPrice === "" ? null : Number(formData.compareAtPrice),
       stock: formData.stockVolume ? Number(formData.stockVolume) : Number(formData.stock || 0),
       weight: formData.massVolume === "" ? 0 : Number(formData.massVolume),
-      images: (formData.images || "")
-        .split(",")
-        .map((image) => image.trim())
-        .filter(Boolean),
+      images: normalizedImages,
       country: formData.country,
       location: formData.location,
       contactInfo: formData.contactInfo,
+      vendorName: user.shopName || user.displayName || user.username || "Vendor",
+      vendorContactInfo: formData.contactInfo,
+      vendorDescription: formData.description,
       vendorType,
     };
 
@@ -153,7 +187,7 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
 
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">Category</label>
-            <select name="category" value={formData.category} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary">
+            <select name="category" value={formData.category} onChange={handleChange} required className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary">
               {categoryOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -261,8 +295,9 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
           )}
 
           <div className="md:col-span-2">
-            <label className="mb-2 block text-sm font-medium text-gray-700">Image URLs</label>
-            <textarea name="images" value={formData.images} onChange={handleChange} rows="3" className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="https://example.com/1.png, https://example.com/2.png" />
+            <label className="mb-2 block text-sm font-medium text-gray-700">Upload product images</label>
+            <input type="file" accept="image/*" multiple onChange={handleImageFiles} className="w-full rounded-md border border-gray-300 bg-white p-3 file:mr-4 file:rounded file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-medium file:text-white" />
+            <textarea name="images" value={formData.images} onChange={handleChange} rows="3" required className="mt-3 w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="Paste image URLs or use the file picker above. Example: https://example.com/1.png, https://example.com/2.png" />
           </div>
 
           <div className="md:col-span-2">
@@ -274,9 +309,12 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
             <div className="md:col-span-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{productError}</div>
           )}
 
-          <div className="md:col-span-2 flex gap-3">
+          <div className="md:col-span-2 flex flex-wrap gap-3">
             <button type="submit" disabled={productStatus === 'loading'} className="rounded-md bg-primary px-5 py-3 text-sm font-medium text-white hover:bg-primary100 disabled:cursor-not-allowed disabled:opacity-70">
               {productStatus === 'loading' ? 'Uploading...' : 'Upload product'}
+            </button>
+            <button type="button" onClick={() => navigate('/')} className="rounded-md border border-gray-300 px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100">
+              View customer page
             </button>
             <button type="button" onClick={() => navigate('/')} className="rounded-md border border-gray-300 px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100">
               Cancel

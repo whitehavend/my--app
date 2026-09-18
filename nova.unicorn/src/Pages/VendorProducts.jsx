@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
-import { getVendorProducts } from "../Store/thunk";
+import { deleteVendorProduct, getVendorProducts } from "../Store/thunk";
 
 const VendorProducts = () => {
   const dispatch = useAppDispatch();
@@ -10,6 +10,16 @@ const VendorProducts = () => {
   useEffect(() => {
     dispatch(getVendorProducts());
   }, [dispatch]);
+
+  const handleDelete = async (productId) => {
+    const confirmed = window.confirm("Are you sure you want to delete this uploaded product?");
+    if (!confirmed) return;
+
+    const resultAction = await dispatch(deleteVendorProduct(productId));
+    if (deleteVendorProduct.fulfilled.match(resultAction)) {
+      dispatch(getVendorProducts());
+    }
+  };
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
@@ -42,6 +52,13 @@ const VendorProducts = () => {
                 <span className="text-gray-500">{product.stock} in stock</span>
               </div>
               <p className="mt-2 text-xs text-gray-500">Uploaded {product.createdAt ? new Date(product.createdAt).toLocaleDateString() : "recently"}</p>
+              <button
+                type="button"
+                onClick={() => handleDelete(product._id || product.id)}
+                className="mt-4 w-full rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100"
+              >
+                Delete item
+              </button>
             </div>
           </article>
         ))}

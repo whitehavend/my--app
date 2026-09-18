@@ -214,6 +214,30 @@ export const createProduct = createAsyncThunk(
   }
 );
 
+export const deleteVendorProduct = createAsyncThunk(
+  "deleteVendorProduct",
+  async (productId, thunkAPI) => {
+    const token = localStorage.getItem("unicorn_token");
+
+    try {
+      const response = await axios.delete(
+        `${apiBaseUrl}/products/${productId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return { ...response.data, productId };
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.error || error.message || "Unable to delete product"
+      );
+    }
+  }
+);
+
 export const createOrder = createAsyncThunk(
   "createOrder",
   async ({ items, totalAmount, shippingAddress, paymentMethod }, thunkAPI) => {
