@@ -6,6 +6,7 @@ const { cert, getApps, initializeApp } = require('firebase-admin/app');
 const { getAuth } = require('firebase-admin/auth');
 const authMiddleware = require('../middleware/authMiddleware');
 const User = require('../models/User');
+const { isValidPhoneForCountry } = require('../utils/phoneValidation');
 
 const router = express.Router();
 const vendorTypes = ['retailshopvendor', 'cardealer', 'realestate', 'pharmacy', 'agrovet'];
@@ -25,40 +26,24 @@ const getFirebaseAuth = () => {
   return getAuth();
 };
 
-const users = [
-  {
-    id: 'u1',
-    fullName: 'Demo User',
-    email: 'demo@example.com',
-    password: bcrypt.hashSync('password123', 10),
-    role: 'customer',
-    isApproved: true,
-    shopName: '',
-    phoneNumber: '',
-    businessName: '',
-  },
-];
-
-const getUserByEmail = async (email) => {
-  if (mongoose.connection.readyState === 1) {
-    return User.findOne({ email: email.toLowerCase() });
+const ensureSharedAccountStore = () => {
+  if (!process.env.MONGO_URI) {
+    throw new Error('SHARED_ACCOUNT_STORE_MISSING');
   }
 
-  return users.find((user) => user.email.toLowerCase() === email.toLowerCase()) || null;
+  if (mongoose.connection.readyState !== 1) {
+    throw new Error('SHARED_ACCOUNT_STORE_UNAVAILABLE');
+  }
+};
+
+const getUserByEmail = async (email) => {
+  ensureSharedAccountStore();
+  return User.findOne({ email: email.toLowerCase() });
 };
 
 const createUserRecord = async (userData) => {
-  if (mongoose.connection.readyState === 1) {
-    return User.create(userData);
-  }
-
-  const newUser = {
-    id: `u${Date.now()}`,
-    ...userData,
-  };
-
-  users.push(newUser);
-  return newUser;
+  ensureSharedAccountStore();
+  return User.create(userData);
 };
 
 const isMongoObjectId = (id) => typeof id === 'string' && /^[a-f0-9]{24}$/i.test(id) && mongoose.connection.readyState === 1;
@@ -68,7 +53,7 @@ const getUserById = async (id) => {
     return User.findById(id);
   }
 
-  return users.find((user) => String(user.id || user._id) === String(id)) || null;
+  return null;
 };
 
 const generateToken = (user) => jwt.sign(
@@ -140,6 +125,15 @@ router.post('/signup', async (req, res) => {
     });
   }
 
+  const normalizedPhone = String(phoneNumber).replace(/\s+/g, '').trim();
+  const normalizedCountryCode = String(countryCode).trim();
+
+  if (!isValidPhoneForCountry(normalizedCountryCode, normalizedPhone)) {
+    return res.status(400).json({
+      error: 'The phone number must match the selected country code',
+    });
+  }
+
   if (['customer', 'blackmarket'].includes(role) && !deliveryAddress) {
     return res.status(400).json({ error: 'Delivery address is required for this account' });
   }
@@ -167,9 +161,16 @@ router.post('/signup', async (req, res) => {
       return res.status(400).json({ error: `A username is required for ${invalidAdvertPlatform}` });
     }
 
-    const existingUser = await getUserByEmail(email);
-    if (existingUser) {
-      return res.status(409).json({ error: 'User already exists' });
+    try {
+      const existingUser = await getUserByEmail(email);
+      if (existingUser) {
+        return res.status(409).json({ error: 'User already exists' });
+      }
+    } catch (error) {
+      if (error.message === 'SHARED_ACCOUNT_STORE_MISSING' || error.message === 'SHARED_ACCOUNT_STORE_UNAVAILABLE') {
+        return res.status(503).json({ error: 'Account storage is not available. Please connect the backend to MongoDB so the same account can be used across devices.' });
+      }
+      throw error;
     }
 
     const userData = {
@@ -181,11 +182,11 @@ router.post('/signup', async (req, res) => {
       vendorType: role === 'vendor' ? vendorType : '',
       isApproved: true,
       shopName: role === 'vendor' ? shopName : '',
-      phoneNumber,
+      phoneNumber: normalizedPhone,
       businessName: role === 'vendor' ? businessName || '' : '',
       deliveryAddress: ['customer', 'blackmarket'].includes(role) ? deliveryAddress.trim() : '',
       shopAddress: role === 'vendor' ? shopAddress.trim() : '',
-      countryCode,
+      countryCode: normalizedCountryCode,
       advertSocials: role === 'advert' ? normalizedAdvertSocials : {},
     };
 
@@ -280,34 +281,42 @@ router.post('/google', async (req, res) => {
       return res.status(401).json({ error: 'A verified Google account is required' });
     }
 
-    let user = await getUserByEmail(email);
-
-    if (user && user.role !== role) {
-      return res.status(401).json({ error: 'The selected account type does not match this account' });
-    }
-
-    if (user && role === 'vendor' && user.vendorType !== vendorType) {
-      return res.status(401).json({ error: 'The selected vendor type does not match this account' });
+      let user;
+      try {
+        user = await getUserByEmail(email);
+      } catch (error) {
+        if (error.message === 'SHARED_ACCOUNT_STORE_MISSING' || error.message === 'SHARED_ACCOUNT_STORE_UNAVAILABLE') {
+          return res.status(503).json({ error: 'Account storage is not available. Please connect the backend to MongoDB so the same account can be used across devices.' });
+        }
+        throw error;
+      }
     }
 
     if (!user) {
       const fullName = firebaseUser.name || email.split('@')[0];
-      user = await createUserRecord({
-        fullName,
-        username: email.split('@')[0],
-        email,
-        password: await bcrypt.hash(`google:${firebaseUser.uid}`, 10),
-        role,
-        vendorType: role === 'vendor' ? vendorType : '',
-        isApproved: true,
-        shopName: '',
-        phoneNumber: '',
-        businessName: '',
-        deliveryAddress: '',
-        shopAddress: '',
-        countryCode: '',
-        advertSocials: {},
-      });
+      try {
+        user = await createUserRecord({
+          fullName,
+          username: email.split('@')[0],
+          email,
+          password: await bcrypt.hash(`google:${firebaseUser.uid}`, 10),
+          role,
+          vendorType: role === 'vendor' ? vendorType : '',
+          isApproved: true,
+          shopName: '',
+          phoneNumber: '',
+          businessName: '',
+          deliveryAddress: '',
+          shopAddress: '',
+          countryCode: '',
+          advertSocials: {},
+        });
+      } catch (error) {
+        if (error.message === 'SHARED_ACCOUNT_STORE_MISSING' || error.message === 'SHARED_ACCOUNT_STORE_UNAVAILABLE') {
+          return res.status(503).json({ error: 'Account storage is not available. Please connect the backend to MongoDB so the same account can be used across devices.' });
+        }
+        throw error;
+      }
     }
 
     return res.status(200).json({
