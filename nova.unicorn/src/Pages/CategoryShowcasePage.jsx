@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { FiArrowLeft, FiChevronRight } from "react-icons/fi";
 
 const categoryConfig = {
@@ -16,6 +16,12 @@ const categoryConfig = {
       { title: "Books and Games", items: ["Novels", "Children's books", "Board games", "Puzzles", "Educational games"] },
       { title: "Baby Products", items: ["Diapers", "Feeding essentials", "Skin care", "Nursery items", "Travel gear"] },
     ],
+    products: [
+      { title: "Premium Wireless Earbuds", price: "₦45,000", tag: "Electronics and Gadgets", image: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=900&q=80" },
+      { title: "Modern Smart Speaker", price: "₦68,000", tag: "Home and Lifestyle", image: "https://images.unsplash.com/photo-1518444065439-e933c06ce9cd?auto=format&fit=crop&w=900&q=80" },
+      { title: "Classic Fashion Pack", price: "₦28,500", tag: "Fashion", image: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=900&q=80" },
+      { title: "Fresh Groceries Box", price: "₦19,200", tag: "Groceries", image: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=900&q=80" },
+    ],
   },
   cardealer: {
     label: "Car Dealer",
@@ -24,6 +30,11 @@ const categoryConfig = {
     subcategories: [
       { title: "Passenger and Light Vehicles", items: ["Sedans", "SUVs", "Hatchbacks", "Crossovers", "Luxury cars"] },
       { title: "Heavy Vehicles", items: ["Trucks", "Buses", "Trailers", "Commercial vans", "Utility vehicles"] },
+    ],
+    products: [
+      { title: "2024 Toyota Corolla", price: "₦19,500,000", tag: "Passenger and Light Vehicles", image: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=900&q=80" },
+      { title: "Mercedes GLE SUV", price: "₦34,000,000", tag: "Passenger and Light Vehicles", image: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?auto=format&fit=crop&w=900&q=80" },
+      { title: "Heavy Duty Truck", price: "₦52,000,000", tag: "Heavy Vehicles", image: "https://images.unsplash.com/photo-1605559424843-9e4c9488dec0?auto=format&fit=crop&w=900&q=80" },
     ],
   },
   realestate: {
@@ -36,6 +47,11 @@ const categoryConfig = {
       { title: "Commercial", items: ["Office spaces", "Shops", "Retail outlets", "Business centers", "Mixed-use buildings"] },
       { title: "Industry", items: ["Warehouses", "Factories", "Industrial plots", "Logistics hubs", "Production facilities"] },
     ],
+    products: [
+      { title: "Prime City Plot", price: "₦16,500,000", tag: "Land", image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=900&q=80" },
+      { title: "Luxury 3-Bedroom Home", price: "₦42,000,000", tag: "Residential", image: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=900&q=80" },
+      { title: "Business Plaza Space", price: "₦29,000,000", tag: "Commercial", image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=900&q=80" },
+    ],
   },
   pharmacy: {
     label: "Pharmacy",
@@ -46,6 +62,11 @@ const categoryConfig = {
       { title: "OTC", items: ["Pain relievers", "Cold medicine", "Antacids", "Vitamins", "Daily wellness essentials"] },
       { title: "Therapeutic", items: ["Antibiotics", "Antihistamines", "Anti-inflammatory medication", "Care support", "Recovery products"] },
     ],
+    products: [
+      { title: "Daily Wellness Pack", price: "₦18,500", tag: "OTC", image: "https://images.unsplash.com/photo-1584515933487-779824d29309?auto=format&fit=crop&w=900&q=80" },
+      { title: "Prescription Care Kit", price: "₦27,000", tag: "POM", image: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=900&q=80" },
+      { title: "Therapeutic Recovery Blend", price: "₦22,400", tag: "Therapeutic", image: "https://images.unsplash.com/photo-1471864190281-a93a3070b6de?auto=format&fit=crop&w=900&q=80" },
+    ],
   },
   agrovet: {
     label: "Agrovet",
@@ -54,6 +75,11 @@ const categoryConfig = {
     subcategories: [
       { title: "Animals", items: ["De-wormers", "Antibiotics", "Ectoparasite control", "Vaccines", "Nutritional supplements", "Animal feeds"] },
       { title: "Crops", items: ["Pesticides", "Fungicides", "Herbicides", "Plant nutrition", "Seeds", "Farm tools"] },
+    ],
+    products: [
+      { title: "Animal Feed Pro Mix", price: "₦16,000", tag: "Animals", image: "https://images.unsplash.com/photo-1545243424-0ce743321e11?auto=format&fit=crop&w=900&q=80" },
+      { title: "Crop Protection Bundle", price: "₦25,800", tag: "Crops", image: "https://images.unsplash.com/photo-1464226184884-fa52acb6a66a?auto=format&fit=crop&w=900&q=80" },
+      { title: "Farm Nutrition Pack", price: "₦11,300", tag: "Crops", image: "https://images.unsplash.com/photo-1471193945509-9ad0617afabf?auto=format&fit=crop&w=900&q=80" },
     ],
   },
   blackmarket: {
@@ -64,10 +90,16 @@ const categoryConfig = {
       { title: "Featured finds", items: ["Limited edition goods", "Rare collectibles", "Luxury items", "Hidden deals", "Exclusive drops"] },
       { title: "Special access", items: ["Members-only picks", "One-off listings", "Premium collections", "Curated deals", "Private sales"] },
     ],
+    products: [
+      { title: "Rare Collector Watch", price: "₦120,000", tag: "Featured finds", image: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&w=900&q=80" },
+      { title: "Luxury Leather Set", price: "₦90,500", tag: "Special access", image: "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?auto=format&fit=crop&w=900&q=80" },
+      { title: "Exclusive Tech Drop", price: "₦74,000", tag: "Featured finds", image: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=900&q=80" },
+    ],
   },
 };
 
-const CategoryShowcasePage = ({ category = "shopvendor" }) => {
+const CategoryShowcasePage = () => {
+  const { category = "shopvendor" } = useParams();
   const details = categoryConfig[category] || categoryConfig.shopvendor;
 
   return (
@@ -91,7 +123,7 @@ const CategoryShowcasePage = ({ category = "shopvendor" }) => {
           </div>
         </header>
 
-        <section className="grid gap-5 md:grid-cols-2">
+        <section className="mb-8 grid gap-5 md:grid-cols-2">
           {details.subcategories.map((group) => (
             <article key={group.title} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
               <div className="mb-4 flex items-center justify-between gap-2">
@@ -107,6 +139,36 @@ const CategoryShowcasePage = ({ category = "shopvendor" }) => {
               </div>
             </article>
           ))}
+        </section>
+
+        <section className="mb-4">
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <h2 className="text-2xl font-black text-slate-900">Featured products</h2>
+            <span className="rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+              {details.label}
+            </span>
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            {details.products.map((product) => (
+              <article key={product.title} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+                <img src={product.image} alt={product.title} className="h-44 w-full object-cover" />
+                <div className="p-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">{product.tag}</p>
+                  <h3 className="mt-2 text-lg font-bold text-slate-900">{product.title}</h3>
+                  <p className="mt-3 text-2xl font-black text-gray-900">{product.price}</p>
+                  <div className="mt-4 flex gap-2">
+                    <button type="button" className="flex-1 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5 text-sm font-semibold text-primary transition hover:bg-primary/10">
+                      Save
+                    </button>
+                    <button type="button" className="flex-1 rounded-xl bg-primary px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-primary100">
+                      Add to cart
+                    </button>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
         </section>
       </div>
     </main>

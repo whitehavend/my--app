@@ -16,9 +16,17 @@ const defaultForm = {
   shippingInformation: "",
   weight: "",
   images: "",
+  stockVolume: "",
+  wholesalePrice: "",
+  basePrice: "",
+  prescription: "",
+  country: "",
+  location: "",
+  contactInfo: "",
+  massVolume: "",
 };
 
-const VendorProductUpload = () => {
+const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
@@ -57,15 +65,20 @@ const VendorProductUpload = () => {
 
     const payload = {
       ...formData,
-      price: Number(formData.price),
-      salePrice: formData.salePrice === "" ? null : Number(formData.salePrice),
+      title: formData.title || formData.brand || "Vendor listing",
+      price: formData.basePrice ? Number(formData.basePrice) : Number(formData.price || 0),
+      salePrice: formData.wholesalePrice ? Number(formData.wholesalePrice) : (formData.salePrice === "" ? null : Number(formData.salePrice)),
       compareAtPrice: formData.compareAtPrice === "" ? null : Number(formData.compareAtPrice),
-      stock: Number(formData.stock),
-      weight: formData.weight === "" ? 0 : Number(formData.weight),
-      images: formData.images
+      stock: formData.stockVolume ? Number(formData.stockVolume) : Number(formData.stock || 0),
+      weight: formData.massVolume === "" ? 0 : Number(formData.massVolume),
+      images: (formData.images || "")
         .split(",")
         .map((image) => image.trim())
         .filter(Boolean),
+      country: formData.country,
+      location: formData.location,
+      contactInfo: formData.contactInfo,
+      vendorType,
     };
 
     const resultAction = await dispatch(createProduct(payload));
@@ -104,6 +117,24 @@ const VendorProductUpload = () => {
               <option value="accessories">Accessories</option>
               <option value="appliances">Appliances</option>
               <option value="fashion">Fashion</option>
+              <option value="electronics-and-gadgets">Electronics and gadgets</option>
+              <option value="home-and-lifestyle">Home and lifestyle</option>
+              <option value="groceries">Groceries</option>
+              <option value="beauty">Beauty</option>
+              <option value="automobile-parts">Automobile parts</option>
+              <option value="books-and-games">Books and games</option>
+              <option value="baby-products">Baby products</option>
+              <option value="passenger-and-light-vehicles">Passenger and light vehicles</option>
+              <option value="heavy-vehicles">Heavy vehicles</option>
+              <option value="land">Land</option>
+              <option value="residential">Residential</option>
+              <option value="commercial">Commercial</option>
+              <option value="industry">Industry</option>
+              <option value="pom">POM</option>
+              <option value="otc">OTC</option>
+              <option value="therapeutic">Therapeutic</option>
+              <option value="animals">Animals</option>
+              <option value="crops">Crops</option>
             </select>
           </div>
 
@@ -112,35 +143,98 @@ const VendorProductUpload = () => {
             <textarea name="description" value={formData.description} onChange={handleChange} required rows="5" className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="Describe the product, key features, and benefits." />
           </div>
 
+          {vendorType === "pharmacy" || vendorType === "agrovet" ? (
+            <div className="md:col-span-2">
+              <label className="mb-2 block text-sm font-medium text-gray-700">Prescription</label>
+              <select name="prescription" value={formData.prescription} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary">
+                <option value="">Select prescription requirement</option>
+                <option value="required">Required</option>
+                <option value="not-required">Not required</option>
+              </select>
+            </div>
+          ) : null}
+
+          {vendorType === "pharmacy" || vendorType === "agrovet" ? (
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Mass/Volume</label>
+              <input name="massVolume" value={formData.massVolume} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="250ml / 500g" />
+            </div>
+          ) : null}
+
+          {vendorType === "realestate" ? (
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Location</label>
+              <input name="location" value={formData.location} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="Lekki Phase 1" />
+            </div>
+          ) : null}
+
+          {vendorType === "cardealer" ? (
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Location</label>
+              <input name="location" value={formData.location} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="Lagos showroom" />
+            </div>
+          ) : null}
+
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">Base price</label>
-            <input type="number" min="0" step="0.01" name="price" value={formData.price} onChange={handleChange} required className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="499.99" />
+            <input type="number" min="0" step="0.01" name="basePrice" value={formData.basePrice} onChange={handleChange} required className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="499.99" />
           </div>
 
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">Sale price</label>
-            <input type="number" min="0" step="0.01" name="salePrice" value={formData.salePrice} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="449.99" />
-          </div>
+          {(vendorType === "cardealer" || vendorType === "pharmacy" || vendorType === "agrovet") && (
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Wholesale price</label>
+              <input type="number" min="0" step="0.01" name="wholesalePrice" value={formData.wholesalePrice} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="349.99" />
+            </div>
+          )}
 
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">Compare at price</label>
-            <input type="number" min="0" step="0.01" name="compareAtPrice" value={formData.compareAtPrice} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="549.99" />
-          </div>
+          {(vendorType === "cardealer" || vendorType === "pharmacy" || vendorType === "agrovet") && (
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Stock volume</label>
+              <input type="number" min="0" name="stockVolume" value={formData.stockVolume} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="100" />
+            </div>
+          )}
 
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">Initial stock</label>
-            <input type="number" min="0" name="stock" value={formData.stock} onChange={handleChange} required className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="25" />
-          </div>
+          {(vendorType === "cardealer" || vendorType === "pharmacy" || vendorType === "agrovet") && (
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Country</label>
+              <input name="country" value={formData.country} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="Nigeria" />
+            </div>
+          )}
 
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">Weight (kg)</label>
-            <input type="number" min="0" step="0.01" name="weight" value={formData.weight} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="0.5" />
-          </div>
+          {(vendorType === "realestate" || vendorType === "blackmarket") && (
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Country</label>
+              <input name="country" value={formData.country} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="Nigeria" />
+            </div>
+          )}
 
-          <div className="md:col-span-2">
-            <label className="mb-2 block text-sm font-medium text-gray-700">Shipping information</label>
-            <input name="shippingInformation" value={formData.shippingInformation} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="2-4 business days" />
-          </div>
+          {vendorType === "realestate" && (
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Contact info</label>
+              <input name="contactInfo" value={formData.contactInfo} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="+234 800 000 0000" />
+            </div>
+          )}
+
+          {vendorType === "cardealer" && (
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Contact info</label>
+              <input name="contactInfo" value={formData.contactInfo} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="+234 800 000 0000" />
+            </div>
+          )}
+
+          {vendorType === "pharmacy" || vendorType === "agrovet" ? (
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Contact info</label>
+              <input name="contactInfo" value={formData.contactInfo} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="+234 800 000 0000" />
+            </div>
+          ) : null}
+
+          {vendorType === "blackmarket" && (
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Contact info</label>
+              <input name="contactInfo" value={formData.contactInfo} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="+234 800 000 0000" />
+            </div>
+          )}
 
           <div className="md:col-span-2">
             <label className="mb-2 block text-sm font-medium text-gray-700">Image URLs</label>
