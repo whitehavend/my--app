@@ -208,17 +208,17 @@ router.post('/signup', async (req, res) => {
 });
 
 router.post('/login', async (req, res) => {
-  const { email, password, role = 'customer', vendorType = '' } = req.body;
+  const { email, password, role = '', vendorType = '' } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password are required' });
   }
 
-  if (!['customer', 'vendor', 'advert', 'logistic', 'blackmarket'].includes(role)) {
+  if (role && !['customer', 'vendor', 'advert', 'logistic', 'blackmarket'].includes(role)) {
     return res.status(400).json({ error: 'Choose a valid account type' });
   }
 
-  if (role === 'vendor' && !vendorTypes.includes(vendorType)) {
+  if (role === 'vendor' && vendorType && !vendorTypes.includes(vendorType)) {
     return res.status(400).json({ error: 'Choose a valid vendor type' });
   }
 
@@ -229,11 +229,7 @@ router.post('/login', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    if (user.role !== role) {
-      return res.status(401).json({ error: 'The selected account type does not match this account' });
-    }
-
-    if (role === 'vendor' && user.vendorType !== vendorType) {
+    if (role === 'vendor' && vendorType && user.vendorType && user.vendorType !== vendorType) {
       return res.status(401).json({ error: 'The selected vendor type does not match this account' });
     }
 

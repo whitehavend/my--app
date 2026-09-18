@@ -40,7 +40,7 @@ const LoginPage = () => {
     watch,
     formState: { errors },
   } = useForm({
-    defaultValues: { role: "customer", vendorType: "" },
+    defaultValues: { role: "", vendorType: "" },
   });
   const selectedRole = watch("role", "customer");
   const selectedVendorType = watch("vendorType", "");
@@ -126,15 +126,17 @@ const LoginPage = () => {
               <div className="mb-4">
                 <label className="mb-2 block text-sm font-medium text-gray-700">Account type</label>
                 <select
-                  {...register("role")}
+                  {...register("role", { required: "Please select an account type" })}
                   className="w-full rounded-md border border-gray-400 bg-white p-4 outline-none focus:border-primary"
                 >
+                  <option value="">Select account type</option>
                   <option value="customer">Customer</option>
                   <option value="vendor">Vendor</option>
                   <option value="advert">Advert</option>
                   <option value="logistic">Logistic</option>
                   <option value="blackmarket">Black market</option>
                 </select>
+                {errors.role && <p className="mt-1 text-xs text-red-500">{errors.role.message}</p>}
               </div>
             )}
 
