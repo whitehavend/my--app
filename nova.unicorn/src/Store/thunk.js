@@ -1,7 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const configuredBaseUrl = process.env.REACT_APP_BASEURL || "http://localhost:5000/api";
+const configuredBaseUrl = process.env.REACT_APP_BASEURL || "http://localhost:5001/api";
 const normalizedBaseUrl = configuredBaseUrl.replace(/\/$/, "");
 const isLocalHost = normalizedBaseUrl.includes("localhost") || normalizedBaseUrl.includes("127.0.0.1");
 const apiBaseUrl = isLocalHost && typeof window !== "undefined" && window.location.hostname !== "localhost"

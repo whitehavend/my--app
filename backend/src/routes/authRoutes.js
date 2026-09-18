@@ -281,15 +281,14 @@ router.post('/google', async (req, res) => {
       return res.status(401).json({ error: 'A verified Google account is required' });
     }
 
-      let user;
-      try {
-        user = await getUserByEmail(email);
-      } catch (error) {
-        if (error.message === 'SHARED_ACCOUNT_STORE_MISSING' || error.message === 'SHARED_ACCOUNT_STORE_UNAVAILABLE') {
-          return res.status(503).json({ error: 'Account storage is not available. Please connect the backend to MongoDB so the same account can be used across devices.' });
-        }
-        throw error;
+    let user;
+    try {
+      user = await getUserByEmail(email);
+    } catch (error) {
+      if (error.message === 'SHARED_ACCOUNT_STORE_MISSING' || error.message === 'SHARED_ACCOUNT_STORE_UNAVAILABLE') {
+        return res.status(503).json({ error: 'Account storage is not available. Please connect the backend to MongoDB so the same account can be used across devices.' });
       }
+      throw error;
     }
 
     if (!user) {

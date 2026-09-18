@@ -7,10 +7,21 @@ const orderRoutes = require('./routes/orderRoutes');
 
 const app = express();
 
-const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:3000,https://novaunicorn.vercel.app,https://my-app-1-ggdw.onrender.com')
+const defaultAllowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'https://novaunicorn.vercel.app',
+  'https://www.novaunicorn.vercel.app',
+  'https://my-app-1-ggdw.onrender.com',
+  'https://my--app.onrender.com',
+  'https://my--app-git-main.whitehavend.vercel.app',
+];
+
+const allowedOrigins = (process.env.CLIENT_URL || defaultAllowedOrigins.join(','))
   .split(',')
   .map((origin) => origin.trim())
-  .filter(Boolean);
+  .filter(Boolean)
+  .concat(defaultAllowedOrigins);
 
 const isPrivateNetworkOrigin = (origin) => {
   try {
@@ -21,9 +32,18 @@ const isPrivateNetworkOrigin = (origin) => {
   }
 };
 
+const isDeployOrigin = (origin) => {
+  try {
+    const { hostname } = new URL(origin);
+    return hostname.endsWith('.vercel.app') || hostname.endsWith('.onrender.com') || hostname.endsWith('.netlify.app');
+  } catch {
+    return false;
+  }
+};
+
 const corsOptions = {
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin) || isPrivateNetworkOrigin(origin)) {
+    if (!origin || allowedOrigins.includes(origin) || isPrivateNetworkOrigin(origin) || isDeployOrigin(origin)) {
       callback(null, true);
       return;
     }
