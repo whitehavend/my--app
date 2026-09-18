@@ -4,7 +4,19 @@ import { getAllProducts } from "../Store/thunk";
 import { addToCart } from "../Store/cart/CartSlice";
 import { Link, useNavigate } from "react-router-dom";
 import { FiHeadphones, FiSearch, FiSettings, FiShoppingCart, FiUser } from "react-icons/fi";
+import { BsBuildings, BsShop } from "react-icons/bs";
+import { FaCarSide, FaCapsules } from "react-icons/fa";
+import { GiPlantRoots } from "react-icons/gi";
 import ComingSoonBanner from "../components/ComingSoonBanner";
+
+const categoryCards = [
+  { key: "shopvendor", label: "Shop Vendor", icon: BsShop, path: "/category/shopvendor" },
+  { key: "cardealer", label: "Car Dealer", icon: FaCarSide, path: "/category/cardealer" },
+  { key: "realestate", label: "Real Estate", icon: BsBuildings, path: "/category/realestate" },
+  { key: "pharmacy", label: "Pharmacy", icon: FaCapsules, path: "/category/pharmacy" },
+  { key: "agrovet", label: "Agrovet", icon: GiPlantRoots, path: "/category/agrovet" },
+  { key: "blackmarket", label: "Black Market", icon: FiShoppingCart, path: "/category/blackmarket" },
+];
 
 const CustomerPage = () => {
   const dispatch = useAppDispatch();
@@ -80,6 +92,21 @@ const CustomerPage = () => {
 
         <section>
           <div className="mb-6"><p className="text-sm font-medium uppercase tracking-[0.2em] text-primary">Customer marketplace</p><h1 className="mt-2 text-3xl font-bold">Products from our vendors</h1><p className="mt-2 text-gray-600">Browse, search, and shop vendor listings.</p></div>
+
+          <div className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {categoryCards.map(({ key, label, icon: Icon, path }) => (
+              <Link key={key} to={path} className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-primary hover:shadow-md">
+                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <h2 className="text-lg font-bold text-slate-900">{label}</h2>
+                  <span className="text-sm font-medium text-primary">Explore</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+
           {status === "loading" && <p>Loading products...</p>}
           {error && error !== "nil" && <p className="text-red-600">{error}</p>}
           {status !== "loading" && !visibleProducts.length && <ComingSoonBanner label="Vendor marketplace" />}

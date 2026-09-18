@@ -21,6 +21,7 @@ import BlackMarketPage from "./Pages/BlackMarketPage";
 import AdvertPage from "./Pages/AdvertPage";
 import LogisticPage from "./Pages/LogisticPage";
 import SavedItems from "./Pages/SavedItems";
+import CategoryShowcasePage from "./Pages/CategoryShowcasePage";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -37,6 +38,7 @@ function App() {
         <Route path="/" element={<CustomerPage />} />
         <Route path="/customer" element={<CustomerPage />} />
         <Route path="/blackmarket" element={<ProtectedRoleRoute role="blackmarket"><BlackMarketPage /></ProtectedRoleRoute>} />
+        <Route path="/category/:category" element={<CategoryShowcasePage />} />
         <Route path="/saved-items" element={<ProtectedRoleRoute role="customer"><SavedItems /></ProtectedRoleRoute>} />
         <Route path="/vendor" element={<ProtectedRoleRoute role="vendor"><VendorPage><VendorProductUpload /></VendorPage></ProtectedRoleRoute>} />
         <Route path="/vendor/retailshopvendor" element={<ProtectedRoleRoute role="vendor" vendorType="retailshopvendor"><VendorPage><VendorProductUpload /></VendorPage></ProtectedRoleRoute>} />
