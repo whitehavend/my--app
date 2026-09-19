@@ -73,6 +73,7 @@ const CustomerPage = () => {
             <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search products, brands, or categories" aria-label="Search products, brands, or categories" className="w-full rounded-md border border-gray-300 bg-gray-50 p-3 pl-11 outline-none focus:border-primary focus:bg-white" />
           </div>
           <nav className="flex items-center justify-between gap-2 text-sm text-gray-700" aria-label="Customer navigation">
+            {user?.role === "vendor" && <Link to={`/vendor/${user.vendorType || "retailshopvendor"}`} className="rounded-md bg-primary px-3 py-2 font-medium text-white hover:bg-primary100">Return to dashboard</Link>}
             <Link to={user ? "/account" : "/login"} className="flex items-center gap-2 rounded-md px-2 py-2 hover:bg-gray-100"><FiUser /><span>{user?.username || "My account"}</span></Link>
             <button type="button" onClick={() => window.alert("Our assistance team is available to help you with your order.")} className="flex items-center gap-2 rounded-md px-2 py-2 hover:bg-gray-100"><FiHeadphones /><span>Assistance</span></button>
             <Link to="/cart" className="flex items-center gap-2 rounded-md px-2 py-2 hover:bg-gray-100"><FiShoppingCart /><span>Cart</span></Link>

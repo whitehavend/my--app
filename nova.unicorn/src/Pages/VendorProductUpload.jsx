@@ -185,7 +185,7 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
     if (createProduct.fulfilled.match(resultAction)) {
       setFormData(getDefaultForm(vendorType));
       setUploadedFiles([]);
-      navigate("/");
+      navigate(`/vendor/${user.vendorType || vendorType}`);
     }
   };
 
