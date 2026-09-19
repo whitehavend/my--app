@@ -3,8 +3,9 @@ import { useAppSelector } from "../Store/hooks";
 
 const ProtectedRoleRoute = ({ role, vendorType, children }) => {
   const { user, status } = useAppSelector((state) => state.auth);
+  const hasStoredToken = Boolean(localStorage.getItem("unicorn_token"));
 
-  if (!user && status === "loading" && localStorage.getItem("unicorn_token")) {
+  if (hasStoredToken && (!user || status === "loading" || status === "idle")) {
     return <div className="flex min-h-[60vh] items-center justify-center">Loading your account...</div>;
   }
 
