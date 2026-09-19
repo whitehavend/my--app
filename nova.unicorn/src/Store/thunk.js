@@ -1,7 +1,8 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const defaultRemoteApiBaseUrl = "https://my-app-1-ggdw.onrender.com/api";
+const isLocalRuntime = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+const defaultRemoteApiBaseUrl = isLocalRuntime ? "http://localhost:5001/api" : "https://my-app-1-ggdw.onrender.com/api";
 const configuredBaseUrl = process.env.REACT_APP_BASEURL || defaultRemoteApiBaseUrl;
 const normalizedBaseUrl = configuredBaseUrl.replace(/\/$/, "");
 const apiBaseUrl = normalizedBaseUrl;

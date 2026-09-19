@@ -60,6 +60,10 @@ app.options('*', cors(corsOptions));
 app.use(express.json());
 app.use(morgan('dev'));
 
+app.get('/', (req, res) => {
+  res.status(200).json({ status: 'ok', message: 'Nova Unicorn API is running', docs: '/api/health' });
+});
+
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'Unicorn backend is running' });
 });
