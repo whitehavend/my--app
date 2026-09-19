@@ -76,6 +76,7 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
   const { user } = useAppSelector((state) => state.auth);
   const { productStatus, productError } = useAppSelector((state) => state.products);
   const [formData, setFormData] = useState(() => getDefaultForm(vendorType));
+  const [localValidationError, setLocalValidationError] = useState("");
   const categoryOptions = vendorCategoryOptions[vendorType] || vendorCategoryOptions.shopvendor;
 
   const handleImageFiles = async (event) => {
@@ -136,19 +137,31 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setLocalValidationError("");
 
     const normalizedImages = (formData.images || "")
       .split(",")
       .map((image) => image.trim())
       .filter(Boolean);
 
+    const basePriceValue = Number(formData.basePrice || formData.price || 0);
     const wholeSalePriceValue = formData.wholeSalePrice !== "" ? formData.wholeSalePrice : formData.wholesalePrice;
     const wholeSaleVolumeValue = formData.wholeSaleVolume !== "" ? formData.wholeSaleVolume : formData.stockVolume;
+
+    if (wholeSalePriceValue !== undefined && wholeSalePriceValue !== "" && Number(wholeSalePriceValue) <= basePriceValue) {
+      setLocalValidationError("Wholesale price must be greater than the base price.");
+      return;
+    }
+
+    if (wholeSaleVolumeValue !== undefined && wholeSaleVolumeValue !== "" && Number(wholeSaleVolumeValue) <= 5) {
+      setLocalValidationError("Wholesale volume must be greater than 5.");
+      return;
+    }
 
     const payload = {
       ...formData,
       title: formData.title || formData.brand || "Vendor listing",
-      price: formData.basePrice ? Number(formData.basePrice) : Number(formData.price || 0),
+      price: basePriceValue,
       salePrice: wholeSalePriceValue ? Number(wholeSalePriceValue) : (formData.salePrice === "" ? null : Number(formData.salePrice)),
       wholesalePrice: wholeSalePriceValue ? Number(wholeSalePriceValue) : null,
       compareAtPrice: formData.compareAtPrice === "" ? null : Number(formData.compareAtPrice),
@@ -246,21 +259,21 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
             <input type="number" min="0" step="0.01" name="basePrice" value={formData.basePrice} onChange={handleChange} required className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="499.99" />
           </div>
 
-          {(vendorType === "cardealer" || vendorType === "pharmacy" || vendorType === "agrovet") && (
+          {(vendorType === "retailshopvendor" || vendorType === "cardealer" || vendorType === "pharmacy" || vendorType === "agrovet") && (
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">Whole sale price</label>
               <input type="number" min="0" step="0.01" name="wholeSalePrice" value={formData.wholeSalePrice} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="349.99" />
             </div>
           )}
 
-          {(vendorType === "cardealer" || vendorType === "pharmacy" || vendorType === "agrovet") && (
+          {(vendorType === "retailshopvendor" || vendorType === "cardealer" || vendorType === "pharmacy" || vendorType === "agrovet") && (
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">Whole sale volume</label>
               <input type="number" min="0" name="wholeSaleVolume" value={formData.wholeSaleVolume} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="100" />
             </div>
           )}
 
-          {(vendorType === "cardealer" || vendorType === "pharmacy" || vendorType === "agrovet") && (
+          {(vendorType === "retailshopvendor" || vendorType === "cardealer" || vendorType === "pharmacy" || vendorType === "agrovet") && (
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">Country</label>
               <input name="country" value={formData.country} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="Nigeria" />
@@ -313,8 +326,8 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
             <input name="priceDetails" value={formData.priceDetails} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="Inclusive of VAT or free shipping over $50" />
           </div>
 
-          {productError && (
-            <div className="md:col-span-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{productError}</div>
+          {(productError || localValidationError) && (
+            <div className="md:col-span-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{localValidationError || productError}</div>
           )}
 
           <div className="md:col-span-2 flex flex-wrap gap-3">

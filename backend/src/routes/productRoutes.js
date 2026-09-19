@@ -188,8 +188,16 @@ router.post('/products', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'Wholesale price must be a valid number greater than or equal to zero' });
     }
 
+    if (parsedWholesalePrice !== null && parsedWholesalePrice <= parsedPrice) {
+      return res.status(400).json({ error: 'Wholesale price must be greater than the base price' });
+    }
+
     if (parsedWholesaleVolume !== null && (Number.isNaN(parsedWholesaleVolume) || parsedWholesaleVolume < 0)) {
       return res.status(400).json({ error: 'Wholesale volume must be a valid number greater than or equal to zero' });
+    }
+
+    if (parsedWholesaleVolume !== null && parsedWholesaleVolume <= 5) {
+      return res.status(400).json({ error: 'Wholesale volume must be greater than 5' });
     }
 
     try {

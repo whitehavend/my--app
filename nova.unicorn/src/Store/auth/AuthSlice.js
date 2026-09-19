@@ -132,6 +132,7 @@ const AuthSlice = createSlice({
           displayName: user.fullName || user.displayName,
           username: user.username || "",
           role: user.role || "customer",
+          vendorType: user.vendorType || "",
           shopName: user.shopName || "",
           isApproved: user.isApproved ?? true,
           phoneNumber: user.phoneNumber || "",
