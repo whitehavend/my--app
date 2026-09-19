@@ -28,14 +28,21 @@ const ProductCard = ({ product }) => {
     dispatch(addToCart({ product, quantity }));
   };
 
+  const imageUrl = Array.isArray(product.images) && product.images.length > 0
+    ? product.images[0]
+    : "images/phones.png";
+
   return (
     <section>
       <div className="flex items-start bg-white shadow-md rounded-md w-full">
         <div>
           <img
-            src={product.images[0]}
+            src={imageUrl}
             alt={product.title}
             className="h-[200px] w-[300px]"
+            onError={(event) => {
+              event.currentTarget.src = "images/phones.png";
+            }}
           />
         </div>
         <div className="p-4 w-full">

@@ -1,14 +1,29 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const Product = require('../models/Product');
 const User = require('../models/User');
 const authMiddleware = require('../middleware/authMiddleware');
 const router = express.Router();
+const uploadDirectory = path.join(__dirname, '../../uploads');
+fs.mkdirSync(uploadDirectory, { recursive: true });
+
 const upload = multer({
-  storage: multer.memoryStorage(),
+  storage: multer.diskStorage({
+    destination: (_req, _file, callback) => callback(null, uploadDirectory),
+    filename: (_req, file, callback) => {
+      const extension = path.extname(file.originalname).toLowerCase();
+      const baseName = path.basename(file.originalname, extension).replace(/[^a-z0-9_-]/gi, '-').toLowerCase();
+      callback(null, `${Date.now()}-${baseName || 'image'}${extension}`);
+    },
+  }),
   limits: {
     fileSize: 10 * 1024 * 1024,
+  },
+  fileFilter: (_req, file, callback) => {
+    callback(null, /^image\//i.test(file.mimetype));
   },
 });
 
@@ -41,7 +56,7 @@ const normalizeImages = (images) => {
         return false;
       }
 
-      return /^https?:\/\//i.test(image) || /^\/uploads\//i.test(image) || /^data:image\//i.test(image);
+      return /^https?:\/\//i.test(image) || /^\/uploads\//i.test(image);
     });
 
   return [...new Set(validImageUrls)];
@@ -155,11 +170,11 @@ router.post('/products', authMiddleware, upload.array('images', 10), async (req,
       return file && file.mimetype && /^image\//i.test(file.mimetype);
     });
 
-    if (validUploadedFiles.length > 0 && imageListFromBody.length === 0) {
-      console.warn('Uploaded image files were received without a valid URL list; ignoring raw binary payloads to prevent oversized data URLs.');
-    }
+    const uploadedImages = validUploadedFiles.map((file) => {
+      return `${req.protocol}://${req.get('host')}/uploads/${encodeURIComponent(file.filename)}`;
+    });
 
-    const parsedImages = [...imageListFromBody];
+    const parsedImages = [...imageListFromBody, ...uploadedImages];
 
     const isMongoObjectId = (id) => typeof id === 'string' && /^[a-f0-9]{24}$/i.test(id) && mongoose.connection.readyState === 1;
 
