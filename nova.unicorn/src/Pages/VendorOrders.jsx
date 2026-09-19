@@ -1,10 +1,14 @@
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
-import { getVendorOrders } from "../Store/thunk";
+import { fulfillOrder, getVendorOrders } from "../Store/thunk";
 
 const VendorOrders = () => {
   const dispatch = useAppDispatch();
   const { orders, status, error } = useAppSelector((state) => state.orders);
+
+  const handleFulfill = (orderId) => {
+    dispatch(fulfillOrder(orderId));
+  };
 
   useEffect(() => {
     dispatch(getVendorOrders());
@@ -30,7 +34,7 @@ const VendorOrders = () => {
                 <p className="text-xs uppercase tracking-wide text-gray-500">Order ID</p>
                 <h3 className="font-semibold text-gray-900">{order._id || order.id}</h3>
               </div>
-              <span className="w-fit rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold capitalize text-amber-700">{order.status}</span>
+              <span className={`w-fit rounded-full px-3 py-1 text-xs font-semibold capitalize ${order.status === "delivering" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>{order.status === "delivering" ? "Your product is being delivered" : order.status}</span>
             </div>
             <div className="mt-4 space-y-2 text-sm text-gray-700">
               {order.items?.map((item) => (
@@ -41,6 +45,11 @@ const VendorOrders = () => {
               ))}
             </div>
             <div className="mt-4 border-t border-gray-100 pt-3 text-right font-semibold text-gray-900">Total: ₦{Number(order.totalAmount || 0).toFixed(2)}</div>
+            {order.status === "pending" && (
+              <button type="button" onClick={() => handleFulfill(order._id || order.id)} className="mt-4 w-full rounded-md bg-primary px-4 py-3 text-sm font-semibold text-white hover:bg-primary100">
+                Fulfill order
+              </button>
+            )}
           </article>
         ))}
       </div>

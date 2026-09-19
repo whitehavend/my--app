@@ -1,13 +1,17 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
-import { getUserOrders } from "../Store/thunk";
+import { cancelOrder, getUserOrders } from "../Store/thunk";
 
 const Orders = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const { orders, status, error } = useAppSelector((state) => state.orders);
+
+  const handleCancel = (orderId) => {
+    dispatch(cancelOrder(orderId));
+  };
 
   useEffect(() => {
     if (!user) {
@@ -38,15 +42,15 @@ const Orders = () => {
 
         <div className="space-y-4">
           {orders.map((order) => (
-            <div key={order.id} className="bg-white rounded-md shadow-sm p-4">
+            <div key={order._id || order.id} className="bg-white rounded-md shadow-sm p-4">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between border-b pb-3 mb-3">
                 <div>
                   <p className="text-xs uppercase text-gray-500">Order ID</p>
-                  <h2 className="font-semibold">{order.id}</h2>
+                  <h2 className="font-semibold">{order._id || order.id}</h2>
                 </div>
                 <div>
                   <p className="text-xs uppercase text-gray-500">Status</p>
-                  <h2 className="font-semibold capitalize">{order.status}</h2>
+                  <h2 className={`font-semibold ${order.status === "delivering" ? "text-green-600" : ""}`}>{order.status === "delivering" ? "Your product is being delivered" : order.status}</h2>
                 </div>
                 <div>
                   <p className="text-xs uppercase text-gray-500">Total</p>
@@ -56,12 +60,17 @@ const Orders = () => {
 
               <div className="space-y-2">
                 {order.items.map((item) => (
-                  <div key={`${order.id}-${item.id}`} className="flex justify-between text-sm text-gray-700">
+                  <div key={`${order._id || order.id}-${item._id || item.id}`} className="flex justify-between text-sm text-gray-700">
                     <span>{item.title} x {item.quantity}</span>
                     <span>₦{Number(item.price * item.quantity).toFixed(2)}</span>
                   </div>
                 ))}
               </div>
+              {order.status === "pending" && (
+                <button type="button" onClick={() => handleCancel(order._id || order.id)} className="mt-4 rounded-md border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50">
+                  Cancel order
+                </button>
+              )}
             </div>
           ))}
         </div>

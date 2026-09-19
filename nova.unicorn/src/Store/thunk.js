@@ -325,6 +325,38 @@ export const getVendorOrders = createAsyncThunk(
   }
 );
 
+export const fulfillOrder = createAsyncThunk(
+  "fulfillOrder",
+  async (orderId, thunkAPI) => {
+    const token = localStorage.getItem("unicorn_token");
+
+    try {
+      const response = await axios.patch(`${apiBaseUrl}/orders/${orderId}/fulfill`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.error || error.message || "Unable to fulfill order");
+    }
+  }
+);
+
+export const cancelOrder = createAsyncThunk(
+  "cancelOrder",
+  async (orderId, thunkAPI) => {
+    const token = localStorage.getItem("unicorn_token");
+
+    try {
+      const response = await axios.patch(`${apiBaseUrl}/orders/${orderId}/cancel`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.error || error.message || "Unable to cancel order");
+    }
+  }
+);
+
 export const getPendingVendors = createAsyncThunk(
   "getPendingVendors",
   async (_, thunkAPI) => {

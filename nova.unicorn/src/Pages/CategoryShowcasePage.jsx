@@ -1,5 +1,8 @@
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { FiArrowLeft, FiChevronRight } from "react-icons/fi";
+import { useAppDispatch, useAppSelector } from "../Store/hooks";
+import { getAllProducts } from "../Store/thunk";
 
 const categoryConfig = {
   shopvendor: {
@@ -98,9 +101,41 @@ const categoryConfig = {
   },
 };
 
+const toCategorySlug = (value) => String(value || "")
+  .toLowerCase()
+  .replace(/&/g, "and")
+  .replace(/[^a-z0-9]+/g, "-")
+  .replace(/^-|-$/g, "");
+
 const CategoryShowcasePage = () => {
   const { category = "shopvendor" } = useParams();
   const details = categoryConfig[category] || categoryConfig.shopvendor;
+  const dispatch = useAppDispatch();
+  const { products } = useAppSelector((state) => state.products);
+  const [selectedSubcategory, setSelectedSubcategory] = useState("");
+
+  useEffect(() => {
+    dispatch(getAllProducts());
+    setSelectedSubcategory("");
+  }, [category, dispatch]);
+
+  const categorySlugs = useMemo(() => details.subcategories.flatMap((group) => [
+    toCategorySlug(group.title),
+    ...group.items.map(toCategorySlug),
+  ]), [details]);
+
+  const matchingProducts = useMemo(() => {
+    const selectedSlug = toCategorySlug(selectedSubcategory);
+    const allowedSlugs = selectedSlug ? [selectedSlug] : categorySlugs;
+
+    return products.filter((product) => {
+      const productSlug = toCategorySlug(product.category);
+      return product.vendorId && allowedSlugs.includes(productSlug);
+    });
+  }, [categorySlugs, products, selectedSubcategory]);
+
+  const displayedProducts = matchingProducts.length > 0 || selectedSubcategory ? matchingProducts : details.products;
+  const isShowingVendorProducts = matchingProducts.length > 0;
 
   return (
     <main className="min-h-screen bg-slate-100 px-4 py-6 sm:px-6 lg:px-8">
@@ -132,9 +167,14 @@ const CategoryShowcasePage = () => {
               </div>
               <div className="flex flex-wrap gap-2">
                 {group.items.map((item) => (
-                  <span key={item} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm text-slate-700">
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => setSelectedSubcategory(item)}
+                    className={`rounded-full border px-3 py-1.5 text-sm transition ${selectedSubcategory === item ? "border-primary bg-primary text-white" : "border-slate-200 bg-slate-50 text-slate-700 hover:border-primary hover:text-primary"}`}
+                  >
                     {item}
-                  </span>
+                  </button>
                 ))}
               </div>
             </article>
@@ -143,20 +183,21 @@ const CategoryShowcasePage = () => {
 
         <section className="mb-4">
           <div className="mb-5 flex items-center justify-between gap-3">
-            <h2 className="text-2xl font-black text-slate-900">Featured products</h2>
-            <span className="rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-              {details.label}
-            </span>
+            <div>
+              <h2 className="text-2xl font-black text-slate-900">{selectedSubcategory || "Featured products"}</h2>
+              {selectedSubcategory && <button type="button" onClick={() => setSelectedSubcategory("")} className="mt-1 text-sm font-medium text-primary hover:underline">Show all {details.label.toLowerCase()} products</button>}
+            </div>
+            <span className="rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary">{details.label}</span>
           </div>
 
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            {details.products.map((product) => (
-              <article key={product.title} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md">
-                <img src={product.image} alt={product.title} className="h-44 w-full object-cover" />
+            {displayedProducts.map((product) => (
+              <article key={product._id || product.title} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+                <img src={isShowingVendorProducts ? product.images?.[0] || "images/phones.png" : product.image} alt={product.title} className="h-44 w-full object-cover" onError={(event) => { event.currentTarget.src = "images/phones.png"; }} />
                 <div className="p-4">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">{product.tag}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">{isShowingVendorProducts ? product.category : product.tag}</p>
                   <h3 className="mt-2 text-lg font-bold text-slate-900">{product.title}</h3>
-                  <p className="mt-3 text-2xl font-black text-gray-900">{product.price}</p>
+                  <p className="mt-3 text-2xl font-black text-gray-900">{isShowingVendorProducts ? `₦${Number(product.salePrice ?? product.price).toLocaleString()}` : product.price}</p>
                   <div className="mt-4 flex gap-2">
                     <button type="button" className="flex-1 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5 text-sm font-semibold text-primary transition hover:bg-primary/10">
                       Save
@@ -169,6 +210,11 @@ const CategoryShowcasePage = () => {
               </article>
             ))}
           </div>
+          {selectedSubcategory && !displayedProducts.length && (
+            <p className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-600">
+              No vendor products are available in {selectedSubcategory} yet.
+            </p>
+          )}
         </section>
       </div>
     </main>
