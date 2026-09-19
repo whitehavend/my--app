@@ -6,6 +6,11 @@ const configuredBaseUrl = process.env.REACT_APP_BASEURL || defaultRemoteApiBaseU
 const normalizedBaseUrl = configuredBaseUrl.replace(/\/$/, "");
 const apiBaseUrl = normalizedBaseUrl;
 
+const normalizeEmailForRequest = (value) => {
+  if (typeof value !== "string") return "";
+  return value.trim().toLowerCase();
+};
+
 export const getAllProducts = createAsyncThunk(
   "getAllProducts",
   async (_, thunkAPI) => {
@@ -59,11 +64,12 @@ export const handleLogin = createAsyncThunk(
   async ({ data }, thunkAPI) => {
     const payload = data?.data ?? data;
     const { email, password, role = "customer", vendorType = "" } = payload || {};
+    const normalizedEmail = normalizeEmailForRequest(email);
 
     try {
       const response = await axios.post(
         `${apiBaseUrl}/auth/login`,
-        { email, password, role, vendorType }
+        { email: normalizedEmail, password, role, vendorType }
       );
 
       if (response.data?.token) {
@@ -99,6 +105,7 @@ export const handleSignup = createAsyncThunk(
       advertSocials,
       advertUsernames,
     } = payload || {};
+    const normalizedEmail = normalizeEmailForRequest(email);
 
     const selectedAdvertSocials = Object.entries(advertSocials || {}).reduce((socials, [platform, selected]) => {
       if (selected) {
@@ -110,7 +117,7 @@ export const handleSignup = createAsyncThunk(
     try {
       const response = await axios.post(
         `${apiBaseUrl}/auth/signup`,
-        { fullName, username, email, password, role, vendorType, shopName, phoneNumber, businessName, countryCode, advertSocials: selectedAdvertSocials, deliveryAddress, shopAddress }
+        { fullName, username, email: normalizedEmail, password, role, vendorType, shopName, phoneNumber, businessName, countryCode, advertSocials: selectedAdvertSocials, deliveryAddress, shopAddress }
       );
 
       if (response.data?.token) {

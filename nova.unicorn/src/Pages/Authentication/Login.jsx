@@ -55,11 +55,21 @@ const LoginPage = () => {
     }
   }, [notify, dispatch, navigate, user]);
 
+  const normalizeEmailValue = (value) => {
+    if (typeof value !== "string") return "";
+    return value.trim().toLowerCase();
+  };
+
   const onSubmit = async (data) => {
+    const normalizedData = {
+      ...data,
+      email: normalizeEmailValue(data?.email),
+    };
+
     if (isLogin) {
-      loginHandler({data})
+      loginHandler({ data: normalizedData });
     } else {
-      signupHandler({data});
+      signupHandler({ data: normalizedData });
     }
   };
 

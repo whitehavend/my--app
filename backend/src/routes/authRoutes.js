@@ -7,6 +7,7 @@ const { getAuth } = require('firebase-admin/auth');
 const authMiddleware = require('../middleware/authMiddleware');
 const User = require('../models/User');
 const { isValidPhoneForCountry } = require('../utils/phoneValidation');
+const { normalizeEmail, isValidEmail } = require('../utils/emailValidation');
 
 const router = express.Router();
 const vendorTypes = ['retailshopvendor', 'cardealer', 'realestate', 'pharmacy', 'agrovet'];
@@ -45,8 +46,6 @@ const createUserRecord = async (userData) => {
   ensureSharedAccountStore();
   return User.create(userData);
 };
-
-const normalizeEmail = (email) => String(email || '').trim().toLowerCase();
 
 const isMongoObjectId = (id) => typeof id === 'string' && /^[a-f0-9]{24}$/i.test(id) && mongoose.connection.readyState === 1;
 
@@ -113,6 +112,10 @@ router.post('/signup', async (req, res) => {
 
   if (!fullName || !username || !normalizedEmail || !password) {
     return res.status(400).json({ error: 'Full name, username, email, and password are required' });
+  }
+
+  if (!isValidEmail(normalizedEmail)) {
+    return res.status(400).json({ error: 'Please enter a valid email address' });
   }
 
   if (!['customer', 'vendor', 'advert', 'logistic', 'blackmarket'].includes(role)) {
@@ -222,6 +225,11 @@ router.post('/login', async (req, res) => {
 
   try {
     const normalizedEmail = normalizeEmail(email);
+
+    if (!isValidEmail(normalizedEmail)) {
+      return res.status(400).json({ error: 'Please enter a valid email address' });
+    }
+
     const user = await User.findOne({ email: normalizedEmail });
 
     console.log('LOGIN User.findOne({ email }) result:', user ? {
