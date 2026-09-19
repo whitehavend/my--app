@@ -1,9 +1,16 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const multer = require('multer');
 const Product = require('../models/Product');
 const User = require('../models/User');
 const authMiddleware = require('../middleware/authMiddleware');
 const router = express.Router();
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024,
+  },
+});
 
 const demoProducts = [];
 
@@ -106,7 +113,7 @@ router.delete('/products/:id', authMiddleware, async (req, res) => {
   }
 });
 
-router.post('/products', authMiddleware, async (req, res) => {
+router.post('/products', authMiddleware, upload.array('images', 10), async (req, res) => {
   try {
     const {
       title,
@@ -135,6 +142,18 @@ router.post('/products', authMiddleware, async (req, res) => {
       location,
       massVolume,
     } = req.body;
+
+    const uploadedImageFiles = Array.isArray(req.files) ? req.files : [];
+    const imageListFromBody = Array.isArray(images) ? images : typeof images === 'string'
+      ? images.split(',').map((image) => image.trim()).filter(Boolean)
+      : [];
+
+    const uploadedImages = uploadedImageFiles.map((file) => {
+      const mimeType = file.mimetype || 'image/jpeg';
+      return `data:${mimeType};base64,${file.buffer.toString('base64')}`;
+    });
+
+    const parsedImages = [...imageListFromBody, ...uploadedImages];
 
     const isMongoObjectId = (id) => typeof id === 'string' && /^[a-f0-9]{24}$/i.test(id) && mongoose.connection.readyState === 1;
 
@@ -171,7 +190,7 @@ router.post('/products', authMiddleware, async (req, res) => {
     const parsedWholesaleVolume = wholesaleVolume === undefined || wholesaleVolume === null || wholesaleVolume === ''
       ? (stockVolume === undefined || stockVolume === null || stockVolume === '' ? null : Number(stockVolume))
       : Number(wholesaleVolume);
-    const normalizedImages = normalizeImages(images);
+    const normalizedImages = normalizeImages(parsedImages);
     const normalizedVendorName = vendorName || currentUser?.shopName || currentUser?.fullName || 'Vendor';
     const normalizedVendorContactInfo = vendorContactInfo || contactInfo || '';
     const normalizedVendorDescription = vendorDescription || description || '';

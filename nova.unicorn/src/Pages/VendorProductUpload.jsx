@@ -76,36 +76,15 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
   const { user } = useAppSelector((state) => state.auth);
   const { productStatus, productError } = useAppSelector((state) => state.products);
   const [formData, setFormData] = useState(() => getDefaultForm(vendorType));
+  const [uploadedFiles, setUploadedFiles] = useState([]);
   const [localValidationError, setLocalValidationError] = useState("");
   const categoryOptions = vendorCategoryOptions[vendorType] || vendorCategoryOptions.shopvendor;
 
-  const handleImageFiles = async (event) => {
+  const handleImageFiles = (event) => {
     const files = Array.from(event.target.files || []);
     if (!files.length) return;
 
-    const fileDataUrls = await Promise.all(
-      files.map(
-        (file) =>
-          new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(String(reader.result));
-            reader.onerror = () => reject(new Error("Unable to read image file"));
-            reader.readAsDataURL(file);
-          })
-      )
-    );
-
-    setFormData((prev) => {
-      const existingImages = (prev.images || "")
-        .split(",")
-        .map((value) => value.trim())
-        .filter(Boolean);
-
-      return {
-        ...prev,
-        images: [...existingImages, ...fileDataUrls].join(", "),
-      };
-    });
+    setUploadedFiles((prev) => [...prev, ...files]);
   };
 
   if (!user) {
@@ -179,10 +158,33 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
       vendorType,
     };
 
-    const resultAction = await dispatch(createProduct(payload));
+    const formPayload = new FormData();
+    Object.entries(payload).forEach(([key, value]) => {
+      if (value === undefined || value === null || value === "") {
+        return;
+      }
+
+      if (Array.isArray(value)) {
+        value.forEach((item) => {
+          if (item !== undefined && item !== null && item !== "") {
+            formPayload.append(key, String(item));
+          }
+        });
+        return;
+      }
+
+      formPayload.append(key, String(value));
+    });
+
+    uploadedFiles.forEach((file) => {
+      formPayload.append("images", file);
+    });
+
+    const resultAction = await dispatch(createProduct(formPayload));
 
     if (createProduct.fulfilled.match(resultAction)) {
       setFormData(getDefaultForm(vendorType));
+      setUploadedFiles([]);
       navigate("/");
     }
   };
@@ -318,7 +320,7 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
           <div className="md:col-span-2">
             <label className="mb-2 block text-sm font-medium text-gray-700">Upload product images</label>
             <input type="file" accept="image/*" multiple onChange={handleImageFiles} className="w-full rounded-md border border-gray-300 bg-white p-3 file:mr-4 file:rounded file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-medium file:text-white" />
-            <textarea name="images" value={formData.images} onChange={handleChange} rows="3" required className="mt-3 w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="Paste image URLs or use the file picker above. Example: https://example.com/1.png, https://example.com/2.png" />
+            <textarea name="images" value={formData.images} onChange={handleChange} rows="3" className="mt-3 w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="Paste image URLs or use the file picker above. Example: https://example.com/1.png, https://example.com/2.png" />
           </div>
 
           <div className="md:col-span-2">
