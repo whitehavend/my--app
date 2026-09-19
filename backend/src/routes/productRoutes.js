@@ -28,20 +28,23 @@ const normalizeImages = (images) => {
     return [];
   }
 
-  if (Array.isArray(images)) {
-    return images
-      .map((image) => (typeof image === 'string' ? image.trim() : ''))
-      .filter(Boolean);
-  }
+  const rawImages = Array.isArray(images)
+    ? images
+    : typeof images === 'string'
+      ? images.split(',')
+      : [];
 
-  if (typeof images === 'string') {
-    return images
-      .split(',')
-      .map((image) => image.trim())
-      .filter(Boolean);
-  }
+  const validImageUrls = rawImages
+    .map((image) => (typeof image === 'string' ? image.trim() : ''))
+    .filter((image) => {
+      if (!image) {
+        return false;
+      }
 
-  return [];
+      return /^https?:\/\//i.test(image) || /^\/uploads\//i.test(image) || /^data:image\//i.test(image);
+    });
+
+  return [...new Set(validImageUrls)];
 };
 
 const shouldUseDemoData = () => !process.env.MONGO_URI || mongoose.connection.readyState !== 1;
@@ -148,12 +151,15 @@ router.post('/products', authMiddleware, upload.array('images', 10), async (req,
       ? images.split(',').map((image) => image.trim()).filter(Boolean)
       : [];
 
-    const uploadedImages = uploadedImageFiles.map((file) => {
-      const mimeType = file.mimetype || 'image/jpeg';
-      return `data:${mimeType};base64,${file.buffer.toString('base64')}`;
+    const validUploadedFiles = uploadedImageFiles.filter((file) => {
+      return file && file.mimetype && /^image\//i.test(file.mimetype);
     });
 
-    const parsedImages = [...imageListFromBody, ...uploadedImages];
+    if (validUploadedFiles.length > 0 && imageListFromBody.length === 0) {
+      console.warn('Uploaded image files were received without a valid URL list; ignoring raw binary payloads to prevent oversized data URLs.');
+    }
+
+    const parsedImages = [...imageListFromBody];
 
     const isMongoObjectId = (id) => typeof id === 'string' && /^[a-f0-9]{24}$/i.test(id) && mongoose.connection.readyState === 1;
 
