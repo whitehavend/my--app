@@ -114,10 +114,13 @@ router.post('/products', authMiddleware, async (req, res) => {
       category,
       price,
       salePrice,
+      wholesalePrice,
       compareAtPrice,
       priceDetails,
       rating,
       stock,
+      stockVolume,
+      wholesaleVolume,
       availabilityStatus,
       shippingInformation,
       weight,
@@ -127,6 +130,10 @@ router.post('/products', authMiddleware, async (req, res) => {
       vendorContactInfo,
       vendorDescription,
       vendorType,
+      contactInfo,
+      country,
+      location,
+      massVolume,
     } = req.body;
 
     const isMongoObjectId = (id) => typeof id === 'string' && /^[a-f0-9]{24}$/i.test(id) && mongoose.connection.readyState === 1;
@@ -150,15 +157,24 @@ router.post('/products', authMiddleware, async (req, res) => {
       return res.status(403).json({ error: 'Only vendors can upload products' });
     }
 
-    if (!title || !brand || !category || !description || price === undefined || stock === undefined || !vendorName || !vendorContactInfo || !vendorDescription) {
+    if (!title || !brand || !category || !description || price === undefined || stock === undefined) {
       return res.status(400).json({
-        error: 'Title, brand, category, description, price, stock, vendor name, contact info, and vendor description are required',
+        error: 'Title, brand, category, description, price, and stock are required',
       });
     }
 
     const parsedPrice = Number(price);
     const parsedStock = Number(stock);
+    const parsedWholesalePrice = wholesalePrice === undefined || wholesalePrice === null || wholesalePrice === ''
+      ? (salePrice === undefined || salePrice === null || salePrice === '' ? null : Number(salePrice))
+      : Number(wholesalePrice);
+    const parsedWholesaleVolume = wholesaleVolume === undefined || wholesaleVolume === null || wholesaleVolume === ''
+      ? (stockVolume === undefined || stockVolume === null || stockVolume === '' ? null : Number(stockVolume))
+      : Number(wholesaleVolume);
     const normalizedImages = normalizeImages(images);
+    const normalizedVendorName = vendorName || currentUser?.shopName || currentUser?.fullName || 'Vendor';
+    const normalizedVendorContactInfo = vendorContactInfo || contactInfo || '';
+    const normalizedVendorDescription = vendorDescription || description || '';
 
     if (Number.isNaN(parsedPrice) || parsedPrice < 0) {
       return res.status(400).json({ error: 'Price must be a valid number greater than or equal to zero' });
@@ -166,6 +182,14 @@ router.post('/products', authMiddleware, async (req, res) => {
 
     if (Number.isNaN(parsedStock) || parsedStock < 0) {
       return res.status(400).json({ error: 'Stock must be a valid number greater than or equal to zero' });
+    }
+
+    if (parsedWholesalePrice !== null && (Number.isNaN(parsedWholesalePrice) || parsedWholesalePrice < 0)) {
+      return res.status(400).json({ error: 'Wholesale price must be a valid number greater than or equal to zero' });
+    }
+
+    if (parsedWholesaleVolume !== null && (Number.isNaN(parsedWholesaleVolume) || parsedWholesaleVolume < 0)) {
+      return res.status(400).json({ error: 'Wholesale volume must be a valid number greater than or equal to zero' });
     }
 
     try {
@@ -176,21 +200,25 @@ router.post('/products', authMiddleware, async (req, res) => {
           brand: brand.trim(),
           category: category.toLowerCase().trim(),
           price: parsedPrice,
-          salePrice: salePrice === undefined || salePrice === null || salePrice === '' ? null : Number(salePrice),
+          salePrice: parsedWholesalePrice,
+          wholesalePrice: parsedWholesalePrice,
           compareAtPrice: compareAtPrice === undefined || compareAtPrice === null || compareAtPrice === '' ? null : Number(compareAtPrice),
           priceDetails: priceDetails || '',
           rating: rating || 0,
           stock: parsedStock,
+          wholesaleVolume: parsedWholesaleVolume,
           availabilityStatus: availabilityStatus || (parsedStock > 0 ? 'In stock' : 'Out of stock'),
           shippingInformation: shippingInformation || '',
-          weight: weight === undefined || weight === null || weight === '' ? 0 : Number(weight),
+          weight: weight === undefined || weight === null || weight === '' ? (massVolume === undefined || massVolume === null || massVolume === '' ? 0 : Number(massVolume)) : Number(weight),
           description: description.trim(),
           images: normalizedImages,
           vendorId: currentUser.id || currentUser._id,
-          vendorName: vendorName || currentUser.shopName || currentUser.fullName || '',
-          vendorContactInfo: vendorContactInfo || '',
-          vendorDescription: vendorDescription || description,
+          vendorName: normalizedVendorName,
+          vendorContactInfo: normalizedVendorContactInfo,
+          vendorDescription: normalizedVendorDescription,
           vendorType: vendorType || currentUser.role || '',
+          country: country || '',
+          location: location || '',
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };
@@ -204,21 +232,25 @@ router.post('/products', authMiddleware, async (req, res) => {
         brand: brand.trim(),
         category: category.toLowerCase().trim(),
         price: parsedPrice,
-        salePrice: salePrice === undefined || salePrice === null || salePrice === '' ? null : Number(salePrice),
+        salePrice: parsedWholesalePrice,
+        wholesalePrice: parsedWholesalePrice,
         compareAtPrice: compareAtPrice === undefined || compareAtPrice === null || compareAtPrice === '' ? null : Number(compareAtPrice),
         priceDetails: priceDetails || '',
         rating: rating || 0,
         stock: parsedStock,
+        wholesaleVolume: parsedWholesaleVolume,
         availabilityStatus: availabilityStatus || (parsedStock > 0 ? 'In stock' : 'Out of stock'),
         shippingInformation: shippingInformation || '',
-        weight: weight === undefined || weight === null || weight === '' ? 0 : Number(weight),
+        weight: weight === undefined || weight === null || weight === '' ? (massVolume === undefined || massVolume === null || massVolume === '' ? 0 : Number(massVolume)) : Number(weight),
         description: description.trim(),
         images: normalizedImages,
         vendorId: currentUser.id || currentUser._id,
-        vendorName: vendorName || currentUser.shopName || currentUser.fullName || '',
-        vendorContactInfo: vendorContactInfo || '',
-        vendorDescription: vendorDescription || description,
+        vendorName: normalizedVendorName,
+        vendorContactInfo: normalizedVendorContactInfo,
+        vendorDescription: normalizedVendorDescription,
         vendorType: vendorType || currentUser.role || '',
+        country: country || '',
+        location: location || '',
       });
 
       return res.status(201).json({ message: 'Product created successfully', product });
@@ -229,18 +261,25 @@ router.post('/products', authMiddleware, async (req, res) => {
         brand: brand.trim(),
         category: category.toLowerCase().trim(),
         price: parsedPrice,
-        salePrice: salePrice === undefined || salePrice === null || salePrice === '' ? null : Number(salePrice),
+        salePrice: parsedWholesalePrice,
+        wholesalePrice: parsedWholesalePrice,
         compareAtPrice: compareAtPrice === undefined || compareAtPrice === null || compareAtPrice === '' ? null : Number(compareAtPrice),
         priceDetails: priceDetails || '',
         rating: rating || 0,
         stock: parsedStock,
+        wholesaleVolume: parsedWholesaleVolume,
         availabilityStatus: availabilityStatus || (parsedStock > 0 ? 'In stock' : 'Out of stock'),
         shippingInformation: shippingInformation || '',
-        weight: weight === undefined || weight === null || weight === '' ? 0 : Number(weight),
+        weight: weight === undefined || weight === null || weight === '' ? (massVolume === undefined || massVolume === null || massVolume === '' ? 0 : Number(massVolume)) : Number(weight),
         description: description.trim(),
         images: normalizedImages,
         vendorId: currentUser.id || currentUser._id,
-        vendorName: currentUser.shopName || currentUser.fullName || '',
+        vendorName: normalizedVendorName,
+        vendorContactInfo: normalizedVendorContactInfo,
+        vendorDescription: normalizedVendorDescription,
+        vendorType: vendorType || currentUser.role || '',
+        country: country || '',
+        location: location || '',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };

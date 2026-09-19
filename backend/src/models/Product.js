@@ -38,6 +38,11 @@ const productSchema = new mongoose.Schema(
       default: null,
       min: 0,
     },
+    wholesalePrice: {
+      type: Number,
+      default: null,
+      min: 0,
+    },
     compareAtPrice: {
       type: Number,
       default: null,
@@ -54,6 +59,11 @@ const productSchema = new mongoose.Schema(
     stock: {
       type: Number,
       default: 0,
+    },
+    wholesaleVolume: {
+      type: Number,
+      default: null,
+      min: 0,
     },
     availabilityStatus: {
       type: String,

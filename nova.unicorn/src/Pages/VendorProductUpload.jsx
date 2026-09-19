@@ -59,6 +59,8 @@ const getDefaultForm = (selectedVendorType = "retailshopvendor") => ({
   weight: "",
   images: "",
   stockVolume: "",
+  wholeSalePrice: "",
+  wholeSaleVolume: "",
   wholesalePrice: "",
   basePrice: "",
   prescription: "",
@@ -140,13 +142,19 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
       .map((image) => image.trim())
       .filter(Boolean);
 
+    const wholeSalePriceValue = formData.wholeSalePrice !== "" ? formData.wholeSalePrice : formData.wholesalePrice;
+    const wholeSaleVolumeValue = formData.wholeSaleVolume !== "" ? formData.wholeSaleVolume : formData.stockVolume;
+
     const payload = {
       ...formData,
       title: formData.title || formData.brand || "Vendor listing",
       price: formData.basePrice ? Number(formData.basePrice) : Number(formData.price || 0),
-      salePrice: formData.wholesalePrice ? Number(formData.wholesalePrice) : (formData.salePrice === "" ? null : Number(formData.salePrice)),
+      salePrice: wholeSalePriceValue ? Number(wholeSalePriceValue) : (formData.salePrice === "" ? null : Number(formData.salePrice)),
+      wholesalePrice: wholeSalePriceValue ? Number(wholeSalePriceValue) : null,
       compareAtPrice: formData.compareAtPrice === "" ? null : Number(formData.compareAtPrice),
-      stock: formData.stockVolume ? Number(formData.stockVolume) : Number(formData.stock || 0),
+      stock: wholeSaleVolumeValue ? Number(wholeSaleVolumeValue) : Number(formData.stock || 0),
+      stockVolume: wholeSaleVolumeValue ? Number(wholeSaleVolumeValue) : null,
+      wholesaleVolume: wholeSaleVolumeValue ? Number(wholeSaleVolumeValue) : null,
       weight: formData.massVolume === "" ? 0 : Number(formData.massVolume),
       images: normalizedImages,
       country: formData.country,
@@ -240,15 +248,15 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
 
           {(vendorType === "cardealer" || vendorType === "pharmacy" || vendorType === "agrovet") && (
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Wholesale price</label>
-              <input type="number" min="0" step="0.01" name="wholesalePrice" value={formData.wholesalePrice} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="349.99" />
+              <label className="mb-2 block text-sm font-medium text-gray-700">Whole sale price</label>
+              <input type="number" min="0" step="0.01" name="wholeSalePrice" value={formData.wholeSalePrice} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="349.99" />
             </div>
           )}
 
           {(vendorType === "cardealer" || vendorType === "pharmacy" || vendorType === "agrovet") && (
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Stock volume</label>
-              <input type="number" min="0" name="stockVolume" value={formData.stockVolume} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="100" />
+              <label className="mb-2 block text-sm font-medium text-gray-700">Whole sale volume</label>
+              <input type="number" min="0" name="wholeSaleVolume" value={formData.wholeSaleVolume} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="100" />
             </div>
           )}
 
