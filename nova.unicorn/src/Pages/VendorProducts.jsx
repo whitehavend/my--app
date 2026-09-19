@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { deleteVendorProduct, getVendorProducts } from "../Store/thunk";
+import { formatCurrency } from "../utils/currency";
 
 const VendorProducts = () => {
   const dispatch = useAppDispatch();
@@ -48,7 +49,7 @@ const VendorProducts = () => {
               <h3 className="font-semibold text-gray-900">{product.title}</h3>
               <p className="mt-1 text-sm text-gray-500">{product.brand} · {product.category}</p>
               <div className="mt-3 flex items-center justify-between text-sm">
-                <span className="font-semibold text-primary">₦{Number(product.salePrice ?? product.price ?? 0).toFixed(2)}</span>
+                <span className="font-semibold text-primary">{formatCurrency(product.salePrice ?? product.price ?? 0, product.currency)}</span>
                 <span className="text-gray-500">{product.stock} in stock</span>
               </div>
               <p className="mt-2 text-xs text-gray-500">Uploaded {product.createdAt ? new Date(product.createdAt).toLocaleDateString() : "recently"}</p>

@@ -20,12 +20,14 @@ router.post('/', authMiddleware, async (req, res) => {
         title: item.title || 'Product',
         brand: item.brand || '',
         image: item.images?.[0] || item.image || '',
+        currency: item.currency || 'NGN',
         price: Number(item.price || 0),
         quantity: Number(item.quantity || 1),
       })),
       totalAmount: Number(totalAmount || 0),
       shippingAddress: shippingAddress || {},
       paymentMethod: paymentMethod || 'cash_on_delivery',
+      currency: items[0]?.currency || 'NGN',
       status: 'pending',
     });
 

@@ -3,6 +3,7 @@ import { MdDiscount } from "react-icons/md";
 import { FaChevronRight } from "react-icons/fa6";
 import { useAppSelector } from "../Store/hooks";
 import ComingSoonBanner from "./ComingSoonBanner";
+import { formatCurrency } from "../utils/currency";
 
 const FlashSales = () => {
   const { products } = useAppSelector((state) => state.products);
@@ -34,8 +35,8 @@ const FlashSales = () => {
     .map((product) => ({
       image: product.images?.[0],
       name: product.title,
-      price: `₦${Number(product.compareAtPrice ?? product.price).toLocaleString()}`,
-      discountedPrice: `₦${Number(product.salePrice).toLocaleString()}`,
+      price: formatCurrency(product.compareAtPrice ?? product.price, product.currency),
+      discountedPrice: formatCurrency(product.salePrice, product.currency),
       itemsLeft: product.stock,
       percentage: product.stock ? Math.min(100, Math.max(5, product.stock)) : 0,
     }));

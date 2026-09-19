@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { fulfillOrder, getVendorOrders } from "../Store/thunk";
+import { formatCurrency } from "../utils/currency";
 
 const VendorOrders = () => {
   const dispatch = useAppDispatch();
@@ -40,11 +41,11 @@ const VendorOrders = () => {
               {order.items?.map((item) => (
                 <div key={`${order._id || order.id}-${item._id || item.productId}`} className="flex justify-between gap-4">
                   <span>{item.title} x {item.quantity}</span>
-                  <span className="font-medium">₦{Number(item.price * item.quantity).toFixed(2)}</span>
+                  <span className="font-medium">{formatCurrency(item.price * item.quantity, item.currency || order.currency)}</span>
                 </div>
               ))}
             </div>
-            <div className="mt-4 border-t border-gray-100 pt-3 text-right font-semibold text-gray-900">Total: ₦{Number(order.totalAmount || 0).toFixed(2)}</div>
+            <div className="mt-4 border-t border-gray-100 pt-3 text-right font-semibold text-gray-900">Total: {formatCurrency(order.totalAmount, order.currency || order.items?.[0]?.currency)}</div>
             {order.status === "pending" && (
               <button type="button" onClick={() => handleFulfill(order._id || order.id)} className="mt-4 w-full rounded-md bg-primary px-4 py-3 text-sm font-semibold text-white hover:bg-primary100">
                 Fulfill order

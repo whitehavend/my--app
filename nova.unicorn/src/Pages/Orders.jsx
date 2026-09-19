@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { cancelOrder, getUserOrders } from "../Store/thunk";
+import { formatCurrency } from "../utils/currency";
 
 const Orders = () => {
   const navigate = useNavigate();
@@ -54,7 +55,7 @@ const Orders = () => {
                 </div>
                 <div>
                   <p className="text-xs uppercase text-gray-500">Total</p>
-                  <h2 className="font-semibold">₦{Number(order.totalAmount || 0).toFixed(2)}</h2>
+                  <h2 className="font-semibold">{formatCurrency(order.totalAmount, order.currency || order.items?.[0]?.currency)}</h2>
                 </div>
               </div>
 
@@ -62,7 +63,7 @@ const Orders = () => {
                 {order.items.map((item) => (
                   <div key={`${order._id || order.id}-${item._id || item.id}`} className="flex justify-between text-sm text-gray-700">
                     <span>{item.title} x {item.quantity}</span>
-                    <span>₦{Number(item.price * item.quantity).toFixed(2)}</span>
+                    <span>{formatCurrency(item.price * item.quantity, item.currency || order.currency)}</span>
                   </div>
                 ))}
               </div>

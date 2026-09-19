@@ -5,6 +5,7 @@ import { MdAddShoppingCart } from "react-icons/md";
 import FlashSales from "./FlashSales";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { addToCart, resetNotify } from "../Store/cart/CartSlice";
+import { formatCurrency } from "../utils/currency";
 
 const ProductCard = ({ product }) => {
   const navigate = useNavigate();
@@ -58,7 +59,7 @@ const ProductCard = ({ product }) => {
           <h2 className="text-xs border-b w-full border-gray-100 pb-2 lg:pb-3">
             Brand: <span className="text-sky-600">{product.brand}</span>
           </h2>
-          <h1 className="text-xl py-1">₦{product.price}</h1>
+          <h1 className="text-xl py-1">{formatCurrency(product.price, product.currency)}</h1>
           <p className="text-[10px] text-gray-500">
             {product.availabilityStatus}
           </p>

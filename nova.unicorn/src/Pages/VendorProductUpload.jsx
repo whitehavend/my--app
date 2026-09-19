@@ -2,6 +2,13 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { createProduct } from "../Store/thunk";
+import { getCountries } from "libphonenumber-js";
+import { getCurrencyForCountry } from "../utils/currency";
+
+const countryNameDisplay = new Intl.DisplayNames(["en"], { type: "region" });
+const countryOptions = getCountries()
+  .map((code) => ({ code, name: countryNameDisplay.of(code) || code }))
+  .sort((first, second) => first.name.localeCompare(second.name));
 
 const vendorCategoryOptions = {
   shopvendor: [
@@ -156,6 +163,7 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
       vendorContactInfo: formData.contactInfo,
       vendorDescription: formData.description,
       vendorType,
+      currency: getCurrencyForCountry(formData.country),
     };
 
     const formPayload = new FormData();
@@ -275,19 +283,14 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
             </div>
           )}
 
-          {(vendorType === "retailshopvendor" || vendorType === "cardealer" || vendorType === "pharmacy" || vendorType === "agrovet") && (
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Country</label>
-              <input name="country" value={formData.country} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="Nigeria" />
-            </div>
-          )}
-
-          {(vendorType === "realestate" || vendorType === "blackmarket") && (
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Country</label>
-              <input name="country" value={formData.country} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="Nigeria" />
-            </div>
-          )}
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">Country</label>
+            <select name="country" value={formData.country} onChange={handleChange} required className="w-full rounded-md border border-gray-300 bg-white p-3 outline-none focus:border-primary">
+              <option value="">Select country</option>
+              {countryOptions.map(({ code, name }) => <option key={code} value={code}>{name}</option>)}
+            </select>
+            <p className="mt-1 text-xs text-gray-500">Prices will use the selected country currency.</p>
+          </div>
 
           {vendorType === "realestate" && (
             <div>

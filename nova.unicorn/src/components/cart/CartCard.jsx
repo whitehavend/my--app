@@ -3,6 +3,7 @@ import { MdDeleteOutline } from "react-icons/md";
 import { useAppDispatch, useAppSelector } from "../../Store/hooks";
 import { deleteFromCart, updateCart } from "../../Store/cart/CartSlice";
 import Deletion from "../modals/Deletion";
+import { formatCurrency } from "../../utils/currency";
 
 const CartCard = () => {
   const dispatch = useAppDispatch();
@@ -70,7 +71,7 @@ const CartCard = () => {
               </div>
             </div>
             <h1 className="font-semibold text-lg">
-              ₦{cart?.price}
+                {formatCurrency(cart?.price, cart?.currency)}
             </h1>
           </div>
           <div className="pt-2 flex items-center justify-between w-full">

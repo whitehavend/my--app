@@ -6,6 +6,7 @@ const orderItemSchema = new mongoose.Schema(
     title: { type: String, required: true },
     brand: { type: String, default: '' },
     image: { type: String, default: '' },
+    currency: { type: String, default: 'NGN', uppercase: true, trim: true },
     price: { type: Number, required: true, min: 0 },
     quantity: { type: Number, required: true, min: 1 },
   },
@@ -36,6 +37,12 @@ const orderSchema = new mongoose.Schema(
     paymentMethod: {
       type: String,
       default: 'cash_on_delivery',
+    },
+    currency: {
+      type: String,
+      default: 'NGN',
+      uppercase: true,
+      trim: true,
     },
     status: {
       type: String,

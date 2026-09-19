@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { getAllProducts } from "../Store/thunk";
 import { addToCart } from "../Store/cart/CartSlice";
+import { formatCurrency } from "../utils/currency";
 
 const SavedItems = () => {
   const dispatch = useAppDispatch();
@@ -39,7 +40,7 @@ const SavedItems = () => {
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {savedProducts.map((product) => {
             const productId = product._id || product.id;
-            return <article key={productId} className="rounded-md bg-white p-4 shadow-sm"><img src={product.images?.[0]} alt={product.title} className="h-44 w-full rounded-md object-cover" /><h2 className="mt-3 font-semibold capitalize">{product.title}</h2><p className="mt-1 font-medium">₦{Number(product.salePrice ?? product.price).toLocaleString()}</p><div className="mt-3 flex gap-2"><button onClick={() => dispatch(addToCart({ product: { ...product, id: productId, price: product.salePrice ?? product.price }, quantity: 1 }))} className="flex-1 rounded-md bg-primary px-3 py-2 text-sm text-white">Add to cart</button><button onClick={() => removeSaved(productId)} className="rounded-md border border-gray-300 px-3 py-2 text-sm">Remove</button></div></article>;
+            return <article key={productId} className="rounded-md bg-white p-4 shadow-sm"><img src={product.images?.[0]} alt={product.title} className="h-44 w-full rounded-md object-cover" /><h2 className="mt-3 font-semibold capitalize">{product.title}</h2><p className="mt-1 font-medium">{formatCurrency(product.salePrice ?? product.price, product.currency)}</p><div className="mt-3 flex gap-2"><button onClick={() => dispatch(addToCart({ product: { ...product, id: productId, price: product.salePrice ?? product.price }, quantity: 1 }))} className="flex-1 rounded-md bg-primary px-3 py-2 text-sm text-white">Add to cart</button><button onClick={() => removeSaved(productId)} className="rounded-md border border-gray-300 px-3 py-2 text-sm">Remove</button></div></article>;
           })}
         </div>
       </section>

@@ -8,6 +8,7 @@ import { BsBuildings, BsShop } from "react-icons/bs";
 import { FaCarSide, FaCapsules } from "react-icons/fa";
 import { GiPlantRoots } from "react-icons/gi";
 import ComingSoonBanner from "../components/ComingSoonBanner";
+import { formatCurrency } from "../utils/currency";
 
 const categoryCards = [
   { key: "shopvendor", label: "Shop Vendor", icon: BsShop, path: "/category/shopvendor" },
@@ -116,7 +117,7 @@ const CustomerPage = () => {
               {visibleProducts.map((product) => (
                 <article key={product._id || product.id} className="overflow-hidden rounded-md bg-white shadow-sm">
                   <img src={product.images?.[0]} alt={product.title} className="h-48 w-full object-cover" />
-                  <div className="p-4"><p className="text-xs uppercase text-gray-500">{product.brand} · {product.category}</p><h2 className="mt-2 text-lg font-semibold capitalize">{product.title}</h2><p className="mt-2 line-clamp-2 text-sm text-gray-600">{product.description}</p><div className="mt-3 rounded-md border border-gray-200 bg-gray-50 p-3 text-xs text-gray-700"><p className="font-semibold uppercase tracking-[0.12em] text-primary">Vendor</p><p className="mt-1 font-medium text-gray-900">{product.vendorName || "Verified vendor"}</p>{product.vendorContactInfo && <p className="mt-1">Contact: {product.vendorContactInfo}</p>}</div><p className="mt-3 text-xl font-bold">₦{Number(product.salePrice ?? product.price).toLocaleString()}</p><div className="mt-4 flex gap-2"><button onClick={() => handleSave(product._id || product.id)} className="flex-1 rounded-md border border-primary px-3 py-3 text-sm font-medium text-primary hover:bg-gray-50">{savedItems.includes(product._id || product.id) ? "Saved" : "Save item"}</button><button onClick={() => handleAddToCart(product)} className="flex-1 rounded-md bg-primary px-3 py-3 text-sm font-medium text-white hover:bg-primary100">Add to cart</button></div></div>
+                  <div className="p-4"><p className="text-xs uppercase text-gray-500">{product.brand} · {product.category}</p><h2 className="mt-2 text-lg font-semibold capitalize">{product.title}</h2><p className="mt-2 line-clamp-2 text-sm text-gray-600">{product.description}</p><div className="mt-3 rounded-md border border-gray-200 bg-gray-50 p-3 text-xs text-gray-700"><p className="font-semibold uppercase tracking-[0.12em] text-primary">Vendor</p><p className="mt-1 font-medium text-gray-900">{product.vendorName || "Verified vendor"}</p>{product.vendorContactInfo && <p className="mt-1">Contact: {product.vendorContactInfo}</p>}</div><p className="mt-3 text-xl font-bold">{formatCurrency(product.salePrice ?? product.price, product.currency)}</p><div className="mt-4 flex gap-2"><button onClick={() => handleSave(product._id || product.id)} className="flex-1 rounded-md border border-primary px-3 py-3 text-sm font-medium text-primary hover:bg-gray-50">{savedItems.includes(product._id || product.id) ? "Saved" : "Save item"}</button><button onClick={() => handleAddToCart(product)} className="flex-1 rounded-md bg-primary px-3 py-3 text-sm font-medium text-white hover:bg-primary100">Add to cart</button></div></div>
                 </article>
               ))}
             </div>

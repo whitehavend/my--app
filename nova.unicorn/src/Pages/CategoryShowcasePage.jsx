@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { FiArrowLeft, FiChevronRight } from "react-icons/fi";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { getAllProducts } from "../Store/thunk";
+import { formatCurrency } from "../utils/currency";
 
 const categoryConfig = {
   shopvendor: {
@@ -197,7 +198,7 @@ const CategoryShowcasePage = () => {
                 <div className="p-4">
                   <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">{isShowingVendorProducts ? product.category : product.tag}</p>
                   <h3 className="mt-2 text-lg font-bold text-slate-900">{product.title}</h3>
-                  <p className="mt-3 text-2xl font-black text-gray-900">{isShowingVendorProducts ? `₦${Number(product.salePrice ?? product.price).toLocaleString()}` : product.price}</p>
+                  <p className="mt-3 text-2xl font-black text-gray-900">{isShowingVendorProducts ? formatCurrency(product.salePrice ?? product.price, product.currency) : product.price}</p>
                   <div className="mt-4 flex gap-2">
                     <button type="button" className="flex-1 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5 text-sm font-semibold text-primary transition hover:bg-primary/10">
                       Save

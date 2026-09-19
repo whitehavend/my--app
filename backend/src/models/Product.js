@@ -33,6 +33,12 @@ const productSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    currency: {
+      type: String,
+      default: 'NGN',
+      uppercase: true,
+      trim: true,
+    },
     salePrice: {
       type: Number,
       default: null,
