@@ -1,24 +1,14 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 const Product = require('../models/Product');
 const User = require('../models/User');
 const authMiddleware = require('../middleware/authMiddleware');
+const { cloudinaryStorage } = require('../../config/cloudinary');
 const router = express.Router();
-const uploadDirectory = path.join(__dirname, '../../uploads');
-fs.mkdirSync(uploadDirectory, { recursive: true });
 
 const upload = multer({
-  storage: multer.diskStorage({
-    destination: (_req, _file, callback) => callback(null, uploadDirectory),
-    filename: (_req, file, callback) => {
-      const extension = path.extname(file.originalname).toLowerCase();
-      const baseName = path.basename(file.originalname, extension).replace(/[^a-z0-9_-]/gi, '-').toLowerCase();
-      callback(null, `${Date.now()}-${baseName || 'image'}${extension}`);
-    },
-  }),
+  storage: cloudinaryStorage,
   limits: {
     fileSize: 10 * 1024 * 1024,
   },
@@ -170,9 +160,9 @@ router.post('/products', authMiddleware, upload.array('images', 10), async (req,
       return file && file.mimetype && /^image\//i.test(file.mimetype);
     });
 
-    const uploadedImages = validUploadedFiles.map((file) => {
-      return `${req.protocol}://${req.get('host')}/uploads/${encodeURIComponent(file.filename)}`;
-    });
+    const uploadedImages = validUploadedFiles
+      .map((file) => file.path)
+      .filter(Boolean);
 
     const parsedImages = [...imageListFromBody, ...uploadedImages];
 
