@@ -139,7 +139,7 @@ const CategoryShowcasePage = () => {
     });
   }, [categorySlugs, products, selectedSubcategory]);
 
-  const displayedProducts = matchingProducts.length > 0 || selectedSubcategory ? matchingProducts : details.products;
+  const displayedProducts = matchingProducts;
   const isShowingVendorProducts = matchingProducts.length > 0;
 
   return (
