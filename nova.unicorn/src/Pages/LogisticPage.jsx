@@ -2,16 +2,14 @@ import { Link, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { FiHeadphones } from "react-icons/fi";
 import { HiOutlineUser } from "react-icons/hi";
-import { BsBox2, BsQuestionCircle, BsShieldCheck, BsUpload } from "react-icons/bs";
+import { BsQuestionCircle, BsShieldCheck } from "react-icons/bs";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { getLogisticRequests, updateLogisticAvailability } from "../Store/thunk";
 
 const pageLinks = [
-  { label: "My Account", to: "/account", icon: HiOutlineUser },
-  { label: "Orders", to: "/orders", icon: BsBox2 },
+  { label: "Settings", to: "/account", icon: HiOutlineUser },
   { label: "Assistance", to: "/vendor/help#assistance", icon: FiHeadphones },
   { label: "Help", to: "/vendor/help", icon: BsQuestionCircle },
-  { label: "Upload", to: "/vendor/products/new", icon: BsUpload },
 ];
 
 const LogisticPage = () => {
@@ -129,7 +127,6 @@ const LogisticPage = () => {
 
           <div className="mt-6 border-t border-slate-200 pt-6">
             <h2 className="text-xl font-bold text-slate-900">Pickup requests</h2>
-            {status === "loading" && <p className="mt-3 text-sm text-slate-600">Loading requests...</p>}
             {error && <p className="mt-3 rounded-md bg-red-50 p-3 text-sm text-red-700">{error}</p>}
             {status !== "loading" && !requests.length && !error && <p className="mt-3 text-sm text-slate-600">No vendors have requested a pickup yet.</p>}
             <div className="mt-3 space-y-3">

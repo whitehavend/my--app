@@ -27,7 +27,6 @@ const VendorLogisticPanel = () => {
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">Pickup coordination</p>
         <h2 className="mt-1 text-xl font-bold text-slate-900">Available logistics</h2>
         <p className="mt-2 text-sm text-slate-600">Request an available logistic partner to collect your prepared items.</p>
-        {status === "loading" && <p className="mt-4 text-sm text-slate-600">Loading available logistics...</p>}
         {error && <p className="mt-4 rounded-md bg-red-50 p-3 text-sm text-red-700">{error}</p>}
         {status !== "loading" && !logistics.length && !error && <p className="mt-4 text-sm text-slate-600">No logistics are currently available.</p>}
         <div className="mt-4 grid gap-3 md:grid-cols-2">

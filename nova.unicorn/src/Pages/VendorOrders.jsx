@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { fulfillOrder, getVendorOrders } from "../Store/thunk";
 import { formatCurrency } from "../utils/currency";
@@ -6,14 +6,25 @@ import { formatCurrency } from "../utils/currency";
 const VendorOrders = () => {
   const dispatch = useAppDispatch();
   const { orders, status, error } = useAppSelector((state) => state.orders);
+  const [now, setNow] = useState(Date.now());
 
   const handleFulfill = (orderId) => {
     dispatch(fulfillOrder(orderId));
   };
 
   useEffect(() => {
-    dispatch(getVendorOrders());
+    const refreshOrders = () => dispatch(getVendorOrders());
+    refreshOrders();
+    const refreshTimer = setInterval(refreshOrders, 5000);
+    const clockTimer = setInterval(() => setNow(Date.now()), 30000);
+
+    return () => {
+      clearInterval(refreshTimer);
+      clearInterval(clockTimer);
+    };
   }, [dispatch]);
+
+  const canFulfill = (order) => now - new Date(order.createdAt).getTime() >= 30 * 60 * 1000;
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
@@ -47,8 +58,8 @@ const VendorOrders = () => {
             </div>
             <div className="mt-4 border-t border-gray-100 pt-3 text-right font-semibold text-gray-900">Total: {formatCurrency(order.totalAmount, order.currency || order.items?.[0]?.currency)}</div>
             {order.status === "pending" && (
-              <button type="button" onClick={() => handleFulfill(order._id || order.id)} className="mt-4 w-full rounded-md bg-primary px-4 py-3 text-sm font-semibold text-white hover:bg-primary100">
-                Fulfill order
+              <button type="button" disabled={!canFulfill(order)} onClick={() => handleFulfill(order._id || order.id)} className="mt-4 w-full rounded-md bg-primary px-4 py-3 text-sm font-semibold text-white hover:bg-primary100 disabled:cursor-not-allowed disabled:opacity-50">
+                {canFulfill(order) ? "Fulfill order" : "Available after 30 minutes"}
               </button>
             )}
           </article>

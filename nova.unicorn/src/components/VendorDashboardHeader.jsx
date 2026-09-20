@@ -1,10 +1,13 @@
 import { Link, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import { BsBox2, BsQuestionCircle, BsUpload } from "react-icons/bs";
 import { HiOutlineUser } from "react-icons/hi";
 import { FiHeadphones } from "react-icons/fi";
+import { useAppDispatch, useAppSelector } from "../Store/hooks";
+import { getVendorOrders } from "../Store/thunk";
 
 const links = [
-  { label: "My Account", to: "/account", icon: HiOutlineUser },
+  { label: "Settings", to: "/account", icon: HiOutlineUser },
   { label: "Orders", to: "/vendor/orders", icon: BsBox2 },
   { label: "Assistance", to: "/vendor/help#assistance", icon: FiHeadphones },
   { label: "Help", to: "/vendor/help", icon: BsQuestionCircle },
@@ -13,6 +16,17 @@ const links = [
 
 const VendorDashboardHeader = () => {
   const { pathname } = useLocation();
+  const dispatch = useAppDispatch();
+  const { orders } = useAppSelector((state) => state.orders);
+
+  useEffect(() => {
+    const refreshOrders = () => dispatch(getVendorOrders());
+    refreshOrders();
+    const refreshTimer = setInterval(refreshOrders, 5000);
+    return () => clearInterval(refreshTimer);
+  }, [dispatch]);
+
+  const hasOrdersToFulfill = orders.some((order) => order.status === "pending");
 
   return (
     <header className="bg-white shadow-sm">
@@ -39,7 +53,7 @@ const VendorDashboardHeader = () => {
                   }`}
                 >
                   <Icon className="h-4 w-4" />
-                  <span>{label}</span>
+                  <span className="relative">{label}{label === "Orders" && hasOrdersToFulfill && <span aria-label="Orders awaiting fulfillment" className="absolute -right-2 -top-1 h-2.5 w-2.5 rounded-full bg-red-600 ring-2 ring-white" />}</span>
                 </Link>
               );
             })}

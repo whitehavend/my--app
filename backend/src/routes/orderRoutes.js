@@ -102,7 +102,7 @@ router.get('/vendor', authMiddleware, async (req, res) => {
     const products = await Product.find({ vendorId: String(req.user.id) }).select('_id');
     const productIds = products.map((product) => String(product._id));
     const orders = productIds.length
-      ? await Order.find({ 'items.productId': { $in: productIds } }).sort({ createdAt: -1 })
+      ? await Order.find({ status: { $in: ['pending', 'delivering'] }, 'items.productId': { $in: productIds } }).sort({ createdAt: -1 })
       : [];
 
     return res.status(200).json({ orders });
@@ -133,6 +133,13 @@ router.patch('/:id/fulfill', authMiddleware, async (req, res) => {
 
     if (order.status !== 'pending') {
       return res.status(400).json({ error: 'Only pending orders can be fulfilled' });
+    }
+
+    const fulfillmentDelayMs = 30 * 60 * 1000;
+    const elapsedMs = Date.now() - new Date(order.createdAt).getTime();
+    if (elapsedMs < fulfillmentDelayMs) {
+      const minutesRemaining = Math.ceil((fulfillmentDelayMs - elapsedMs) / 60000);
+      return res.status(400).json({ error: `This order can be fulfilled in approximately ${minutesRemaining} minute(s)` });
     }
 
     order.status = 'delivering';
