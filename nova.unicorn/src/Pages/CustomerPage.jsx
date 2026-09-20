@@ -61,7 +61,8 @@ const CustomerPage = () => {
 
   const visibleProducts = products.filter((product) => product.vendorId).filter((product) => {
     const query = search.toLowerCase().trim();
-    return !query || [product.title, product.brand, product.category].some((value) => value?.toLowerCase().includes(query));
+    const searchableFields = [product.brand, product.description, product.category, product.subcategory];
+    return !query || searchableFields.some((value) => String(value || "").toLowerCase().includes(query));
   });
 
   return (
@@ -71,7 +72,7 @@ const CustomerPage = () => {
           <Link to="/" className="flex items-center gap-2 text-xl font-black uppercase tracking-[0.16em] text-gray-900">Nova Unicorn</Link>
           <div className="relative">
             <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
-            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search products, brands, or categories" aria-label="Search products, brands, or categories" className="w-full rounded-md border border-gray-300 bg-gray-50 p-3 pl-11 outline-none focus:border-primary focus:bg-white" />
+            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search brand, description, category, or subcategory" aria-label="Search brand, description, category, or subcategory" className="w-full rounded-md border border-gray-300 bg-gray-50 p-3 pl-11 outline-none focus:border-primary focus:bg-white" />
           </div>
           <nav className="flex items-center justify-between gap-2 text-sm text-gray-700" aria-label="Customer navigation">
             {user?.role === "vendor" && <Link to={`/vendor/${user.vendorType || "retailshopvendor"}`} className="rounded-md bg-primary px-3 py-2 font-medium text-white hover:bg-primary100">Return to dashboard</Link>}
@@ -117,7 +118,21 @@ const CustomerPage = () => {
               {visibleProducts.map((product) => (
                 <article key={product._id || product.id} className="overflow-hidden rounded-md bg-white shadow-sm">
                   <img src={product.images?.[0]} alt={product.title} className="h-48 w-full object-cover" />
-                  <div className="p-4"><p className="text-xs uppercase text-gray-500">{product.brand} · {product.category}</p><h2 className="mt-2 text-lg font-semibold capitalize">{product.title}</h2><p className="mt-2 line-clamp-2 text-sm text-gray-600">{product.description}</p><div className="mt-3 rounded-md border border-gray-200 bg-gray-50 p-3 text-xs text-gray-700"><p className="font-semibold uppercase tracking-[0.12em] text-primary">Vendor</p><p className="mt-1 font-medium text-gray-900">{product.vendorName || "Verified vendor"}</p>{product.vendorContactInfo && <p className="mt-1">Contact: {product.vendorContactInfo}</p>}</div><p className="mt-3 text-xl font-bold">{formatCurrency(product.salePrice ?? product.price, product.currency)}</p><div className="mt-4 flex gap-2"><button onClick={() => handleSave(product._id || product.id)} className="flex-1 rounded-md border border-primary px-3 py-3 text-sm font-medium text-primary hover:bg-gray-50">{savedItems.includes(product._id || product.id) ? "Saved" : "Save item"}</button><button onClick={() => handleAddToCart(product)} className="flex-1 rounded-md bg-primary px-3 py-3 text-sm font-medium text-white hover:bg-primary100">Add to cart</button></div></div>
+                  <div className="p-4">
+                    <p className="text-xs uppercase text-gray-500">{product.brand} · {product.category}</p>
+                    <h2 className="mt-2 text-lg font-semibold capitalize">{product.title}</h2>
+                    <p className="mt-2 line-clamp-3 text-sm text-gray-600">{product.description}</p>
+                    <div className="mt-3 grid grid-cols-2 gap-2 rounded-md border border-gray-200 bg-gray-50 p-3 text-xs text-gray-700">
+                      <div><span className="block text-gray-500">Base price</span><strong>{formatCurrency(product.price, product.currency)}</strong></div>
+                      <div><span className="block text-gray-500">Wholesale price</span><strong>{product.wholesalePrice === null || product.wholesalePrice === undefined ? "Not available" : formatCurrency(product.wholesalePrice, product.currency)}</strong></div>
+                      <div><span className="block text-gray-500">Wholesale volume</span><strong className={product.wholesaleVolume !== null && product.wholesaleVolume !== undefined && product.wholesaleVolume < 10 ? "text-red-600" : "text-gray-900"}>{product.wholesaleVolume === null || product.wholesaleVolume === undefined ? "Not available" : product.wholesaleVolume}</strong></div>
+                      <div><span className="block text-gray-500">Brand</span><strong>{product.brand || "-"}</strong></div>
+                    </div>
+                    {(product.vendorType === "pharmacy" || product.vendorType === "agrovet") && product.prescription && <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-2 text-xs text-amber-800"><strong>Prescription:</strong> {product.prescription}</p>}
+                    <div className="mt-3 rounded-md border border-gray-200 bg-gray-50 p-3 text-xs text-gray-700"><p className="font-semibold uppercase tracking-[0.12em] text-primary">Vendor</p><p className="mt-1 font-medium text-gray-900">{product.vendorName || "Verified vendor"}</p>{product.vendorContactInfo && <p className="mt-1">Contact: {product.vendorContactInfo}</p>}</div>
+                    <p className="mt-3 text-xl font-bold">{formatCurrency(product.salePrice ?? product.price, product.currency)}</p>
+                    <div className="mt-4 flex gap-2"><button onClick={() => handleSave(product._id || product.id)} className="flex-1 rounded-md border border-primary px-3 py-3 text-sm font-medium text-primary hover:bg-gray-50">{savedItems.includes(product._id || product.id) ? "Saved" : "Save item"}</button><button onClick={() => handleAddToCart(product)} className="flex-1 rounded-md bg-primary px-3 py-3 text-sm font-medium text-white hover:bg-primary100">Add to cart</button></div>
+                  </div>
                 </article>
               ))}
             </div>
