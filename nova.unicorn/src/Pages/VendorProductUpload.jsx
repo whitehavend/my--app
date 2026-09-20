@@ -234,7 +234,7 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
         <div className="mb-6">
           <p className="text-sm font-medium uppercase tracking-[0.2em] text-primary">{user.role === "blackmarket" ? "Black market dashboard" : "Vendor dashboard"}</p>
           <h1 className="mt-2 text-3xl font-bold text-gray-900">Upload a new product</h1>
-          {user.role === "blackmarket" && <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">Reminder: when a customer places an order, you are responsible for preparing and delivering the item.</p>}
+          {user.role === "blackmarket" && <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">Reminder: deliver blackmarket items to the Nova warehouse before fulfilling a customer order.</p>}
         </div>
 
         <form onSubmit={handleSubmit} className="grid gap-6 md:grid-cols-2">
