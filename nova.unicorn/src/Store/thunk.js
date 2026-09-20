@@ -91,7 +91,8 @@ export const handleSignup = createAsyncThunk(
   async ({ data }, thunkAPI) => {
     const payload = data?.data ?? data;
     const {
-      fullName,
+      firstName,
+      secondName,
       username,
       email,
       password,
@@ -118,7 +119,7 @@ export const handleSignup = createAsyncThunk(
     try {
       const response = await axios.post(
         `${apiBaseUrl}/auth/signup`,
-        { fullName, username, email: normalizedEmail, password, role, vendorType, shopName, phoneNumber, businessName, countryCode, advertSocials: selectedAdvertSocials, deliveryAddress, shopAddress }
+        { firstName, secondName, username, email: normalizedEmail, password, role, vendorType, shopName, phoneNumber, businessName, countryCode, advertSocials: selectedAdvertSocials, deliveryAddress, shopAddress }
       );
 
       if (response.data?.token) {
