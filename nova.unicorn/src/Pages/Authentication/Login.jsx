@@ -246,13 +246,26 @@ const LoginPage = () => {
 
                 {!isLogin && (
                   <>
-                    <input
-                      type="text"
-                      placeholder="Full Name"
-                      {...register("fullName", { required: "Full name is required" })}
-                      className={`w-full rounded-2xl border bg-white p-4 text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/20 ${errors.fullName ? "border-red-300" : "border-slate-200"}`}
-                    />
-                    {errors.fullName && <p className="text-xs text-red-500">{errors.fullName.message}</p>}
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div>
+                        <input
+                          type="text"
+                          placeholder="First name"
+                          {...register("firstName", { required: "First name is required" })}
+                          className={`w-full rounded-2xl border bg-white p-4 text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/20 ${errors.firstName ? "border-red-300" : "border-slate-200"}`}
+                        />
+                        {errors.firstName && <p className="mt-1 text-xs text-red-500">{errors.firstName.message}</p>}
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          placeholder="Second name"
+                          {...register("secondName", { required: "Second name is required" })}
+                          className={`w-full rounded-2xl border bg-white p-4 text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/20 ${errors.secondName ? "border-red-300" : "border-slate-200"}`}
+                        />
+                        {errors.secondName && <p className="mt-1 text-xs text-red-500">{errors.secondName.message}</p>}
+                      </div>
+                    </div>
 
                     <input
                       type="text"
@@ -301,7 +314,7 @@ const LoginPage = () => {
                   </>
                 )}
 
-                {!isLogin && ["customer", "blackmarket"].includes(selectedRole) && (
+                {!isLogin && selectedRole === "customer" && (
                   <>
                     <input
                       type="text"

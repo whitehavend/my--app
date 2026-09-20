@@ -72,6 +72,8 @@ const generateToken = (user) => jwt.sign(
 
 const serializeUser = (user) => ({
   id: user.id || user._id,
+  firstName: user.firstName || '',
+  secondName: user.secondName || '',
   fullName: user.fullName,
   username: user.username || '',
   email: user.email,
@@ -82,6 +84,8 @@ const serializeUser = (user) => ({
   phoneNumber: user.phoneNumber || '',
   countryCode: user.countryCode || '',
   businessName: user.businessName || '',
+  logisticAvailable: user.logisticAvailable ?? false,
+  logisticRequests: user.logisticRequests || [],
   deliveryAddress: user.deliveryAddress || '',
   shopAddress: user.shopAddress || '',
   advertSocials: user.advertSocials
@@ -93,7 +97,8 @@ const serializeUser = (user) => ({
 
 router.post('/signup', async (req, res) => {
   const {
-    fullName,
+    firstName,
+    secondName,
     username,
     email,
     password,
@@ -110,8 +115,8 @@ router.post('/signup', async (req, res) => {
 
   const normalizedEmail = normalizeEmail(email);
 
-  if (!fullName || !username || !normalizedEmail || !password) {
-    return res.status(400).json({ error: 'Full name, username, email, and password are required' });
+  if (!firstName || !secondName || !username || !normalizedEmail || !password) {
+    return res.status(400).json({ error: 'First name, second name, username, email, and password are required' });
   }
 
   if (!isValidEmail(normalizedEmail)) {
@@ -141,7 +146,7 @@ router.post('/signup', async (req, res) => {
     });
   }
 
-  if (['customer', 'blackmarket'].includes(role) && !deliveryAddress) {
+  if (role === 'customer' && !deliveryAddress) {
     return res.status(400).json({ error: 'Delivery address is required for this account' });
   }
 
@@ -181,7 +186,9 @@ router.post('/signup', async (req, res) => {
     }
 
     const userData = {
-      fullName: String(fullName).trim(),
+      firstName: String(firstName).trim(),
+      secondName: String(secondName).trim(),
+      fullName: `${String(firstName).trim()} ${String(secondName).trim()}`,
       username: String(username).trim(),
       email: normalizedEmail,
       password: await bcrypt.hash(String(password), 10),
@@ -446,6 +453,90 @@ router.patch('/vendors/:id/approve', async (req, res) => {
   } catch (error) {
     console.error('Approve vendor error:', error);
     return res.status(500).json({ error: 'Unable to approve vendor', details: error.message });
+  }
+});
+
+router.get('/logistics/available', authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== 'vendor') {
+      return res.status(403).json({ error: 'Only vendors can view available logistics' });
+    }
+
+    const logistics = await User.find({ role: 'logistic', logisticAvailable: true })
+      .select('fullName phoneNumber countryCode email logisticAvailable')
+      .sort({ fullName: 1 });
+
+    return res.status(200).json({ logistics: logistics.map(serializeUser) });
+  } catch (error) {
+    console.error('List available logistics error:', error);
+    return res.status(500).json({ error: 'Unable to retrieve available logistics' });
+  }
+});
+
+router.patch('/logistics/availability', authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== 'logistic') {
+      return res.status(403).json({ error: 'Only logistics can update availability' });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { logisticAvailable: Boolean(req.body.available) },
+      { new: true },
+    );
+
+    if (!user) return res.status(404).json({ error: 'Logistic account not found' });
+    return res.status(200).json({ user: serializeUser(user) });
+  } catch (error) {
+    console.error('Update logistic availability error:', error);
+    return res.status(500).json({ error: 'Unable to update availability' });
+  }
+});
+
+router.get('/logistics/requests', authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== 'logistic') {
+      return res.status(403).json({ error: 'Only logistics can view pickup requests' });
+    }
+
+    const user = await User.findById(req.user.id).select('logisticRequests');
+    return res.status(200).json({ requests: user?.logisticRequests || [] });
+  } catch (error) {
+    console.error('List logistic requests error:', error);
+    return res.status(500).json({ error: 'Unable to retrieve pickup requests' });
+  }
+});
+
+router.post('/logistics/:id/request', authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== 'vendor') {
+      return res.status(403).json({ error: 'Only vendors can request logistics' });
+    }
+
+    const logistic = await User.findOne({ _id: req.params.id, role: 'logistic', logisticAvailable: true });
+    if (!logistic) return res.status(404).json({ error: 'Available logistic not found' });
+
+    const vendor = await User.findById(req.user.id).select('fullName shopName phoneNumber countryCode shopAddress');
+    if (!vendor) return res.status(404).json({ error: 'Vendor account not found' });
+
+    const existingRequest = logistic.logisticRequests.find((request) => (
+      String(request.vendorId) === String(req.user.id) && request.status === 'pending'
+    ));
+    if (existingRequest) return res.status(409).json({ error: 'This logistic has already been requested' });
+
+    logistic.logisticRequests.push({
+      vendorId: req.user.id,
+      vendorFullName: vendor.fullName || '',
+      vendorShopName: vendor.shopName || '',
+      vendorPhoneNumber: `${vendor.countryCode || ''} ${vendor.phoneNumber || ''}`.trim(),
+      vendorShopAddress: vendor.shopAddress || '',
+    });
+    await logistic.save();
+
+    return res.status(201).json({ message: 'Pickup request sent successfully' });
+  } catch (error) {
+    console.error('Request logistic error:', error);
+    return res.status(500).json({ error: 'Unable to request logistic' });
   }
 });
 

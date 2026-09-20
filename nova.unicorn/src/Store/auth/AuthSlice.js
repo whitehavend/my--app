@@ -40,6 +40,8 @@ const AuthSlice = createSlice({
         state.notify = true;
         state.user = {
           uid: user.id || user.uid,
+          firstName: user.firstName || "",
+          secondName: user.secondName || "",
           email: user.email,
           displayName: user.fullName || user.displayName,
           username: user.username || "",
@@ -52,6 +54,7 @@ const AuthSlice = createSlice({
           advertSocials: user.advertSocials || {},
           deliveryAddress: user.deliveryAddress || "",
           shopAddress: user.shopAddress || "",
+          logisticAvailable: user.logisticAvailable ?? false,
           accessToken: action.payload?.token || user.accessToken || "",
         };
       })
@@ -72,6 +75,8 @@ const AuthSlice = createSlice({
         state.notify = true;
         state.user = {
           uid: user.id || user.uid,
+          firstName: user.firstName || "",
+          secondName: user.secondName || "",
           email: user.email,
           displayName: user.fullName || user.displayName,
           username: user.username || "",
@@ -84,6 +89,7 @@ const AuthSlice = createSlice({
           advertSocials: user.advertSocials || {},
           deliveryAddress: user.deliveryAddress || "",
           shopAddress: user.shopAddress || "",
+          logisticAvailable: user.logisticAvailable ?? false,
           accessToken: action.payload?.token || user.accessToken || "",
         };
       })
@@ -104,6 +110,8 @@ const AuthSlice = createSlice({
         state.notify = true;
         state.user = {
           uid: user.id || user.uid,
+          firstName: user.firstName || "",
+          secondName: user.secondName || "",
           email: user.email,
           displayName: user.fullName || user.displayName,
           username: user.username || "",
@@ -116,6 +124,7 @@ const AuthSlice = createSlice({
           advertSocials: user.advertSocials || {},
           deliveryAddress: user.deliveryAddress || "",
           shopAddress: user.shopAddress || "",
+          logisticAvailable: user.logisticAvailable ?? false,
           accessToken: action.payload?.token || "",
         };
       })
@@ -128,6 +137,8 @@ const AuthSlice = createSlice({
         const user = action.payload?.user || {};
         state.user = {
           uid: user.id || user.uid,
+          firstName: user.firstName || "",
+          secondName: user.secondName || "",
           email: user.email,
           displayName: user.fullName || user.displayName,
           username: user.username || "",
@@ -140,6 +151,7 @@ const AuthSlice = createSlice({
           advertSocials: user.advertSocials || {},
           deliveryAddress: user.deliveryAddress || "",
           shopAddress: user.shopAddress || "",
+          logisticAvailable: user.logisticAvailable ?? false,
           accessToken: action.payload?.token || "",
         };
         state.status = "success";

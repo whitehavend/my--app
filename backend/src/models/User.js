@@ -2,6 +2,16 @@ const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema(
   {
+    firstName: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    secondName: {
+      type: String,
+      default: '',
+      trim: true,
+    },
     fullName: {
       type: String,
       required: true,
@@ -67,6 +77,22 @@ const userSchema = new mongoose.Schema(
     businessName: {
       type: String,
       default: '',
+    },
+    logisticAvailable: {
+      type: Boolean,
+      default: false,
+    },
+    logisticRequests: {
+      type: [{
+        vendorId: String,
+        vendorFullName: String,
+        vendorShopName: String,
+        vendorPhoneNumber: String,
+        vendorShopAddress: String,
+        status: { type: String, default: 'pending' },
+        requestedAt: { type: Date, default: Date.now },
+      }],
+      default: [],
     },
   },
   {
