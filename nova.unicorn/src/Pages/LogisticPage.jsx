@@ -1,8 +1,10 @@
 import { Link, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { FiHeadphones } from "react-icons/fi";
 import { HiOutlineUser } from "react-icons/hi";
 import { BsBox2, BsQuestionCircle, BsShieldCheck, BsUpload } from "react-icons/bs";
-import { useAppSelector } from "../Store/hooks";
+import { useAppDispatch, useAppSelector } from "../Store/hooks";
+import { getLogisticRequests, updateLogisticAvailability } from "../Store/thunk";
 
 const pageLinks = [
   { label: "My Account", to: "/account", icon: HiOutlineUser },
@@ -14,7 +16,21 @@ const pageLinks = [
 
 const LogisticPage = () => {
   const { pathname } = useLocation();
+  const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
+  const { requests, status, error } = useAppSelector((state) => state.logistics);
+  const [isAvailable, setIsAvailable] = useState(Boolean(user?.logisticAvailable));
+
+  useEffect(() => {
+    setIsAvailable(Boolean(user?.logisticAvailable));
+    dispatch(getLogisticRequests());
+  }, [dispatch, user?.logisticAvailable]);
+
+  const toggleAvailability = async () => {
+    const nextValue = !isAvailable;
+    const result = await dispatch(updateLogisticAvailability(nextValue));
+    if (updateLogisticAvailability.fulfilled.match(result)) setIsAvailable(nextValue);
+  };
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-100 via-emerald-50 to-cyan-50 px-4 py-6 sm:px-6 lg:px-8">
@@ -96,6 +112,30 @@ const LogisticPage = () => {
               </dd>
             </div>
           </dl>
+          <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+            <p className="text-sm font-medium text-slate-700">Availability status</p>
+            <button type="button" onClick={toggleAvailability} className={`mt-3 rounded-full px-5 py-3 text-sm font-bold text-white ${isAvailable ? "bg-emerald-600 hover:bg-emerald-700" : "bg-slate-600 hover:bg-slate-700"}`}>
+              {isAvailable ? "Available - switch to unavailable" : "Unavailable - switch to available"}
+            </button>
+            <p className="mt-2 text-xs text-slate-600">When available, vendors can request you for item pickup.</p>
+          </div>
+
+          <div className="mt-6 border-t border-slate-200 pt-6">
+            <h2 className="text-xl font-bold text-slate-900">Pickup requests</h2>
+            {status === "loading" && <p className="mt-3 text-sm text-slate-600">Loading requests...</p>}
+            {error && <p className="mt-3 rounded-md bg-red-50 p-3 text-sm text-red-700">{error}</p>}
+            {status !== "loading" && !requests.length && !error && <p className="mt-3 text-sm text-slate-600">No vendors have requested a pickup yet.</p>}
+            <div className="mt-3 space-y-3">
+              {requests.map((request, index) => (
+                <article key={`${request.vendorId}-${index}`} className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm">
+                  <p className="font-semibold text-slate-900">{request.vendorFullName || "Vendor"}</p>
+                  <p className="mt-1 text-slate-600">Shop: {request.vendorShopName || "Not provided"}</p>
+                  <p className="mt-1 text-slate-600">Phone: {request.vendorPhoneNumber || "Not provided"}</p>
+                  <p className="mt-1 text-slate-600">Shop address: {request.vendorShopAddress || "Not provided"}</p>
+                </article>
+              ))}
+            </div>
+          </div>
         </section>
       </div>
     </main>

@@ -357,6 +357,58 @@ export const cancelOrder = createAsyncThunk(
   }
 );
 
+export const getAvailableLogistics = createAsyncThunk(
+  "getAvailableLogistics",
+  async (_, thunkAPI) => {
+    const token = localStorage.getItem("unicorn_token");
+    try {
+      const response = await axios.get(`${apiBaseUrl}/auth/logistics/available`, { headers: { Authorization: `Bearer ${token}` } });
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.error || error.message || "Unable to fetch available logistics");
+    }
+  }
+);
+
+export const updateLogisticAvailability = createAsyncThunk(
+  "updateLogisticAvailability",
+  async (available, thunkAPI) => {
+    const token = localStorage.getItem("unicorn_token");
+    try {
+      const response = await axios.patch(`${apiBaseUrl}/auth/logistics/availability`, { available }, { headers: { Authorization: `Bearer ${token}` } });
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.error || error.message || "Unable to update availability");
+    }
+  }
+);
+
+export const getLogisticRequests = createAsyncThunk(
+  "getLogisticRequests",
+  async (_, thunkAPI) => {
+    const token = localStorage.getItem("unicorn_token");
+    try {
+      const response = await axios.get(`${apiBaseUrl}/auth/logistics/requests`, { headers: { Authorization: `Bearer ${token}` } });
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.error || error.message || "Unable to fetch pickup requests");
+    }
+  }
+);
+
+export const requestLogistic = createAsyncThunk(
+  "requestLogistic",
+  async (logisticId, thunkAPI) => {
+    const token = localStorage.getItem("unicorn_token");
+    try {
+      const response = await axios.post(`${apiBaseUrl}/auth/logistics/${logisticId}/request`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.error || error.message || "Unable to request logistic");
+    }
+  }
+);
+
 export const getPendingVendors = createAsyncThunk(
   "getPendingVendors",
   async (_, thunkAPI) => {

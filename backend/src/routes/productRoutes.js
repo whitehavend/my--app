@@ -186,8 +186,8 @@ router.post('/products', authMiddleware, upload.array('images', 10), async (req,
       };
     }
 
-    if (!currentUser || currentUser.role !== 'vendor') {
-      return res.status(403).json({ error: 'Only vendors can upload products' });
+    if (!currentUser || !['vendor', 'blackmarket'].includes(currentUser.role)) {
+      return res.status(403).json({ error: 'Only approved seller accounts can upload products' });
     }
 
     if (!title || !brand || !category || !description || price === undefined || stock === undefined) {

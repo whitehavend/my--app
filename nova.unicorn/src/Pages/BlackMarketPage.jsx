@@ -8,9 +8,9 @@ import { useAppSelector } from "../Store/hooks";
 const pageLinks = [
   { label: "My Account", to: "/account", icon: HiOutlineUser },
   { label: "Orders", to: "/orders", icon: BsBox2 },
-  { label: "Assistance", to: "/vendor/help#assistance", icon: FiHeadphones },
+  { label: "Customer marketplace", to: "/customer", icon: FiHeadphones },
   { label: "Help", to: "/vendor/help", icon: BsQuestionCircle },
-  { label: "Upload", to: "/vendor/products/new", icon: BsUpload },
+  { label: "Upload item", to: "/blackmarket/products/new", icon: BsUpload },
 ];
 
 const BlackMarketPage = () => {

@@ -135,12 +135,12 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
     );
   }
 
-  if (user.role !== "vendor") {
+  if (!['vendor', 'blackmarket'].includes(user.role)) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center px-6 py-10">
         <div className="max-w-md text-center">
           <h1 className="text-2xl font-bold mb-2">Vendor access required</h1>
-          <p className="text-gray-600">Only vendor accounts can upload new products.</p>
+          <p className="text-gray-600">Only approved seller accounts can upload new products.</p>
         </div>
       </div>
     );
@@ -224,7 +224,7 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
     if (createProduct.fulfilled.match(resultAction)) {
       setFormData(getDefaultForm(vendorType));
       setUploadedFiles([]);
-      navigate(`/vendor/${user.vendorType || vendorType}`);
+      navigate(user.role === "blackmarket" ? "/blackmarket" : `/vendor/${user.vendorType || vendorType}`);
     }
   };
 
@@ -232,8 +232,9 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
     <div className="min-h-[60vh] bg-gray-100 px-4 py-8">
       <div className="mx-auto max-w-4xl rounded-lg bg-white p-6 shadow-sm">
         <div className="mb-6">
-          <p className="text-sm font-medium uppercase tracking-[0.2em] text-primary">Vendor dashboard</p>
+          <p className="text-sm font-medium uppercase tracking-[0.2em] text-primary">{user.role === "blackmarket" ? "Black market dashboard" : "Vendor dashboard"}</p>
           <h1 className="mt-2 text-3xl font-bold text-gray-900">Upload a new product</h1>
+          {user.role === "blackmarket" && <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">Reminder: when a customer places an order, you are responsible for preparing and delivering the item.</p>}
         </div>
 
         <form onSubmit={handleSubmit} className="grid gap-6 md:grid-cols-2">
@@ -380,11 +381,11 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
             <button type="submit" disabled={productStatus === 'loading'} className="rounded-md bg-primary px-5 py-3 text-sm font-medium text-white hover:bg-primary100 disabled:cursor-not-allowed disabled:opacity-70">
               {productStatus === 'loading' ? 'Uploading...' : 'Upload product'}
             </button>
-            <button type="button" onClick={() => navigate('/')} className="rounded-md border border-gray-300 px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100">
+            <button type="button" onClick={() => navigate(user.role === "blackmarket" ? "/customer" : "/")} className="rounded-md border border-gray-300 px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100">
               View customer page
             </button>
-            <button type="button" onClick={() => navigate('/')} className="rounded-md border border-gray-300 px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100">
-              Cancel
+            <button type="button" onClick={() => navigate(user.role === "blackmarket" ? "/blackmarket" : "/")} className="rounded-md border border-gray-300 px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100">
+              Back to dashboard
             </button>
           </div>
         </form>

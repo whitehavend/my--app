@@ -8,6 +8,8 @@ const VendorOrders = () => {
   const { orders, status, error } = useAppSelector((state) => state.orders);
 
   const handleFulfill = (orderId) => {
+    const confirmed = window.confirm("Reminder: deliver the item to the Nova warehouse before fulfilling this order. Continue?");
+    if (!confirmed) return;
     dispatch(fulfillOrder(orderId));
   };
 
@@ -47,9 +49,14 @@ const VendorOrders = () => {
             </div>
             <div className="mt-4 border-t border-gray-100 pt-3 text-right font-semibold text-gray-900">Total: {formatCurrency(order.totalAmount, order.currency || order.items?.[0]?.currency)}</div>
             {order.status === "pending" && (
-              <button type="button" onClick={() => handleFulfill(order._id || order.id)} className="mt-4 w-full rounded-md bg-primary px-4 py-3 text-sm font-semibold text-white hover:bg-primary100">
-                Fulfill order
-              </button>
+              <div className="mt-4">
+                <p className="mb-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs font-medium text-amber-800">
+                  Reminder: deliver this item to the Nova warehouse before you fulfill the order.
+                </p>
+                <button type="button" onClick={() => handleFulfill(order._id || order.id)} className="w-full rounded-md bg-primary px-4 py-3 text-sm font-semibold text-white hover:bg-primary100">
+                  Confirm delivery to Nova warehouse and fulfill
+                </button>
+              </div>
             )}
           </article>
         ))}
