@@ -26,9 +26,14 @@ const CustomerPage = () => {
   const { user } = useAppSelector((state) => state.auth);
   const [search, setSearch] = useState("");
   const [savedItems, setSavedItems] = useState([]);
+  const [actionMessage, setActionMessage] = useState("");
 
   useEffect(() => {
-    dispatch(getAllProducts());
+    const refreshProducts = () => dispatch(getAllProducts());
+    refreshProducts();
+    const refreshTimer = setInterval(refreshProducts, 5000);
+
+    return () => clearInterval(refreshTimer);
   }, [dispatch]);
 
   useEffect(() => {
@@ -36,6 +41,12 @@ const CustomerPage = () => {
       setSavedItems(JSON.parse(localStorage.getItem(`nova_saved_${user.uid}`) || "[]"));
     }
   }, [user]);
+
+  useEffect(() => {
+    if (!actionMessage) return undefined;
+    const messageTimer = setTimeout(() => setActionMessage(""), 2500);
+    return () => clearTimeout(messageTimer);
+  }, [actionMessage]);
 
   const requireCustomerLogin = () => {
     if (!user) {
@@ -52,11 +63,13 @@ const CustomerPage = () => {
       : [...savedItems, productId];
     setSavedItems(nextSavedItems);
     localStorage.setItem(`nova_saved_${user.uid}`, JSON.stringify(nextSavedItems));
+    setActionMessage(savedItems.includes(productId) ? "Item removed from saved items" : "Item saved successfully");
   };
 
   const handleAddToCart = (product) => {
     if (!requireCustomerLogin()) return;
     dispatch(addToCart({ product: { ...product, id: product._id || product.id, price: product.salePrice ?? product.price }, quantity: 1 }));
+    setActionMessage(`${product.title} added to cart`);
   };
 
   const visibleProducts = products.filter((product) => product.vendorId).filter((product) => {
@@ -82,6 +95,7 @@ const CustomerPage = () => {
           </nav>
         </div>
       </header>
+      {actionMessage && <div role="status" className="fixed right-4 top-4 z-50 rounded-md bg-emerald-600 px-4 py-3 text-sm font-medium text-white shadow-lg">{actionMessage}</div>}
 
       <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 lg:grid-cols-[190px_minmax(0,1fr)]">
         <aside className="h-fit rounded-md bg-white p-4 shadow-sm">

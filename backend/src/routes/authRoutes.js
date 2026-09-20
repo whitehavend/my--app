@@ -400,6 +400,46 @@ router.delete('/me', authMiddleware, async (req, res) => {
   }
 });
 
+router.patch('/me', authMiddleware, async (req, res) => {
+  try {
+    const allowedFields = ['firstName', 'secondName', 'username', 'phoneNumber', 'countryCode', 'deliveryAddress', 'shopAddress', 'shopName', 'businessName'];
+    const updates = {};
+
+    allowedFields.forEach((field) => {
+      if (Object.prototype.hasOwnProperty.call(req.body, field)) {
+        updates[field] = String(req.body[field] || '').trim();
+      }
+    });
+
+    if (updates.firstName !== undefined || updates.secondName !== undefined) {
+      const currentUser = await getUserById(req.user.id);
+      const firstName = updates.firstName ?? currentUser.firstName ?? '';
+      const secondName = updates.secondName ?? currentUser.secondName ?? '';
+      updates.fullName = `${firstName} ${secondName}`.trim();
+    }
+
+    if (updates.username !== undefined && !updates.username) {
+      return res.status(400).json({ error: 'Username cannot be empty' });
+    }
+
+    if (req.body.password) {
+      if (String(req.body.password).length < 6) {
+        return res.status(400).json({ error: 'Password must be at least 6 characters' });
+      }
+      updates.password = await bcrypt.hash(String(req.body.password), 10);
+    }
+
+    const user = await User.findByIdAndUpdate(req.user.id, updates, { new: true, runValidators: true });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    return res.status(200).json({ message: 'Account settings updated successfully', user: serializeUser(user) });
+  } catch (error) {
+    if (error.code === 11000) return res.status(409).json({ error: 'Username or email is already in use' });
+    console.error('Update account settings error:', error);
+    return res.status(500).json({ error: 'Unable to update account settings' });
+  }
+});
+
 router.get('/vendors/pending', async (req, res) => {
   try {
     let pendingVendors = [];

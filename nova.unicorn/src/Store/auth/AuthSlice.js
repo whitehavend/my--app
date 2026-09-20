@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { approveVendor, getCurrentUser, getPendingVendors, handleGoogleLogin, handleLogin, handleSignup } from "../thunk";
+import { approveVendor, getCurrentUser, getPendingVendors, handleGoogleLogin, handleLogin, handleSignup, updateAccountSettings } from "../thunk";
 
 const initialState = {
   auth: "",
@@ -48,6 +48,7 @@ const AuthSlice = createSlice({
           role: user.role || "customer",
           vendorType: user.vendorType || "",
           shopName: user.shopName || "",
+          businessName: user.businessName || "",
           isApproved: user.isApproved ?? true,
           phoneNumber: user.phoneNumber || "",
           countryCode: user.countryCode || "",
@@ -83,6 +84,7 @@ const AuthSlice = createSlice({
           role: user.role || "customer",
           vendorType: user.vendorType || "",
           shopName: user.shopName || "",
+          businessName: user.businessName || "",
           isApproved: user.isApproved ?? true,
           phoneNumber: user.phoneNumber || "",
           countryCode: user.countryCode || "",
@@ -96,6 +98,20 @@ const AuthSlice = createSlice({
       .addCase(handleSignup.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload || "Unable to sign up, Please try again later";
+      })
+      .addCase(updateAccountSettings.fulfilled, (state, action) => {
+        const user = action.payload?.user;
+        if (user && state.user) {
+          state.user = { ...state.user, ...user, uid: user.id || user.uid, displayName: user.fullName || state.user.displayName };
+        }
+        state.status = "success";
+        state.auth = action.payload?.message || "Account settings updated successfully";
+        state.error = "nil";
+        state.notify = true;
+      })
+      .addCase(updateAccountSettings.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload || "Unable to update account settings";
       })
 
       .addCase(handleGoogleLogin.pending, (state) => {
@@ -118,6 +134,7 @@ const AuthSlice = createSlice({
           role: user.role || "customer",
           vendorType: user.vendorType || "",
           shopName: user.shopName || "",
+          businessName: user.businessName || "",
           isApproved: user.isApproved ?? true,
           phoneNumber: user.phoneNumber || "",
           countryCode: user.countryCode || "",
@@ -145,6 +162,7 @@ const AuthSlice = createSlice({
           role: user.role || "customer",
           vendorType: user.vendorType || "",
           shopName: user.shopName || "",
+          businessName: user.businessName || "",
           isApproved: user.isApproved ?? true,
           phoneNumber: user.phoneNumber || "",
           countryCode: user.countryCode || "",

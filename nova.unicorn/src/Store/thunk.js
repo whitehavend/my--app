@@ -196,6 +196,19 @@ export const deleteAccount = createAsyncThunk(
   }
 );
 
+export const updateAccountSettings = createAsyncThunk(
+  "updateAccountSettings",
+  async (settings, thunkAPI) => {
+    const token = localStorage.getItem("unicorn_token");
+    try {
+      const response = await axios.patch(`${apiBaseUrl}/auth/me`, settings, { headers: { Authorization: `Bearer ${token}` } });
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.error || error.message || "Unable to update account settings");
+    }
+  }
+);
+
 export const createProduct = createAsyncThunk(
   "createProduct",
   async (productData, thunkAPI) => {

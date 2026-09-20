@@ -116,8 +116,12 @@ const CategoryShowcasePage = () => {
   const [selectedSubcategory, setSelectedSubcategory] = useState("");
 
   useEffect(() => {
-    dispatch(getAllProducts());
+    const refreshProducts = () => dispatch(getAllProducts());
+    refreshProducts();
     setSelectedSubcategory("");
+    const refreshTimer = setInterval(refreshProducts, 5000);
+
+    return () => clearInterval(refreshTimer);
   }, [category, dispatch]);
 
   const categorySlugs = useMemo(() => details.subcategories.flatMap((group) => [

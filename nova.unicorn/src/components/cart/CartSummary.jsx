@@ -3,6 +3,7 @@ import { useAppDispatch, useAppSelector } from "../../Store/hooks";
 import { clearCart } from "../../Store/cart/CartSlice";
 import { createOrder } from "../../Store/thunk";
 import { useNavigate } from "react-router-dom";
+import { formatCurrency } from "../../utils/currency";
 
 const CartSummary = () => {
   const navigate = useNavigate();
@@ -10,6 +11,8 @@ const CartSummary = () => {
   const { carts } = useAppSelector((state) => state.carts);
   const { user } = useAppSelector((state) => state.auth);
   const [submitting, setSubmitting] = useState(false);
+  const currencies = [...new Set(carts.map((cart) => cart.currency || "NGN"))];
+  const summaryCurrency = currencies.length === 1 ? currencies[0] : "USD";
 
   const calculateTotalPrice = carts.reduce((total, cart) => {
     return total + cart.price * cart.quantity;
@@ -31,6 +34,7 @@ const CartSummary = () => {
             title: item.title,
             quantity: item.quantity,
             price: item.price,
+            currency: item.currency || "NGN",
             image: item.images?.[0],
           })),
           totalAmount: calculateTotalPrice,
@@ -61,7 +65,7 @@ const CartSummary = () => {
         <div className="flex items-center justify-between border-b py-3">
           <p className="text-sm text-gray-500 px-3">Subtotal</p>
           <h2 className="text-lg font-semibold px-3">
-            ₦{calculateTotalPrice.toFixed(2)}
+            {formatCurrency(calculateTotalPrice, summaryCurrency)}
           </h2>
         </div>
         <div className="p-3">
@@ -70,7 +74,7 @@ const CartSummary = () => {
             disabled={submitting || carts.length === 0}
             className="bg-primary text-white rounded-md uppercase shadow-lg w-full text-center py-3 flex items-center justify-center relative disabled:opacity-70"
           >
-            {submitting ? "Processing..." : `checkout (₦ ${calculateTotalPrice.toFixed(2)})`}
+            {submitting ? "Processing..." : `checkout (${formatCurrency(calculateTotalPrice, summaryCurrency)})`}
           </button>
         </div>
       </div>

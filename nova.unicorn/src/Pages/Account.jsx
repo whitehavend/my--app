@@ -1,13 +1,35 @@
 import { Navigate, Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { clearCart } from "../Store/cart/CartSlice";
 import { logout } from "../Store/auth/AuthSlice";
-import { deleteAccount } from "../Store/thunk";
+import { deleteAccount, updateAccountSettings } from "../Store/thunk";
 
 const Account = () => {
   const { user } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    firstName: user?.firstName || "",
+    secondName: user?.secondName || "",
+    username: user?.username || "",
+    phoneNumber: user?.phoneNumber || "",
+    countryCode: user?.countryCode || "",
+    deliveryAddress: user?.deliveryAddress || "",
+    shopAddress: user?.shopAddress || "",
+    shopName: user?.shopName || "",
+    businessName: user?.businessName || "",
+    password: "",
+  });
+
+  const handleChange = (event) => setFormData((current) => ({ ...current, [event.target.name]: event.target.value }));
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const settings = { ...formData };
+    if (!settings.password) delete settings.password;
+    await dispatch(updateAccountSettings(settings));
+    setFormData((current) => ({ ...current, password: "" }));
+  };
 
   if (!user) {
     return <Navigate to="/login" replace />;
@@ -45,7 +67,22 @@ const Account = () => {
           </Link>
         </div>
 
-        <dl className="mt-6 grid gap-5 sm:grid-cols-2">
+        <form onSubmit={handleSubmit} className="mt-6 grid gap-4 sm:grid-cols-2">
+          <div><label className="text-sm text-gray-500">First name</label><input name="firstName" value={formData.firstName} onChange={handleChange} className="mt-1 w-full rounded-md border p-3" /></div>
+          <div><label className="text-sm text-gray-500">Second name</label><input name="secondName" value={formData.secondName} onChange={handleChange} className="mt-1 w-full rounded-md border p-3" /></div>
+          <div><label className="text-sm text-gray-500">Username</label><input name="username" value={formData.username} onChange={handleChange} className="mt-1 w-full rounded-md border p-3" /></div>
+          <div><label className="text-sm text-gray-500">Phone number</label><input name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} className="mt-1 w-full rounded-md border p-3" /></div>
+          <div><label className="text-sm text-gray-500">Country code</label><input name="countryCode" value={formData.countryCode} onChange={handleChange} className="mt-1 w-full rounded-md border p-3" /></div>
+          <div><label className="text-sm text-gray-500">New password</label><input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Leave blank to keep current" className="mt-1 w-full rounded-md border p-3" /></div>
+          {(user.role === "customer") && <div className="sm:col-span-2"><label className="text-sm text-gray-500">Delivery address</label><input name="deliveryAddress" value={formData.deliveryAddress} onChange={handleChange} className="mt-1 w-full rounded-md border p-3" /></div>}
+          {(user.role === "vendor" || user.role === "blackmarket") && <>
+            <div><label className="text-sm text-gray-500">Shop name</label><input name="shopName" value={formData.shopName} onChange={handleChange} className="mt-1 w-full rounded-md border p-3" /></div>
+            <div><label className="text-sm text-gray-500">Business name</label><input name="businessName" value={formData.businessName} onChange={handleChange} className="mt-1 w-full rounded-md border p-3" /></div>
+            <div className="sm:col-span-2"><label className="text-sm text-gray-500">Shop address</label><input name="shopAddress" value={formData.shopAddress} onChange={handleChange} className="mt-1 w-full rounded-md border p-3" /></div>
+          </>}
+          <button type="submit" className="w-fit rounded-md bg-primary px-5 py-3 text-sm font-medium text-white hover:bg-primary100">Save settings</button>
+        </form>
+        <dl className="mt-8 grid gap-5 border-t border-gray-200 pt-6 sm:grid-cols-2">
           <div>
             <dt className="text-sm text-gray-500">Full name</dt>
             <dd className="mt-1 font-medium text-gray-900">{user.displayName || "Not provided"}</dd>
@@ -66,7 +103,7 @@ const Account = () => {
             <dt className="text-sm text-gray-500">Account type</dt>
             <dd className="mt-1 font-medium capitalize text-gray-900">{user.role || "customer"}</dd>
           </div>
-          {user.role === "vendor" && (
+          {(user.role === "vendor" || user.role === "blackmarket") && (
             <>
               <div>
                 <dt className="text-sm text-gray-500">Shop name</dt>

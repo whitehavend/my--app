@@ -1,15 +1,13 @@
 import { Link, useLocation } from "react-router-dom";
 import { FiHeadphones } from "react-icons/fi";
 import { HiOutlineUser } from "react-icons/hi";
-import { BsBox2, BsMegaphone, BsQuestionCircle, BsUpload } from "react-icons/bs";
+import { BsMegaphone, BsQuestionCircle } from "react-icons/bs";
 import { useAppSelector } from "../Store/hooks";
 
 const pageLinks = [
-  { label: "My Account", to: "/account", icon: HiOutlineUser },
-  { label: "Orders", to: "/orders", icon: BsBox2 },
+  { label: "Settings", to: "/account", icon: HiOutlineUser },
   { label: "Assistance", to: "/vendor/help#assistance", icon: FiHeadphones },
   { label: "Help", to: "/vendor/help", icon: BsQuestionCircle },
-  { label: "Upload", to: "/vendor/products/new", icon: BsUpload },
 ];
 
 const AdvertPage = () => {

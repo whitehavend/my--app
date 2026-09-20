@@ -79,6 +79,7 @@ const subcategoryOptions = {
   "featured-finds": ["Limited edition goods", "Rare collectibles", "Luxury items", "Hidden deals", "Exclusive drops"],
   "special-access": ["Members-only picks", "One-off listings", "Premium collections", "Curated deals", "Private sales"],
   "exclusive-drops": ["Limited releases", "Rare products", "Collector items", "Premium drops"],
+  other: ["Other"],
 };
 
 const getDefaultForm = (selectedVendorType = "retailshopvendor") => ({
@@ -256,12 +257,12 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
                           <label className="mb-2 block text-sm font-medium text-gray-700">Subcategory</label>
                           <select name="subcategory" value={formData.subcategory} onChange={handleChange} required className="w-full rounded-md border border-gray-300 bg-white p-3 outline-none focus:border-primary">
                             <option value="">Select subcategory</option>
-                            {subcategoryOptions[formData.category].map((subcategory) => <option key={subcategory} value={subcategory}>{subcategory}</option>)}
+                            {[...new Set([...subcategoryOptions[formData.category], "Other"])].map((subcategory) => <option key={subcategory} value={subcategory}>{subcategory}</option>)}
                           </select>
                         </div>
                       )}
             <select name="category" value={formData.category} onChange={handleChange} required className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary">
-              {categoryOptions.map((option) => (
+                      {[...categoryOptions, { value: "other", label: "Other" }].map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
