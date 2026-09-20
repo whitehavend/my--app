@@ -52,10 +52,40 @@ const vendorCategoryOptions = {
   ],
 };
 
+const subcategoryOptions = {
+  smartphones: ["Android phones", "iPhones", "Feature phones", "Refurbished phones"],
+  laptops: ["Business laptops", "Gaming laptops", "MacBooks", "Chromebooks"],
+  gaming: ["Consoles", "Gaming PCs", "Games", "Gaming accessories"],
+  accessories: ["Phone accessories", "Computer accessories", "Audio devices", "Smart home gear"],
+  "electronics-and-gadgets": ["Smartphones", "Laptops", "Audio devices", "Accessories", "Smart home gear"],
+  "home-and-lifestyle": ["Kitchen essentials", "Home decor", "Storage solutions", "Cleaning tools", "Wellness items"],
+  fashion: ["Men's wear", "Women's wear", "Footwear", "Fashion accessories", "Caps and hats"],
+  groceries: ["Staples", "Snacks", "Beverages", "Healthy foods", "Household grocery"],
+  beauty: ["Skincare", "Haircare", "Makeup", "Personal care", "Fragrances"],
+  "automobile-parts": ["Engine parts", "Tires", "Lighting", "Maintenance tools", "Car accessories"],
+  "books-and-games": ["Novels", "Children's books", "Board games", "Puzzles", "Educational games"],
+  "baby-products": ["Diapers", "Feeding essentials", "Skin care", "Nursery items", "Travel gear"],
+  "passenger-and-light-vehicles": ["Sedans", "SUVs", "Hatchbacks", "Crossovers", "Luxury cars"],
+  "heavy-vehicles": ["Trucks", "Buses", "Trailers", "Commercial vans", "Utility vehicles"],
+  land: ["Plots", "Rural land", "Urban lots", "Agricultural land", "Development sites"],
+  residential: ["Apartments", "Townhouses", "Family homes", "Luxury homes", "Studio units"],
+  commercial: ["Office spaces", "Shops", "Retail outlets", "Business centers", "Mixed-use buildings"],
+  industry: ["Warehouses", "Factories", "Industrial plots", "Logistics hubs", "Production facilities"],
+  pom: ["Prescription medicines", "Doctor-prescribed treatments", "Specialized care products", "Therapy packs"],
+  otc: ["Pain relievers", "Cold medicine", "Antacids", "Vitamins", "Daily wellness essentials"],
+  therapeutic: ["Antibiotics", "Antihistamines", "Anti-inflammatory medication", "Care support", "Recovery products"],
+  animals: ["De-wormers", "Antibiotics", "Ectoparasite control", "Vaccines", "Animal feeds"],
+  crops: ["Pesticides", "Fungicides", "Herbicides", "Plant nutrition", "Seeds", "Farm tools"],
+  "featured-finds": ["Limited edition goods", "Rare collectibles", "Luxury items", "Hidden deals", "Exclusive drops"],
+  "special-access": ["Members-only picks", "One-off listings", "Premium collections", "Curated deals", "Private sales"],
+  "exclusive-drops": ["Limited releases", "Rare products", "Collector items", "Premium drops"],
+};
+
 const getDefaultForm = (selectedVendorType = "retailshopvendor") => ({
   title: "",
   brand: "",
   category: vendorCategoryOptions[selectedVendorType]?.[0]?.value || "smartphones",
+    subcategory: "",
   description: "",
   price: "",
   salePrice: "",
@@ -118,7 +148,7 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value, ...(name === "category" ? { subcategory: "" } : {}) }));
   };
 
   const handleSubmit = async (event) => {
@@ -163,6 +193,7 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
       vendorContactInfo: formData.contactInfo,
       vendorDescription: formData.description,
       vendorType,
+      subcategory: formData.subcategory,
       currency: getCurrencyForCountry(formData.country),
     };
 
@@ -218,6 +249,16 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
 
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">Category</label>
+
+                      {subcategoryOptions[formData.category]?.length > 0 && (
+                        <div>
+                          <label className="mb-2 block text-sm font-medium text-gray-700">Subcategory</label>
+                          <select name="subcategory" value={formData.subcategory} onChange={handleChange} required className="w-full rounded-md border border-gray-300 bg-white p-3 outline-none focus:border-primary">
+                            <option value="">Select subcategory</option>
+                            {subcategoryOptions[formData.category].map((subcategory) => <option key={subcategory} value={subcategory}>{subcategory}</option>)}
+                          </select>
+                        </div>
+                      )}
             <select name="category" value={formData.category} onChange={handleChange} required className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary">
               {categoryOptions.map((option) => (
                 <option key={option.value} value={option.value}>

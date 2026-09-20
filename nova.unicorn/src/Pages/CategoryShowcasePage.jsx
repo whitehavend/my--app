@@ -131,7 +131,11 @@ const CategoryShowcasePage = () => {
 
     return products.filter((product) => {
       const productSlug = toCategorySlug(product.category);
-      return product.vendorId && allowedSlugs.includes(productSlug);
+      const productSubcategorySlug = toCategorySlug(product.subcategory);
+      const belongsToParentCategory = categorySlugs.includes(productSlug);
+      return product.vendorId && belongsToParentCategory && (
+        selectedSlug ? productSubcategorySlug === selectedSlug : allowedSlugs.includes(productSlug)
+      );
     });
   }, [categorySlugs, products, selectedSubcategory]);
 
@@ -196,7 +200,7 @@ const CategoryShowcasePage = () => {
               <article key={product._id || product.title} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md">
                 <img src={isShowingVendorProducts ? product.images?.[0] || "images/phones.png" : product.image} alt={product.title} className="h-44 w-full object-cover" onError={(event) => { event.currentTarget.src = "images/phones.png"; }} />
                 <div className="p-4">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">{isShowingVendorProducts ? product.category : product.tag}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">{isShowingVendorProducts ? product.subcategory || product.category : product.tag}</p>
                   <h3 className="mt-2 text-lg font-bold text-slate-900">{product.title}</h3>
                   <p className="mt-3 text-2xl font-black text-gray-900">{isShowingVendorProducts ? formatCurrency(product.salePrice ?? product.price, product.currency) : product.price}</p>
                   <div className="mt-4 flex gap-2">

@@ -28,6 +28,11 @@ const productSchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
     },
+    subcategory: {
+      type: String,
+      default: '',
+      trim: true,
+    },
     price: {
       type: Number,
       required: true,
@@ -86,6 +91,11 @@ const productSchema = new mongoose.Schema(
     description: {
       type: String,
       default: '',
+    },
+    prescription: {
+      type: String,
+      default: '',
+      trim: true,
     },
     images: {
       type: [String],

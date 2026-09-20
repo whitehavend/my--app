@@ -12,7 +12,52 @@ router.post('/', authMiddleware, async (req, res) => {
     return res.status(400).json({ error: 'Cart items are required' });
   }
 
+  const volumeUpdates = [];
+  const rollbackVolumeUpdates = async () => {
+    await Promise.all(volumeUpdates.map(({ productId, quantity }) => Product.updateOne(
+      { _id: productId },
+      { $inc: { wholesaleVolume: quantity } },
+    )));
+  };
+
   try {
+    const requestedQuantities = new Map();
+    items.forEach((item) => {
+      const productId = String(item.id || item.productId || item._id || '');
+      const quantity = Number(item.quantity || 1);
+      if (productId && quantity > 0) {
+        requestedQuantities.set(productId, (requestedQuantities.get(productId) || 0) + quantity);
+      }
+    });
+
+    const productIds = [...requestedQuantities.keys()];
+    const products = productIds.length ? await Product.find({ _id: { $in: productIds } }) : [];
+    const productsById = new Map(products.map((product) => [String(product._id), product]));
+    for (const [productId, quantity] of requestedQuantities) {
+      const product = productsById.get(productId);
+      if (!product || product.wholesaleVolume === null || product.wholesaleVolume === undefined) {
+        continue;
+      }
+
+      if (product.wholesaleVolume < quantity) {
+        await rollbackVolumeUpdates();
+        return res.status(400).json({ error: `${product.title} does not have enough wholesale volume available` });
+      }
+
+      const updatedProduct = await Product.findOneAndUpdate(
+        { _id: productId, wholesaleVolume: { $gte: quantity } },
+        { $inc: { wholesaleVolume: -quantity } },
+        { new: true },
+      );
+
+      if (!updatedProduct) {
+        await rollbackVolumeUpdates();
+        return res.status(409).json({ error: `${product.title} was just ordered by someone else. Please refresh and try again` });
+      }
+
+      volumeUpdates.push({ productId, quantity });
+    }
+
     const newOrder = await Order.create({
       userId: req.user.id,
       items: items.map((item) => ({
@@ -36,6 +81,7 @@ router.post('/', authMiddleware, async (req, res) => {
       order: newOrder,
     });
   } catch (error) {
+    await rollbackVolumeUpdates();
     console.error('Create order error:', error);
     return res.status(500).json({ error: 'Unable to place order', details: error.message });
   }
