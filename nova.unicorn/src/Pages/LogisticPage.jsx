@@ -23,13 +23,20 @@ const LogisticPage = () => {
 
   useEffect(() => {
     setIsAvailable(Boolean(user?.logisticAvailable));
-    dispatch(getLogisticRequests());
+    const refreshRequests = () => dispatch(getLogisticRequests());
+    refreshRequests();
+    const refreshTimer = setInterval(refreshRequests, 5000);
+
+    return () => clearInterval(refreshTimer);
   }, [dispatch, user?.logisticAvailable]);
 
   const toggleAvailability = async () => {
     const nextValue = !isAvailable;
     const result = await dispatch(updateLogisticAvailability(nextValue));
-    if (updateLogisticAvailability.fulfilled.match(result)) setIsAvailable(nextValue);
+    if (updateLogisticAvailability.fulfilled.match(result)) {
+      setIsAvailable(nextValue);
+      dispatch(getLogisticRequests());
+    }
   };
 
   return (
