@@ -22,7 +22,7 @@ const categoryCards = [
 const CustomerPage = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { products, status, error } = useAppSelector((state) => state.products);
+  const { products, error } = useAppSelector((state) => state.products);
   const { user } = useAppSelector((state) => state.auth);
   const [search, setSearch] = useState("");
   const [savedItems, setSavedItems] = useState([]);
@@ -124,9 +124,8 @@ const CustomerPage = () => {
             ))}
           </div>
 
-          {status === "loading" && <p>Loading products...</p>}
           {error && error !== "nil" && <p className="text-red-600">{error}</p>}
-          {status !== "loading" && !visibleProducts.length && <ComingSoonBanner label="Vendor marketplace" />}
+          {!visibleProducts.length && <ComingSoonBanner label="Vendor marketplace" />}
           {visibleProducts.length > 0 && (
             <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
               {visibleProducts.map((product) => (

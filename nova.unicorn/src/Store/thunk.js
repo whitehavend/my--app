@@ -371,6 +371,19 @@ export const cancelOrder = createAsyncThunk(
   }
 );
 
+export const confirmOrderArrived = createAsyncThunk(
+  "confirmOrderArrived",
+  async (orderId, thunkAPI) => {
+    const token = localStorage.getItem("unicorn_token");
+    try {
+      const response = await axios.patch(`${apiBaseUrl}/orders/${orderId}/arrived`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.error || error.message || "Unable to confirm delivery");
+    }
+  }
+);
+
 export const getAvailableLogistics = createAsyncThunk(
   "getAvailableLogistics",
   async (_, thunkAPI) => {
@@ -410,15 +423,54 @@ export const getLogisticRequests = createAsyncThunk(
   }
 );
 
-export const requestLogistic = createAsyncThunk(
-  "requestLogistic",
-  async (logisticId, thunkAPI) => {
+export const getVendorLogisticRequests = createAsyncThunk(
+  "getVendorLogisticRequests",
+  async (_, thunkAPI) => {
     const token = localStorage.getItem("unicorn_token");
     try {
-      const response = await axios.post(`${apiBaseUrl}/auth/logistics/${logisticId}/request`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      const response = await axios.get(`${apiBaseUrl}/auth/logistics/vendor-requests`, { headers: { Authorization: `Bearer ${token}` } });
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.error || error.message || "Unable to fetch logistic requests");
+    }
+  }
+);
+
+export const requestLogistic = createAsyncThunk(
+  "requestLogistic",
+  async ({ logisticId, orderId }, thunkAPI) => {
+    const token = localStorage.getItem("unicorn_token");
+    try {
+      const response = await axios.post(`${apiBaseUrl}/auth/logistics/${logisticId}/request`, { orderId }, { headers: { Authorization: `Bearer ${token}` } });
       return response.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response?.data?.error || error.message || "Unable to request logistic");
+    }
+  }
+);
+
+export const updateLogisticRequestStatus = createAsyncThunk(
+  "updateLogisticRequestStatus",
+  async ({ requestId, status }, thunkAPI) => {
+    const token = localStorage.getItem("unicorn_token");
+    try {
+      const response = await axios.patch(`${apiBaseUrl}/auth/logistics/requests/${requestId}/status`, { status }, { headers: { Authorization: `Bearer ${token}` } });
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.error || error.message || "Unable to update pickup request");
+    }
+  }
+);
+
+export const removeLogisticRequest = createAsyncThunk(
+  "removeLogisticRequest",
+  async ({ logisticId, requestId }, thunkAPI) => {
+    const token = localStorage.getItem("unicorn_token");
+    try {
+      const response = await axios.delete(`${apiBaseUrl}/auth/logistics/${logisticId}/request/${requestId}`, { headers: { Authorization: `Bearer ${token}` } });
+      return { ...response.data, requestId };
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.error || error.message || "Unable to remove logistic");
     }
   }
 );

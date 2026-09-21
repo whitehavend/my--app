@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { cancelOrder, createOrder, fulfillOrder, getUserOrders, getVendorOrders } from "../thunk";
+import { cancelOrder, confirmOrderArrived, createOrder, fulfillOrder, getUserOrders, getVendorOrders } from "../thunk";
 
 const initialState = {
   orders: [],
@@ -84,6 +84,16 @@ const OrdersSlice = createSlice({
       .addCase(cancelOrder.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload || "Unable to cancel order";
+      })
+      .addCase(confirmOrderArrived.fulfilled, (state, action) => {
+        state.status = "success";
+        state.error = "";
+        const updatedOrder = action.payload?.order;
+        if (updatedOrder) state.orders = state.orders.map((order) => order._id === updatedOrder._id ? updatedOrder : order);
+      })
+      .addCase(confirmOrderArrived.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload || "Unable to confirm delivery";
       });
   },
 });

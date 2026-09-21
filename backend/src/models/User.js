@@ -84,12 +84,15 @@ const userSchema = new mongoose.Schema(
     },
     logisticRequests: {
       type: [{
+        orderId: String,
+        customerId: String,
         vendorId: String,
         vendorFullName: String,
         vendorShopName: String,
         vendorPhoneNumber: String,
         vendorShopAddress: String,
-        status: { type: String, default: 'pending' },
+        status: { type: String, enum: ['pending', 'accepted', 'rejected', 'picked_up'], default: 'pending' },
+        pickedUpAt: Date,
         requestedAt: { type: Date, default: Date.now },
       }],
       default: [],

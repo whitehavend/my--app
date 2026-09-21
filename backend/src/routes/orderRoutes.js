@@ -175,4 +175,19 @@ router.patch('/:id/cancel', authMiddleware, async (req, res) => {
   }
 });
 
+router.patch('/:id/arrived', authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== 'customer') return res.status(403).json({ error: 'Only customers can confirm delivery' });
+    const order = await Order.findOne({ _id: req.params.id, userId: req.user.id });
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+    if (order.status !== 'picked_up') return res.status(400).json({ error: 'Goods can be confirmed after pickup' });
+    order.status = 'delivered';
+    await order.save();
+    return res.status(200).json({ message: 'Delivery confirmed', order });
+  } catch (error) {
+    console.error('Confirm delivery error:', error);
+    return res.status(500).json({ error: 'Unable to confirm delivery' });
+  }
+});
+
 module.exports = router;

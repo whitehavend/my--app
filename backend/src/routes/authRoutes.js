@@ -540,7 +540,7 @@ router.get('/logistics/requests', authMiddleware, async (req, res) => {
     }
 
     const user = await User.findById(req.user.id).select('logisticRequests');
-    return res.status(200).json({ requests: user?.logisticRequests || [] });
+    return res.status(200).json({ requests: (user?.logisticRequests || []).filter((request) => request.status !== 'rejected') });
   } catch (error) {
     console.error('List logistic requests error:', error);
     return res.status(500).json({ error: 'Unable to retrieve pickup requests' });
@@ -559,12 +559,28 @@ router.post('/logistics/:id/request', authMiddleware, async (req, res) => {
     const vendor = await User.findById(req.user.id).select('fullName shopName phoneNumber countryCode shopAddress');
     if (!vendor) return res.status(404).json({ error: 'Vendor account not found' });
 
+    const orderId = req.body.orderId ? String(req.body.orderId) : '';
+    let customerId = '';
+    if (orderId) {
+      const Order = require('../models/Order');
+      const Product = require('../models/Product');
+      const vendorProducts = await Product.find({ vendorId: String(req.user.id) }).select('_id');
+      const vendorProductIds = new Set(vendorProducts.map((product) => String(product._id)));
+      const order = await Order.findOne({ _id: orderId, status: { $in: ['pending', 'delivering'] } });
+      if (!order || !order.items.some((item) => vendorProductIds.has(String(item.productId)))) {
+        return res.status(400).json({ error: 'Select one of your active orders for pickup' });
+      }
+      customerId = String(order.userId);
+    }
+
     const existingRequest = logistic.logisticRequests.find((request) => (
       String(request.vendorId) === String(req.user.id) && request.status === 'pending'
     ));
     if (existingRequest) return res.status(409).json({ error: 'This logistic has already been requested' });
 
     logistic.logisticRequests.push({
+      orderId,
+      customerId,
       vendorId: req.user.id,
       vendorFullName: vendor.fullName || '',
       vendorShopName: vendor.shopName || '',
@@ -577,6 +593,64 @@ router.post('/logistics/:id/request', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error('Request logistic error:', error);
     return res.status(500).json({ error: 'Unable to request logistic' });
+  }
+});
+
+router.get('/logistics/vendor-requests', authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== 'vendor') return res.status(403).json({ error: 'Only vendors can view logistic requests' });
+
+    const logistics = await User.find({ 'logisticRequests.vendorId': String(req.user.id) }).select('fullName logisticRequests');
+    const requests = logistics.flatMap((logistic) => logistic.logisticRequests
+      .filter((request) => String(request.vendorId) === String(req.user.id))
+      .map((request) => ({ ...request.toObject(), logisticId: String(logistic._id), logisticName: logistic.fullName })));
+    return res.status(200).json({ requests });
+  } catch (error) {
+    console.error('List vendor logistic requests error:', error);
+    return res.status(500).json({ error: 'Unable to retrieve logistic requests' });
+  }
+});
+
+router.patch('/logistics/requests/:requestId/status', authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== 'logistic') return res.status(403).json({ error: 'Only logistics can update pickup requests' });
+    const { status } = req.body;
+    if (!['accepted', 'rejected', 'picked_up'].includes(status)) return res.status(400).json({ error: 'Invalid pickup request status' });
+
+    const user = await User.findOne({ _id: req.user.id, 'logisticRequests._id': req.params.requestId });
+    const request = user?.logisticRequests.id(req.params.requestId);
+    if (!user || !request) return res.status(404).json({ error: 'Pickup request not found' });
+    if (status === 'accepted' && request.status !== 'pending') return res.status(400).json({ error: 'Only pending requests can be accepted' });
+    if (status === 'picked_up' && request.status !== 'accepted') return res.status(400).json({ error: 'Accept the request before marking goods picked up' });
+
+    request.status = status;
+    if (status === 'picked_up') {
+      request.pickedUpAt = new Date();
+      if (request.orderId) {
+        const Order = require('../models/Order');
+        await Order.findOneAndUpdate({ _id: request.orderId, userId: request.customerId }, { status: 'picked_up' });
+      }
+    }
+    await user.save();
+    return res.status(200).json({ request });
+  } catch (error) {
+    console.error('Update pickup request error:', error);
+    return res.status(500).json({ error: 'Unable to update pickup request' });
+  }
+});
+
+router.delete('/logistics/:id/request/:requestId', authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== 'vendor') return res.status(403).json({ error: 'Only vendors can remove logistic requests' });
+    const logistic = await User.findOne({ _id: req.params.id, 'logisticRequests._id': req.params.requestId });
+    const request = logistic?.logisticRequests.id(req.params.requestId);
+    if (!logistic || !request || String(request.vendorId) !== String(req.user.id)) return res.status(404).json({ error: 'Logistic request not found' });
+    request.deleteOne();
+    await logistic.save();
+    return res.status(200).json({ message: 'Logistic removed from your pickup list' });
+  } catch (error) {
+    console.error('Remove logistic request error:', error);
+    return res.status(500).json({ error: 'Unable to remove logistic' });
   }
 });
 

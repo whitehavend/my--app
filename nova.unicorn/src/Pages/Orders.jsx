@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
-import { cancelOrder, getUserOrders } from "../Store/thunk";
+import { cancelOrder, confirmOrderArrived, getUserOrders } from "../Store/thunk";
 import { formatCurrency } from "../utils/currency";
 
 const Orders = () => {
@@ -12,6 +12,10 @@ const Orders = () => {
 
   const handleCancel = (orderId) => {
     dispatch(cancelOrder(orderId));
+  };
+
+  const handleConfirmArrived = (orderId) => {
+    dispatch(confirmOrderArrived(orderId));
   };
 
   useEffect(() => {
@@ -51,7 +55,7 @@ const Orders = () => {
                 </div>
                 <div>
                   <p className="text-xs uppercase text-gray-500">Status</p>
-                  <h2 className={`font-semibold ${order.status === "delivering" ? "text-green-600" : ""}`}>{order.status === "delivering" ? "Your product is being delivered" : order.status}</h2>
+                  <h2 className={`font-semibold ${["delivering", "picked_up", "delivered"].includes(order.status) ? "text-green-600" : ""}`}>{order.status === "delivering" ? "Your product is being delivered" : order.status === "picked_up" ? "Picked up and on the way" : order.status}</h2>
                 </div>
                 <div>
                   <p className="text-xs uppercase text-gray-500">Total</p>
@@ -70,6 +74,11 @@ const Orders = () => {
               {order.status === "pending" && (
                 <button type="button" onClick={() => handleCancel(order._id || order.id)} className="mt-4 rounded-md border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50">
                   Cancel order
+                </button>
+              )}
+              {order.status === "picked_up" && (
+                <button type="button" onClick={() => handleConfirmArrived(order._id || order.id)} className="mt-4 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary100">
+                  Goods have arrived
                 </button>
               )}
             </div>
