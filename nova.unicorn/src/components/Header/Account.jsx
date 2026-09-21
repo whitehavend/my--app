@@ -61,7 +61,7 @@ const Account = () => {
           </button>
         )}
 
-        {user && (
+        {user && user.role === "admin" && (
           <button
             onClick={() => navigate("/admin/vendors")}
             className="group flex w-full items-center p-3 hover:bg-[#f1f1f2] hover:font-semibold transition-all duration-[300]  cursor-pointer text-left"

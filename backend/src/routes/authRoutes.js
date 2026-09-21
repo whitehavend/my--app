@@ -17,6 +17,14 @@ const {
 const router = express.Router();
 const vendorTypes = ['retailshopvendor', 'cardealer', 'realestate', 'pharmacy', 'agrovet'];
 
+const requireAdmin = (req, res, next) => {
+  if (req.user?.role !== 'admin') {
+    return res.status(403).json({ error: 'Administrator access is required' });
+  }
+
+  return next();
+};
+
 const getFirebaseAuth = () => {
   if (!getApps().length) {
     const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
@@ -93,6 +101,8 @@ const serializeUser = (user) => ({
   logisticRequests: user.logisticRequests || [],
   deliveryAddress: user.deliveryAddress || '',
   shopAddress: user.shopAddress || '',
+  verificationRequired: user.verificationRequired || [],
+  verificationStatus: user.verificationStatus || {},
   advertSocials: user.advertSocials
     ? user.advertSocials instanceof Map
       ? Object.fromEntries(user.advertSocials)
@@ -131,7 +141,7 @@ router.post('/signup', async (req, res) => {
   }
 
   if (!['customer', 'vendor', 'advert', 'logistic', 'blackmarket'].includes(role)) {
-    return res.status(400).json({ error: 'Role must be customer, vendor, advert, logistic, or black market' });
+    return res.status(400).json({ error: 'This role cannot be created through public signup' });
   }
 
   if (role === 'vendor' && !vendorTypes.includes(vendorType)) {
@@ -482,7 +492,7 @@ router.patch('/me', authMiddleware, async (req, res) => {
   }
 });
 
-router.get('/vendors/pending', async (req, res) => {
+router.get('/vendors/pending', authMiddleware, requireAdmin, async (req, res) => {
   try {
     let pendingVendors = [];
 
@@ -502,7 +512,7 @@ router.get('/vendors/pending', async (req, res) => {
   }
 });
 
-router.patch('/vendors/:id/approve', async (req, res) => {
+router.patch('/vendors/:id/approve', authMiddleware, requireAdmin, async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -542,7 +552,7 @@ router.patch('/vendors/:id/approve', async (req, res) => {
   }
 });
 
-router.patch('/vendors/:id/reject', async (req, res) => {
+router.patch('/vendors/:id/reject', authMiddleware, requireAdmin, async (req, res) => {
   const { id } = req.params;
   const { reason = 'Verification documents were not accepted' } = req.body || {};
 

@@ -60,7 +60,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/orders" element={<Orders />} />
         <Route path="/account" element={<Account />} />
-        <Route path="/admin/vendors" element={<AdminVendors />} />
+        <Route path="/admin/vendors" element={<ProtectedRoleRoute role="admin"><AdminVendors /></ProtectedRoleRoute>} />
       </Routes>
       <Footer />
     </Router>

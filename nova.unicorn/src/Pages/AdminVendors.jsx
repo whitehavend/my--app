@@ -7,7 +7,7 @@ const AdminVendors = () => {
   const { pendingVendors, pendingStatus, user } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
-    if (user && user.role === "vendor") {
+    if (user && user.role === "admin") {
       dispatch(getPendingVendors());
     }
   }, [dispatch, user]);
@@ -24,12 +24,12 @@ const AdminVendors = () => {
     dispatch(getPendingVendors());
   };
 
-  if (!user) {
+  if (!user || user.role !== "admin") {
     return (
       <div className="min-h-[60vh] flex items-center justify-center px-6 py-10">
         <div className="max-w-md text-center">
           <h1 className="text-2xl font-bold mb-2">Access required</h1>
-          <p className="text-gray-600">Please sign in to view vendor approvals.</p>
+          <p className="text-gray-600">An administrator account is required to view vendor approvals.</p>
         </div>
       </div>
     );
