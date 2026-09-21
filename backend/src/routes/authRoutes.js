@@ -6,8 +6,13 @@ const { cert, getApps, initializeApp } = require('firebase-admin/app');
 const { getAuth } = require('firebase-admin/auth');
 const authMiddleware = require('../middleware/authMiddleware');
 const User = require('../models/User');
+const SettlementInfo = require('../models/SettlementInfo');
 const { isValidPhoneForCountry } = require('../utils/phoneValidation');
 const { normalizeEmail, isValidEmail } = require('../utils/emailValidation');
+const {
+  getRequiredVerificationChecks,
+  validateVendorPreAccountRequirements,
+} = require('../utils/vendorCompliance');
 
 const router = express.Router();
 const vendorTypes = ['retailshopvendor', 'cardealer', 'realestate', 'pharmacy', 'agrovet'];
@@ -111,6 +116,8 @@ router.post('/signup', async (req, res) => {
     shopAddress,
     countryCode,
     advertSocials = {},
+    verification = {},
+    settlementInfo,
   } = req.body;
 
   const normalizedEmail = normalizeEmail(email);
@@ -158,6 +165,14 @@ router.post('/signup', async (req, res) => {
     return res.status(400).json({ error: 'Advert social media details are invalid' });
   }
 
+  if (role === 'vendor') {
+    try {
+      validateVendorPreAccountRequirements(vendorType, { ...verification, settlementInfo });
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
+    }
+  }
+
   try {
     let invalidAdvertPlatform = '';
     const normalizedAdvertSocials = Object.entries(advertSocials).reduce((socials, [platform, username]) => {
@@ -185,6 +200,18 @@ router.post('/signup', async (req, res) => {
       throw error;
     }
 
+    const vendorVerificationRequired = role === 'vendor' ? getRequiredVerificationChecks(vendorType) : [];
+    const settlementRecord = role === 'vendor' && settlementInfo ? await SettlementInfo.create({
+      vendorType: String(vendorType).trim(),
+      payoutMethod: String(settlementInfo.payoutMethod || '').trim(),
+      accountHolderName: String(settlementInfo.accountHolderName || '').trim(),
+      accountNumber: String(settlementInfo.accountNumber || '').trim(),
+      bankName: String(settlementInfo.bankName || '').trim(),
+      phoneNumber: String(settlementInfo.phoneNumber || '').trim(),
+      walletId: String(settlementInfo.walletId || '').trim(),
+      currency: String(settlementInfo.currency || 'KES').trim(),
+    }) : null;
+
     const userData = {
       firstName: String(firstName).trim(),
       secondName: String(secondName).trim(),
@@ -194,7 +221,18 @@ router.post('/signup', async (req, res) => {
       password: await bcrypt.hash(String(password), 10),
       role,
       vendorType: role === 'vendor' ? String(vendorType).trim() : '',
-      isApproved: true,
+      isApproved: role !== 'vendor',
+      verificationRequired: vendorVerificationRequired,
+      verificationStatus: {
+        kycVerified: Boolean(role === 'vendor' ? verification?.kycVerified : false),
+        kraVerified: Boolean(role === 'vendor' ? verification?.kraVerified : false),
+        financialGatewayVerified: Boolean(role === 'vendor' ? verification?.financialGatewayVerified : false),
+        professionalLicenseVerified: Boolean(role === 'vendor' ? verification?.professionalLicenseVerified : false),
+        premisesLicenseVerified: Boolean(role === 'vendor' ? verification?.premisesLicenseVerified : false),
+        financialSettlementVerified: Boolean(role === 'vendor' ? verification?.financialSettlementVerified : false),
+        lastUpdated: new Date(),
+      },
+      settlementInfo: settlementRecord ? settlementRecord._id : null,
       shopName: role === 'vendor' ? String(shopName || '').trim() : '',
       phoneNumber: normalizedPhone,
       businessName: role === 'vendor' ? String(businessName || '').trim() : '',
@@ -248,6 +286,10 @@ router.post('/login', async (req, res) => {
 
     if (!user) {
       return res.status(404).json({ error: 'User not found. Please create an account first.' });
+    }
+
+    if (user.role === 'vendor' && user.isApproved === false) {
+      return res.status(403).json({ error: 'Vendor account is still pending verification approval.' });
     }
 
     const passwordMatches = await bcrypt.compare(String(password), user.password);
@@ -481,6 +523,10 @@ router.patch('/vendors/:id/approve', async (req, res) => {
     }
 
     vendor.isApproved = true;
+    vendor.verificationStatus = {
+      ...(vendor.verificationStatus || {}),
+      lastUpdated: new Date(),
+    };
 
     if (mongoose.connection.readyState === 1) {
       await vendor.save();
@@ -493,6 +539,48 @@ router.patch('/vendors/:id/approve', async (req, res) => {
   } catch (error) {
     console.error('Approve vendor error:', error);
     return res.status(500).json({ error: 'Unable to approve vendor', details: error.message });
+  }
+});
+
+router.patch('/vendors/:id/reject', async (req, res) => {
+  const { id } = req.params;
+  const { reason = 'Verification documents were not accepted' } = req.body || {};
+
+  try {
+    let vendor;
+
+    if (mongoose.connection.readyState === 1) {
+      vendor = await User.findById(id);
+    } else {
+      vendor = users.find((user) => (user.id || user._id) === id);
+    }
+
+    if (!vendor) {
+      return res.status(404).json({ error: 'Vendor not found' });
+    }
+
+    if (vendor.role !== 'vendor') {
+      return res.status(400).json({ error: 'User is not a vendor' });
+    }
+
+    vendor.isApproved = false;
+    vendor.verificationStatus = {
+      ...(vendor.verificationStatus || {}),
+      lastUpdated: new Date(),
+    };
+
+    if (mongoose.connection.readyState === 1) {
+      await vendor.save();
+    }
+
+    return res.status(200).json({
+      message: 'Vendor rejected successfully',
+      reason,
+      user: serializeUser(vendor),
+    });
+  } catch (error) {
+    console.error('Reject vendor error:', error);
+    return res.status(500).json({ error: 'Unable to reject vendor', details: error.message });
   }
 });
 

@@ -52,6 +52,24 @@ const vendorSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    verificationRequired: {
+      type: [String],
+      default: [],
+    },
+    verificationStatus: {
+      kycVerified: { type: Boolean, default: false },
+      kraVerified: { type: Boolean, default: false },
+      financialGatewayVerified: { type: Boolean, default: false },
+      professionalLicenseVerified: { type: Boolean, default: false },
+      premisesLicenseVerified: { type: Boolean, default: false },
+      financialSettlementVerified: { type: Boolean, default: false },
+      lastUpdated: { type: Date, default: Date.now },
+    },
+    settlementInfo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'SettlementInfo',
+      default: null,
+    },
     kycVerification: {
       type: verificationStatusSchema,
       default: () => ({}),

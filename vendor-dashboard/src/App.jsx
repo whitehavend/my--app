@@ -51,6 +51,26 @@ const trackMap = {
   premisesLicenseVerification: "Premises license",
 };
 
+const verificationChecklist = {
+  RETAIL: [
+    { key: "kyc", label: "KYC verification", mode: "auto", required: true },
+    { key: "kra", label: "KRA tax details", mode: "auto", required: true },
+    { key: "businessDocument", label: "Business registration document", mode: "manual", required: true },
+    { key: "settlement", label: "Financial settlement info", mode: "manual", required: true },
+  ],
+  HEALTH_AGRO: [
+    { key: "kyc", label: "KYC verification", mode: "auto", required: true },
+    { key: "kra", label: "KRA tax details", mode: "auto", required: true },
+    { key: "financialGateway", label: "Financial gateway validation", mode: "auto", required: true },
+    { key: "professionalLicense", label: "Professional license", mode: "manual", required: true },
+    { key: "premisesDoc", label: "Premises compliance", mode: "manual", required: true },
+    { key: "settlement", label: "Financial settlement info", mode: "manual", required: true },
+  ],
+  REAL_ESTATE_CAR: [
+    { key: "kyc", label: "KYC verification", mode: "auto", required: true },
+  ],
+};
+
 const statusTone = {
   VERIFIED: "verified",
   PENDING: "pending",
@@ -78,7 +98,112 @@ function TrackList({ vendor }) {
   return <div className="track-list">{tracks.map(([key, label]) => <div className="track-row" key={key}><span>{label}</span><StatusChip status={vendor[key]?.status} /></div>)}</div>;
 }
 
-function OnboardingPortal({ onCreated }) {
+function VerificationHub({ vendor, onBack }) {
+  const checks = verificationChecklist[vendor?.vendorType] || verificationChecklist.RETAIL;
+  const [uploadState, setUploadState] = useState({});
+
+  const submitCheck = async (checkKey, file) => {
+    if (!vendor?._id) return;
+    const payload = { idNumber: "12345678", idType: "KENYA_NATIONAL_ID", firstName: "Vendor", lastName: "Applicant" };
+
+    try {
+      if (checkKey === "kyc") {
+        const response = await fetch(`${API_BASE}/${vendor._id}/verify-kyc`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "KYC verification failed");
+      }
+
+      if (checkKey === "kra") {
+        const response = await fetch(`${API_BASE}/${vendor._id}/verify-tax`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ kraPin: "A123456789X" }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "KRA verification failed");
+      }
+
+      if (checkKey === "financialGateway") {
+        const response = await fetch(`${API_BASE}/${vendor._id}/verify-financial`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ amount: 1 }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Financial verification failed");
+      }
+
+      if (checkKey === "businessDocument" || checkKey === "professionalLicense" || checkKey === "premisesDoc") {
+        const formData = new FormData();
+        if (checkKey === "businessDocument") formData.append("businessDoc", file || new Blob(["business document"], { type: "application/octet-stream" }));
+        if (checkKey === "professionalLicense") formData.append("profLicense", file || new Blob(["professional license"], { type: "application/octet-stream" }));
+        if (checkKey === "premisesDoc") formData.append("premisesDoc", file || new Blob(["premises doc"], { type: "application/octet-stream" }));
+
+        const endpoint = checkKey === "businessDocument" ? "verify-documents" : "verify-professional";
+        const response = await fetch(`${API_BASE}/${vendor._id}/${endpoint}`, { method: "POST", body: formData });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Document verification failed");
+      }
+
+      setUploadState((current) => ({ ...current, [checkKey]: { status: "submitted", message: "Submitted to verification queue" } }));
+    } catch (error) {
+      setUploadState((current) => ({ ...current, [checkKey]: { status: "error", message: error.message } }));
+    }
+  };
+
+  return (
+    <section className="workspace-grid">
+      <div className="form-column">
+        <div className="section-kicker">02 / Verification hub</div>
+        <h2>Complete your vendor checks</h2>
+        <p className="section-intro">Some checks are auto-validated immediately. Others are reviewed by our compliance team before approval.</p>
+
+        {checks.map((check) => (
+          <div className="verification-card" key={check.key}>
+            <div className="verification-card-head">
+              <div>
+                <span className="eyebrow">{check.mode === "auto" ? "Auto-check" : "Manual review"}</span>
+                <h3>{check.label}</h3>
+              </div>
+              <span className={`status-pill ${check.mode === "auto" ? "verified" : "pending"}`}>{check.mode === "auto" ? "Automatic" : "Team review"}</span>
+            </div>
+
+            <div className="verification-upload-row">
+              <label className="file-upload-button">
+                <input type="file" onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) {
+                    submitCheck(check.key, file);
+                  }
+                }} />
+                Upload document
+              </label>
+              <span className="verification-note">{uploadState[check.key]?.message || (check.mode === "auto" ? "System validates this automatically" : "Submitted to staff review queue")}</span>
+            </div>
+          </div>
+        ))}
+
+        <button type="button" className="secondary-button" onClick={onBack}>Back to onboarding</button>
+      </div>
+
+      <aside className="side-note">
+        <div className="side-note-top"><ShieldCheck size={18} /><span>Review flow</span></div>
+        <h3>What is automated vs reviewed</h3>
+        <p>Identity, tax, and financial gateway checks can be validated automatically. Licenses, premises documents, and settlement setup are routed to the compliance team.</p>
+        <ul className="checklist">
+          <li>Auto-verified: KYC, KRA, financial gateway</li>
+          <li>Manual review: professional license, premises evidence, settlement details</li>
+        </ul>
+      </aside>
+    </section>
+  );
+}
+
+function OnboardingPortal({ onCreated, onOpenVerification }) {
   const [form, setForm] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState(null);
@@ -121,6 +246,7 @@ function OnboardingPortal({ onCreated }) {
       setFeedback({ type: "success", message: `${form.businessName} is now in the verification queue.` });
       setForm(emptyForm);
       onCreated();
+      onOpenVerification(registrationBody.vendor);
     } catch (error) {
       setFeedback({ type: "error", message: error.message });
     } finally {
@@ -200,6 +326,7 @@ function ComplianceDashboard({ vendors, loading, error, onRefresh, onSweep }) {
 export default function App() {
   const [activeView, setActiveView] = useState("onboarding");
   const [vendors, setVendors] = useState([]);
+  const [verificationVendor, setVerificationVendor] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -234,11 +361,18 @@ export default function App() {
 
   useEffect(() => { loadVendors(); }, []);
 
+  const openVerificationHub = (vendor) => {
+    if (vendor) {
+      setVerificationVendor(vendor);
+      setActiveView("verification");
+    }
+  };
+
   return <div className="app-shell">
     <header className="topbar"><div className="brand"><span className="brand-mark"><ShieldCheck size={19} /></span><span><strong>Nova Verify</strong><small>Vendor operations</small></span></div><div className="topbar-status"><span className="online-dot" />Compliance workspace <span className="divider-dot" /> <span>Kenya / EAT</span></div></header>
     <main className="page-wrap"><section className="hero"><div><span className="hero-label">Vendor assurance platform</span><h1>Make trust <em>visible.</em></h1><p>One calm workspace for onboarding businesses and keeping every verification track moving.</p></div><div className="hero-stamp"><BadgeCheck size={22} /><span><strong>Live operations</strong><small>Last sync just now</small></span></div></section>
-      <nav className="view-tabs" aria-label="Workspace views"><button type="button" className={activeView === "onboarding" ? "active" : ""} onClick={() => setActiveView("onboarding")}><LayoutDashboard size={17} />Onboarding portal</button><button type="button" className={activeView === "compliance" ? "active" : ""} onClick={() => { setActiveView("compliance"); loadVendors(); }}><ShieldCheck size={17} />Admin compliance <span className="tab-count">{vendors.length}</span></button></nav>
-      {activeView === "onboarding" ? <OnboardingPortal onCreated={loadVendors} /> : <ComplianceDashboard vendors={vendors} loading={loading} error={error} onRefresh={loadVendors} onSweep={runVerificationSweep} />}
+      <nav className="view-tabs" aria-label="Workspace views"><button type="button" className={activeView === "onboarding" ? "active" : ""} onClick={() => setActiveView("onboarding")}><LayoutDashboard size={17} />Onboarding portal</button><button type="button" className={activeView === "verification" ? "active" : ""} onClick={() => setActiveView("verification")}><FileCheck2 size={17} />Verification hub</button><button type="button" className={activeView === "compliance" ? "active" : ""} onClick={() => { setActiveView("compliance"); loadVendors(); }}><ShieldCheck size={17} />Admin compliance <span className="tab-count">{vendors.length}</span></button></nav>
+      {activeView === "verification" ? <VerificationHub vendor={verificationVendor} onBack={() => setActiveView("onboarding")} /> : activeView === "onboarding" ? <OnboardingPortal onCreated={loadVendors} onOpenVerification={openVerificationHub} /> : <ComplianceDashboard vendors={vendors} loading={loading} error={error} onRefresh={loadVendors} onSweep={runVerificationSweep} />}
     </main>
     <footer><span>Nova Verify / Internal operations</span><span>Protected workflow <ShieldCheck size={14} /></span></footer>
   </div>;

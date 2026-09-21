@@ -17,6 +17,7 @@ import VendorOrders from "./Pages/VendorOrders";
 import VendorProducts from "./Pages/VendorProducts";
 import VendorHelp from "./Pages/VendorHelp";
 import VendorTypePage from "./Pages/VendorTypePage";
+import VendorVerificationStatus from "./Pages/VendorVerificationStatus";
 import BlackMarketPage from "./Pages/BlackMarketPage";
 import AdvertPage from "./Pages/AdvertPage";
 import LogisticPage from "./Pages/LogisticPage";
@@ -50,6 +51,7 @@ function App() {
         <Route path="/vendor/orders" element={<ProtectedRoleRoute role="vendor"><VendorPage><VendorOrders /></VendorPage></ProtectedRoleRoute>} />
         <Route path="/vendor/products" element={<ProtectedRoleRoute role="vendor"><VendorPage><VendorProducts /></VendorPage></ProtectedRoleRoute>} />
         <Route path="/vendor/products/new" element={<ProtectedRoleRoute role="vendor"><VendorPage><VendorProductUpload /></VendorPage></ProtectedRoleRoute>} />
+        <Route path="/vendor/status" element={<ProtectedRoleRoute role="vendor"><VendorVerificationStatus /></ProtectedRoleRoute>} />
         <Route path="/vendor/help" element={<ProtectedRoleRoute role="vendor"><VendorPage><VendorHelp /></VendorPage></ProtectedRoleRoute>} />
         <Route path="/advert" element={<ProtectedRoleRoute role="advert"><AdvertPage /></ProtectedRoleRoute>} />
         <Route path="/logistic" element={<ProtectedRoleRoute role="logistic"><LogisticPage /></ProtectedRoleRoute>} />

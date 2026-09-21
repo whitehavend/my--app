@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { approveVendor, getCurrentUser, getPendingVendors, handleGoogleLogin, handleLogin, handleSignup, updateAccountSettings } from "../thunk";
+import { approveVendor, getCurrentUser, getPendingVendors, handleGoogleLogin, handleLogin, handleSignup, rejectVendor, updateAccountSettings } from "../thunk";
 
 const initialState = {
   auth: "",
@@ -217,6 +217,25 @@ const AuthSlice = createSlice({
       .addCase(approveVendor.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload || "Unable to approve vendor";
+      })
+
+      .addCase(rejectVendor.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(rejectVendor.fulfilled, (state, action) => {
+        const rejectedVendor = action.payload?.user || {};
+        const rejectedId = rejectedVendor.id || rejectedVendor._id;
+
+        state.status = "success";
+        state.auth = action.payload?.message || "Vendor rejected successfully";
+        state.notify = true;
+        state.pendingVendors = state.pendingVendors.filter(
+          (vendor) => (vendor.id || vendor._id) !== rejectedId
+        );
+      })
+      .addCase(rejectVendor.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload || "Unable to reject vendor";
       });
   },
 });

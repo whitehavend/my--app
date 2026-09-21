@@ -525,3 +525,28 @@ export const approveVendor = createAsyncThunk(
     }
   }
 );
+
+export const rejectVendor = createAsyncThunk(
+  "rejectVendor",
+  async ({ vendorId, reason }, thunkAPI) => {
+    const token = localStorage.getItem("unicorn_token");
+
+    try {
+      const response = await axios.patch(
+        `${apiBaseUrl}/auth/vendors/${vendorId}/reject`,
+        { reason },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.error || error.message || "Unable to reject vendor"
+      );
+    }
+  }
+);

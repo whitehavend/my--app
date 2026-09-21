@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
-import { approveVendor, getPendingVendors } from "../Store/thunk";
+import { approveVendor, getPendingVendors, rejectVendor } from "../Store/thunk";
 
 const AdminVendors = () => {
   const dispatch = useAppDispatch();
@@ -14,6 +14,13 @@ const AdminVendors = () => {
 
   const handleApprove = async (vendorId) => {
     await dispatch(approveVendor(vendorId));
+    dispatch(getPendingVendors());
+  };
+
+  const handleReject = async (vendorId) => {
+    const reason = window.prompt("Why is this vendor being rejected?", "Verification documents were not accepted");
+    if (reason === null) return;
+    await dispatch(rejectVendor({ vendorId, reason }));
     dispatch(getPendingVendors());
   };
 
@@ -53,12 +60,20 @@ const AdminVendors = () => {
                   <p className="text-sm text-gray-600">{vendor.phoneNumber || "No phone number"}</p>
                 </div>
 
-                <button
-                  onClick={() => handleApprove(vendor.id || vendor._id)}
-                  className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary100"
-                >
-                  Approve vendor
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleApprove(vendor.id || vendor._id)}
+                    className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary100"
+                  >
+                    Approve vendor
+                  </button>
+                  <button
+                    onClick={() => handleReject(vendor.id || vendor._id)}
+                    className="rounded-md border border-red-500 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+                  >
+                    Reject vendor
+                  </button>
+                </div>
               </div>
             ))}
           </div>
