@@ -197,6 +197,7 @@ const LoginPage = () => {
                       <option value="advert">Advert</option>
                       <option value="logistic">Logistic</option>
                       <option value="blackmarket">Black market</option>
+                      <option value="admin">Administrator</option>
                     </select>
                     {errors.role && <p className="mt-1 text-xs text-red-500">{errors.role.message}</p>}
                   </div>
