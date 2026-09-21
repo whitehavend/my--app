@@ -217,6 +217,16 @@ const LoginPage = () => {
                   </div>
                 )}
 
+                {!isLogin && selectedRole === "vendor" && (
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/vendor/status?vendorType=${selectedVendorType || "retailshopvendor"}`)}
+                    className="w-full rounded-2xl border border-primary bg-white px-4 py-3 text-sm font-semibold text-primary transition hover:bg-primary/5"
+                  >
+                    Verify your business first
+                  </button>
+                )}
+
                 {!isLogin && (
                   <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                     <label className="mb-3 block text-sm font-medium text-slate-700">Create account as</label>

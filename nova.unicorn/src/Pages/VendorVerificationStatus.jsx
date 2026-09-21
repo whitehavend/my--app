@@ -1,4 +1,5 @@
 import { useSelector } from "react-redux";
+import { Link, useSearchParams } from "react-router-dom";
 
 const verificationMap = {
   retailshopvendor: [
@@ -32,7 +33,9 @@ const verificationMap = {
 
 const VendorVerificationStatus = () => {
   const { user } = useSelector((state) => state.auth);
-  const checks = verificationMap[user?.vendorType] || verificationMap.retailshopvendor;
+  const [searchParams] = useSearchParams();
+  const vendorType = user?.vendorType || searchParams.get("vendorType") || "retailshopvendor";
+  const checks = verificationMap[vendorType] || verificationMap.retailshopvendor;
 
   const getStatus = (key) => {
     const status = user?.verificationStatus || {};
@@ -54,8 +57,17 @@ const VendorVerificationStatus = () => {
         </div>
 
         <div className="mb-6 rounded-md border border-blue-100 bg-blue-50 p-4 text-sm text-blue-800">
-          Vendor type: <span className="font-semibold">{user?.vendorType || "Not assigned"}</span>
+          Vendor type: <span className="font-semibold">{vendorType}</span>
         </div>
+
+        {!user && (
+          <div className="mb-6 rounded-md border border-amber-100 bg-amber-50 p-4 text-sm text-amber-800">
+            Complete the checks below before creating your vendor account. Documents can be reviewed automatically where possible and manually by our team where required.
+            <div className="mt-3">
+              <Link to="/login" className="font-semibold underline">Return to account creation</Link>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-3">
           {checks.map((check) => {
