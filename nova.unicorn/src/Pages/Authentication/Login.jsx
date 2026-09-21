@@ -50,7 +50,7 @@ const LoginPage = () => {
     if (notify) {
       setTimeout(() => {
         dispatch(resetNotify());
-        navigate(user?.role === "vendor" ? `/vendor/${user.vendorType || "retailshopvendor"}` : user?.role === "blackmarket" ? "/blackmarket" : `/${user?.role || "customer"}`);
+        navigate(user?.role === "vendor" ? `/vendor/${user.vendorType || "retailshopvendor"}` : user?.role === "blackmarket" ? "/blackmarket" : user?.role === "admin" ? "/admin/vendors" : `/${user?.role || "customer"}`);
       }, 1000); 
     }
   }, [notify, dispatch, navigate, user]);
