@@ -1,16 +1,38 @@
 require('dotenv').config();
-const app = require('./src/app');
-const connectDB = require('./src/config/db');
 
-const PORT = process.env.PORT || 5001;
+const express = require('express');
+const cors = require('cors');
+const mongoose = require('mongoose');
+const app = require('./src/app');
+const vendorRoutes = require('./src/routes/vendorRoutes');
+
+app.use(cors());
+app.use(express.json());
+app.use('/uploads', express.static('uploads'));
+app.use('/api/vendors', vendorRoutes);
+
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', service: 'vendor-verification-backend' });
+});
 
 const startServer = async () => {
-  await connectDB();
+  try {
+    const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
+    if (mongoUri) {
+      await mongoose.connect(mongoUri);
+      console.log('MongoDB connected successfully');
+    } else {
+      console.warn('MONGODB_URI is not configured. Starting without a database connection.');
+    }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on http://0.0.0.0:${PORT}`);
-    console.log(`Local access: http://localhost:${PORT}`);
-  });
+    const port = process.env.PORT || 5000;
+    app.listen(port, () => {
+      console.log(`Server running on port ${port}`);
+    });
+  } catch (error) {
+    console.error('Unable to start server:', error.message);
+    process.exit(1);
+  }
 };
 
 startServer();
