@@ -1,7 +1,7 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Rating from "./Rating";
-import { MdAddShoppingCart } from "react-icons/md";
+import { MdAddShoppingCart, MdBookmarkBorder } from "react-icons/md";
 import FlashSales from "./FlashSales";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { addToCart, resetNotify } from "../Store/cart/CartSlice";
@@ -12,6 +12,9 @@ const ProductCard = ({ product }) => {
   const dispatch = useAppDispatch();
   const { notify } = useAppSelector((state) => state.carts);
   const { user } = useAppSelector((state) => state.auth);
+  const [selectedImage, setSelectedImage] = useState(product.images?.[0] || "images/phones.png");
+  const productId = product._id || product.id;
+  const [isSaved, setIsSaved] = useState(() => user ? JSON.parse(localStorage.getItem(`nova_saved_${user.uid}`) || "[]").includes(productId) : false);
   useEffect(() => {
     if (notify) {
       setTimeout(() => {
@@ -29,9 +32,22 @@ const ProductCard = ({ product }) => {
     dispatch(addToCart({ product, quantity }));
   };
 
-  const imageUrl = Array.isArray(product.images) && product.images.length > 0
-    ? product.images[0]
-    : "images/phones.png";
+  const handleSave = () => {
+    if (!user || user.role !== "customer") {
+      navigate("/login");
+      return;
+    }
+
+    const savedKey = `nova_saved_${user.uid}`;
+    const savedIds = JSON.parse(localStorage.getItem(savedKey) || "[]");
+    const nextSavedIds = savedIds.includes(productId)
+      ? savedIds.filter((id) => id !== productId)
+      : [...savedIds, productId];
+    localStorage.setItem(savedKey, JSON.stringify(nextSavedIds));
+    setIsSaved(nextSavedIds.includes(productId));
+  };
+
+  const imageUrl = selectedImage || "images/phones.png";
 
   return (
     <section>
@@ -41,10 +57,17 @@ const ProductCard = ({ product }) => {
             src={imageUrl}
             alt={product.title}
             className="h-[200px] w-[300px]"
-            onError={(event) => {
-              event.currentTarget.src = "images/phones.png";
-            }}
+            onError={(event) => { event.currentTarget.src = "images/phones.png"; }}
           />
+          {product.images?.length > 1 && (
+            <div className="mt-3 flex gap-2 overflow-x-auto">
+              {product.images.map((image, index) => (
+                <button type="button" key={`${image}-${index}`} onClick={() => setSelectedImage(image)} className={`shrink-0 rounded-md border-2 p-0.5 ${selectedImage === image ? "border-primary" : "border-transparent"}`} aria-label={`View product image ${index + 1}`}>
+                  <img src={image} alt="" className="h-14 w-14 rounded object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <div className="p-4 w-full">
           <div className="text-[10px] flex flex-col lg:flex-row text-xs lg:text-sm items-start lg:items-center">
@@ -73,6 +96,10 @@ const ProductCard = ({ product }) => {
           >
             <MdAddShoppingCart className="absolute left-4 w-6 h-6" />
             Add to cart
+          </button>
+          <button type="button" onClick={handleSave} className="flex w-full items-center justify-center gap-2 rounded-md border border-primary py-2.5 text-sm font-medium text-primary hover:bg-gray-50">
+            <MdBookmarkBorder className="h-5 w-5" />
+            {isSaved ? "Saved item" : "Save item"}
           </button>
         </div>
       </div>

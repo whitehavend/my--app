@@ -30,7 +30,10 @@ const VendorLogisticPanel = () => {
 
   const handleRemove = async (request) => {
     const result = await dispatch(removeLogisticRequest({ logisticId: request.logisticId, requestId: request._id }));
-    if (removeLogisticRequest.fulfilled.match(result)) dispatch(getAvailableLogistics());
+    if (removeLogisticRequest.fulfilled.match(result)) {
+      dispatch(getAvailableLogistics());
+      dispatch(getVendorLogisticRequests());
+    }
   };
 
   const requestForLogistic = (logisticId) => vendorRequests.find((request) => request.logisticId === logisticId);
