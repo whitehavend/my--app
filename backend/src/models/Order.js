@@ -13,6 +13,18 @@ const orderItemSchema = new mongoose.Schema(
   { _id: true }
 );
 
+const paymentAttemptSchema = new mongoose.Schema(
+  {
+    initiatedBy: { type: String, enum: ['customer', 'rider', 'vendor'], required: true },
+    checkoutRequestId: { type: String, required: true },
+    amount: { type: Number, required: true, min: 1 },
+    phoneNumber: { type: String, required: true },
+    status: { type: String, enum: ['pending', 'paid', 'failed', 'insufficient_funds'], default: 'pending' },
+    errorMessage: { type: String, default: '' },
+  },
+  { timestamps: true },
+);
+
 const orderSchema = new mongoose.Schema(
   {
     userId: {
@@ -40,7 +52,7 @@ const orderSchema = new mongoose.Schema(
     },
     paymentStatus: {
       type: String,
-      enum: ['not_required', 'pending', 'paid', 'failed'],
+      enum: ['not_required', 'pending', 'paid', 'failed', 'insufficient_funds'],
       default: 'not_required',
     },
     paymentReference: {
@@ -50,6 +62,15 @@ const orderSchema = new mongoose.Schema(
     paymentError: {
       type: String,
       default: '',
+    },
+    paymentInitiatedBy: {
+      type: String,
+      enum: ['customer', 'rider', 'vendor', ''],
+      default: '',
+    },
+    paymentAttempts: {
+      type: [paymentAttemptSchema],
+      default: [],
     },
     currency: {
       type: String,

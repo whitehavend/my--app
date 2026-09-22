@@ -142,7 +142,7 @@ const queryMpesaStkPush = async ({ phoneNumber, checkoutRequestId }) => {
   return response.data;
 };
 
-const initiateMpesaStkPush = async ({ phoneNumber, amount = 1, accountReference = 'Vendor Verification', callbackUrl }) => {
+const initiateMpesaStkPush = async ({ phoneNumber, amount = 1, accountReference = 'Vendor Verification', transactionDesc = 'Vendor Verification', callbackUrl }) => {
   if (shouldMockDaraja()) return { ...mockDarajaStkPush };
   requireEnv('DARAJA_SHORTCODE', 'DARAJA_PASSKEY');
 
@@ -161,7 +161,7 @@ const initiateMpesaStkPush = async ({ phoneNumber, amount = 1, accountReference 
     PhoneNumber: formattedPhoneNumber,
     CallBackURL: callbackUrl || process.env.DARAJA_CALLBACK_URL || 'https://example.com/api/vendors/mpesa/callback',
     AccountReference: accountReference,
-    TransactionDesc: 'Vendor verification',
+    TransactionDesc: transactionDesc,
   }, {
     headers: {
       Authorization: `Bearer ${accessToken}`,

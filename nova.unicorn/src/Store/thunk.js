@@ -373,13 +373,26 @@ export const cancelOrder = createAsyncThunk(
 
 export const confirmOrderArrived = createAsyncThunk(
   "confirmOrderArrived",
-  async (orderId, thunkAPI) => {
+  async ({ orderId, amount }, thunkAPI) => {
     const token = localStorage.getItem("unicorn_token");
     try {
-      const response = await axios.patch(`${apiBaseUrl}/orders/${orderId}/arrived`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      const response = await axios.post(`${apiBaseUrl}/payments/stkpush`, { orderId, amount, initiatedBy: "customer" }, { headers: { Authorization: `Bearer ${token}` } });
       return response.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response?.data?.error || error.message || "Unable to confirm delivery");
+    }
+  }
+);
+
+export const initiateOrderPayment = createAsyncThunk(
+  "initiateOrderPayment",
+  async ({ orderId, amount, initiatedBy, phoneNumber }, thunkAPI) => {
+    const token = localStorage.getItem("unicorn_token");
+    try {
+      const response = await axios.post(`${apiBaseUrl}/payments/stkpush`, { orderId, amount, initiatedBy, phoneNumber }, { headers: { Authorization: `Bearer ${token}` } });
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.error || error.message || "Unable to start M-Pesa payment");
     }
   }
 );

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
-import { fulfillOrder, getVendorOrders } from "../Store/thunk";
+import { fulfillOrder, getVendorOrders, initiateOrderPayment } from "../Store/thunk";
 import { formatCurrency } from "../utils/currency";
 
 const VendorOrders = () => {
@@ -10,6 +10,11 @@ const VendorOrders = () => {
 
   const handleFulfill = (orderId) => {
     dispatch(fulfillOrder(orderId));
+  };
+
+  const handlePaymentPrompt = async (order) => {
+    const result = await dispatch(initiateOrderPayment({ orderId: order._id || order.id, amount: order.totalAmount, initiatedBy: "vendor" }));
+    if (initiateOrderPayment.fulfilled.match(result)) window.alert("M-Pesa prompt sent to the customer registered phone.");
   };
 
   useEffect(() => {
@@ -61,6 +66,9 @@ const VendorOrders = () => {
               <button type="button" disabled={!canFulfill(order)} onClick={() => handleFulfill(order._id || order.id)} className="mt-4 w-full rounded-md bg-primary px-4 py-3 text-sm font-semibold text-white hover:bg-primary100 disabled:cursor-not-allowed disabled:opacity-50">
                 {canFulfill(order) ? "Fulfill order" : "Available after 30 minutes"}
               </button>
+            )}
+            {['delivering', 'picked_up'].includes(order.status) && order.paymentStatus !== "paid" && (
+              <button type="button" onClick={() => handlePaymentPrompt(order)} className="mt-3 w-full rounded-md border border-primary px-4 py-3 text-sm font-semibold text-primary hover:bg-gray-50">Item delivered - prompt customer to pay</button>
             )}
           </article>
         ))}

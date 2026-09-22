@@ -4,7 +4,7 @@ import { FiHeadphones } from "react-icons/fi";
 import { HiOutlineUser } from "react-icons/hi";
 import { BsQuestionCircle, BsShieldCheck } from "react-icons/bs";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
-import { getLogisticRequests, updateLogisticAvailability, updateLogisticRequestStatus } from "../Store/thunk";
+import { getLogisticRequests, initiateOrderPayment, updateLogisticAvailability, updateLogisticRequestStatus } from "../Store/thunk";
 
 const pageLinks = [
   { label: "Settings", to: "/account", icon: HiOutlineUser },
@@ -35,6 +35,12 @@ const LogisticPage = () => {
       setIsAvailable(nextValue);
       dispatch(getLogisticRequests());
     }
+  };
+
+  const promptCustomerPayment = async (request) => {
+    if (!request.orderId) return;
+    const result = await dispatch(initiateOrderPayment({ orderId: request.orderId, initiatedBy: "rider" }));
+    if (initiateOrderPayment.fulfilled.match(result)) window.alert("M-Pesa prompt sent to the customer registered phone.");
   };
 
   const updateRequest = async (requestId, requestStatus) => {
@@ -149,8 +155,12 @@ const LogisticPage = () => {
                     </div>
                   )}
                   {request.status === "accepted" && (
-                    <button type="button" onClick={() => updateRequest(request._id, "picked_up")} className="mt-3 rounded-md bg-cyan-700 px-3 py-2 font-semibold text-white hover:bg-cyan-800">Goods picked up</button>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <button type="button" onClick={() => updateRequest(request._id, "picked_up")} className="rounded-md bg-cyan-700 px-3 py-2 font-semibold text-white hover:bg-cyan-800">Goods picked up</button>
+                      {request.orderId && <button type="button" onClick={() => promptCustomerPayment(request)} className="rounded-md border border-primary px-3 py-2 font-semibold text-primary hover:bg-white">Item delivered - prompt payment</button>}
+                    </div>
                   )}
+                  {request.status === "picked_up" && request.orderId && <button type="button" onClick={() => promptCustomerPayment(request)} className="mt-3 rounded-md bg-primary px-3 py-2 font-semibold text-white hover:bg-primary100">Item delivered - prompt payment</button>}
                 </article>
               ))}
             </div>
