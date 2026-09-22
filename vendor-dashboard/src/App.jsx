@@ -41,6 +41,14 @@ const emptyForm = {
   businessDoc: null,
   profLicense: null,
   premisesDoc: null,
+  payoutMethod: "BANK",
+  payoutAccountHolderName: "",
+  bankName: "",
+  accountNumber: "",
+  branchCode: "",
+  mpesaPhoneNumber: "",
+  paypalEmail: "",
+  payoutCurrency: "KES",
 };
 
 const initialVendorType = new URLSearchParams(window.location.search).get("vendorType");
@@ -60,6 +68,7 @@ const verificationChecklist = {
     { key: "kra", label: "KRA tax details", mode: "auto", required: true },
     { key: "businessDocument", label: "Business registration document", mode: "manual", required: true },
     { key: "settlement", label: "Financial settlement info", mode: "manual", required: true },
+    { key: "payoutDetails", label: "Payout details", mode: "manual", required: true },
   ],
   HEALTH_AGRO: [
     { key: "kyc", label: "KYC verification", mode: "auto", required: true },
@@ -68,9 +77,11 @@ const verificationChecklist = {
     { key: "professionalLicense", label: "Professional license", mode: "manual", required: true },
     { key: "premisesDoc", label: "Premises compliance", mode: "manual", required: true },
     { key: "settlement", label: "Financial settlement info", mode: "manual", required: true },
+    { key: "payoutDetails", label: "Payout details", mode: "manual", required: true },
   ],
   REAL_ESTATE_CAR: [
     { key: "kyc", label: "KYC verification", mode: "auto", required: true },
+    { key: "payoutDetails", label: "Payout details", mode: "manual", required: true },
   ],
 };
 
@@ -211,6 +222,7 @@ function ManualReviewPanel({ vendor, onBack, onReviewed }) {
     { key: "businessDocument", label: "Business registration document", field: "businessDocumentation" },
     { key: "professionalLicense", label: "Professional license", field: "professionalLicenseVerification" },
     { key: "premisesDoc", label: "Premises compliance", field: "premisesLicenseVerification" },
+    { key: "payoutDetails", label: "Payout details", field: "payoutDetails" },
   ].filter((check) => vendor?.[check.field]);
   const [messages, setMessages] = useState({});
 
@@ -264,6 +276,21 @@ function OnboardingPortal({ onCreated, onOpenVerification }) {
       const registrationBody = await registration.json();
       if (!registration.ok) throw new Error(registrationBody.error || "Unable to register vendor");
       const vendorId = registrationBody.vendor._id;
+
+      await request(`${API_BASE}/${vendorId}/payout-details`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          method: form.payoutMethod,
+          accountHolderName: form.payoutAccountHolderName,
+          bankName: form.bankName,
+          accountNumber: form.accountNumber,
+          branchCode: form.branchCode,
+          mpesaPhoneNumber: form.mpesaPhoneNumber,
+          paypalEmail: form.paypalEmail,
+          currency: form.payoutCurrency,
+        }),
+      });
 
       await request(`${API_BASE}/${vendorId}/verify-kyc`, {
         method: "POST",
@@ -324,6 +351,17 @@ function OnboardingPortal({ onCreated, onOpenVerification }) {
           {form.vendorType === "HEALTH_AGRO" && <div className="drop-grid"><DropZone name="profLicense" label="Professional registration" hint="Pharmacy or Vet Board certificate · PDF, PNG" accept=".pdf,.png,.jpeg,.jpg" file={form.profLicense} onChange={(file) => setValue("profLicense", file)} /><DropZone name="premisesDoc" label="Premises compliance" hint="Facility approval · PDF, PNG" accept=".pdf,.png,.jpeg,.jpg" file={form.premisesDoc} onChange={(file) => setValue("premisesDoc", file)} /></div>}
           {form.vendorType === "RETAIL" && <div className="drop-grid"><DropZone name="businessDoc" label="Business registration" hint="Trade permit or registration · PDF, PNG" accept=".pdf,.png,.jpeg,.jpg" file={form.businessDoc} onChange={(file) => setValue("businessDoc", file)} /></div>}
           {form.vendorType === "REAL_ESTATE_CAR" && <div className="notice-box"><Landmark size={18} /><span>Asset dealerships start with identity verification. Property title deeds and vehicle documents can be attached during the review stage.</span></div>}
+
+          <div className="form-heading subheading"><div><span className="eyebrow">Payout setup</span><h3>Where should Nova send your payouts?</h3></div><WalletCards size={19} /></div>
+          <div className="input-grid">
+            <label>Payout method<select value={form.payoutMethod} onChange={(event) => setValue("payoutMethod", event.target.value)}><option value="BANK">Bank account</option><option value="MPESA">M-Pesa</option><option value="PAYPAL">PayPal</option></select></label>
+            <label>Account holder name<input required value={form.payoutAccountHolderName} onChange={(event) => setValue("payoutAccountHolderName", event.target.value)} placeholder="Name on the payout account" /></label>
+            {form.payoutMethod === "BANK" && <><label>Bank name<input required value={form.bankName} onChange={(event) => setValue("bankName", event.target.value)} placeholder="Your bank" /></label><label>Account number<input required value={form.accountNumber} onChange={(event) => setValue("accountNumber", event.target.value)} placeholder="Account number" /></label><label>Branch code<input value={form.branchCode} onChange={(event) => setValue("branchCode", event.target.value)} placeholder="Optional branch code" /></label></>}
+            {form.payoutMethod === "MPESA" && <label>M-Pesa phone number<input required value={form.mpesaPhoneNumber} onChange={(event) => setValue("mpesaPhoneNumber", event.target.value)} placeholder="07XX XXX XXX" /></label>}
+            {form.payoutMethod === "PAYPAL" && <label>PayPal email<input required type="email" value={form.paypalEmail} onChange={(event) => setValue("paypalEmail", event.target.value)} placeholder="payouts@example.com" /></label>}
+            <label>Currency<select value={form.payoutCurrency} onChange={(event) => setValue("payoutCurrency", event.target.value)}><option value="KES">KES</option><option value="USD">USD</option><option value="NGN">NGN</option><option value="EUR">EUR</option></select></label>
+          </div>
+          <p className="section-intro">Payout details are encrypted in transit and remain pending until the compliance team verifies them.</p>
 
           {feedback && <div className={`feedback ${feedback.type}`}><CircleAlert size={17} />{feedback.message}</div>}
           <button className="primary-button" type="submit" disabled={submitting}>{submitting ? <><LoaderCircle size={17} className="spin" />Submitting file</> : <>Submit for verification <ArrowUpRight size={17} /></>}</button>

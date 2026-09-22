@@ -9,6 +9,7 @@ const manualChecks = [
   { key: "businessDocumentation", apiKey: "businessDocument", label: "Business documents" },
   { key: "professionalLicenseVerification", apiKey: "professionalLicense", label: "Professional license" },
   { key: "premisesLicenseVerification", apiKey: "premisesDoc", label: "Premises compliance" },
+  { key: "payoutDetails", apiKey: "payoutDetails", label: "Payout details" },
 ];
 const statusClass = { VERIFIED: "bg-emerald-100 text-emerald-700", PENDING: "bg-amber-100 text-amber-700", FAILED: "bg-red-100 text-red-700" };
 const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem("unicorn_token") || ""}` });

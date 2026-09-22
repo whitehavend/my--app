@@ -27,6 +27,24 @@ const verificationStatusSchema = {
   },
 };
 
+const payoutDetailsSchema = {
+  method: {
+    type: String,
+    enum: ['BANK', 'MPESA', 'PAYPAL'],
+    default: null,
+  },
+  accountHolderName: { type: String, trim: true, default: '' },
+  bankName: { type: String, trim: true, default: '' },
+  accountNumber: { type: String, trim: true, default: '' },
+  branchCode: { type: String, trim: true, default: '' },
+  mpesaPhoneNumber: { type: String, trim: true, default: '' },
+  paypalEmail: { type: String, trim: true, lowercase: true, default: '' },
+  currency: { type: String, uppercase: true, trim: true, default: 'KES' },
+  status: { type: String, enum: ['PENDING', 'VERIFIED', 'FAILED'], default: 'PENDING' },
+  errorMessage: { type: String, trim: true, default: '' },
+  updatedAt: { type: Date, default: Date.now },
+};
+
 const vendorSchema = new mongoose.Schema(
   {
     email: {
@@ -69,6 +87,10 @@ const vendorSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'SettlementInfo',
       default: null,
+    },
+    payoutDetails: {
+      type: payoutDetailsSchema,
+      default: () => ({}),
     },
     kycVerification: {
       type: verificationStatusSchema,

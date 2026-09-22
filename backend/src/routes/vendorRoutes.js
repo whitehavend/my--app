@@ -139,6 +139,37 @@ router.post('/:id/verify-tax', async (req, res) => {
   }
 });
 
+router.post('/:id/payout-details', async (req, res) => {
+  try {
+    const { method, accountHolderName, bankName, accountNumber, branchCode, mpesaPhoneNumber, paypalEmail, currency = 'KES' } = req.body || {};
+    if (!['BANK', 'MPESA', 'PAYPAL'].includes(method)) return res.status(400).json({ error: 'Choose bank, M-Pesa, or PayPal as your payout method' });
+    if (!accountHolderName || !String(accountHolderName).trim()) return res.status(400).json({ error: 'Account holder name is required' });
+    if (method === 'BANK' && (!bankName || !accountNumber)) return res.status(400).json({ error: 'Bank name and account number are required' });
+    if (method === 'MPESA' && !mpesaPhoneNumber) return res.status(400).json({ error: 'M-Pesa phone number is required' });
+    if (method === 'PAYPAL' && !/^\S+@\S+\.\S+$/.test(String(paypalEmail || '').trim())) return res.status(400).json({ error: 'A valid PayPal email is required' });
+
+    const vendor = await Vendor.findById(req.params.id);
+    if (!vendor) return res.status(404).json({ error: 'Vendor not found' });
+    vendor.payoutDetails = {
+      method,
+      accountHolderName: String(accountHolderName).trim(),
+      bankName: String(bankName || '').trim(),
+      accountNumber: String(accountNumber || '').trim(),
+      branchCode: String(branchCode || '').trim(),
+      mpesaPhoneNumber: String(mpesaPhoneNumber || '').trim(),
+      paypalEmail: String(paypalEmail || '').trim().toLowerCase(),
+      currency: String(currency || 'KES').trim().toUpperCase(),
+      status: 'PENDING',
+      errorMessage: 'Awaiting payout verification',
+      updatedAt: new Date(),
+    };
+    await vendor.save();
+    return res.status(200).json({ vendor, payoutDetails: vendor.payoutDetails });
+  } catch (error) {
+    return res.status(500).json({ error: 'Unable to save payout details', details: error.message });
+  }
+});
+
 router.post('/:id/verify-professional', upload.withUploadErrors(upload.fields([
   { name: 'profLicense', maxCount: 1 },
   { name: 'premisesDoc', maxCount: 1 },
@@ -203,6 +234,7 @@ router.patch('/:id/review', authMiddleware, requireAdmin, async (req, res) => {
       businessDocument: 'businessDocumentation',
       professionalLicense: 'professionalLicenseVerification',
       premisesDoc: 'premisesLicenseVerification',
+      payoutDetails: 'payoutDetails',
     };
     const field = reviewableChecks[check];
 
