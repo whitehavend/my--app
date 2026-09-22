@@ -205,6 +205,37 @@ function VerificationHub({ vendor, onBack }) {
   );
 }
 
+function ManualReviewPanel({ vendor, onBack, onReviewed }) {
+  const manualChecks = [
+    { key: "businessDocument", label: "Business registration document", field: "businessDocumentation" },
+    { key: "professionalLicense", label: "Professional license", field: "professionalLicenseVerification" },
+    { key: "premisesDoc", label: "Premises compliance", field: "premisesLicenseVerification" },
+  ].filter((check) => vendor?.[check.field]);
+  const [messages, setMessages] = useState({});
+
+  const review = async (check, status) => {
+    let reason = "";
+    if (status === "FAILED") {
+      reason = window.prompt("Reason for rejecting this document", "Document was not accepted") || "Document was not accepted";
+    }
+
+    const response = await fetch(`${API_BASE}/${vendor._id}/review`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ check: check.key, status, reason }),
+    });
+    const body = await response.json();
+    if (!response.ok) {
+      setMessages((current) => ({ ...current, [check.key]: body.error || "Unable to update review" }));
+      return;
+    }
+    setMessages((current) => ({ ...current, [check.key]: `${status === "VERIFIED" ? "Approved" : "Rejected"} successfully` }));
+    onReviewed(body.vendor);
+  };
+
+  return <section className="workspace-grid"><div className="form-column"><div className="section-kicker">03 / Manual review</div><h2>{vendor.businessName || "Vendor documents"}</h2><p className="section-intro">Review submitted documents and record the compliance team decision.</p>{manualChecks.length === 0 ? <div className="empty-state">No manual documents have been submitted.</div> : manualChecks.map((check) => { const item = vendor[check.field]; return <div className="verification-card" key={check.key}><div className="verification-card-head"><div><span className="eyebrow">{check.label}</span><h3>{item.referenceId || "Uploaded document"}</h3></div><StatusChip status={item.status} /></div><p className="verification-note">{item.errorMessage || "Awaiting review"}</p><div className="review-actions"><button type="button" className="primary-button" onClick={() => review(check, "VERIFIED")}>Approve</button><button type="button" className="secondary-button" onClick={() => review(check, "FAILED")}>Reject</button></div>{messages[check.key] && <p className="verification-note">{messages[check.key]}</p>}</div>; })}<button type="button" className="secondary-button" onClick={onBack}>Back to compliance queue</button></div><aside className="side-note"><div className="side-note-top"><ShieldCheck size={18} /><span>Reviewer controls</span></div><h3>Keep every decision traceable.</h3><p>Approve only documents that meet the selected vendor category requirements. Rejected documents remain visible with the reason recorded.</p></aside></section>;
+}
+
 function OnboardingPortal({ onCreated, onOpenVerification }) {
   const [form, setForm] = useState(() => ({ ...emptyForm, vendorType: industryOptions.some((option) => option.value === initialVendorType) ? initialVendorType : emptyForm.vendorType }));
   const [submitting, setSubmitting] = useState(false);
@@ -218,6 +249,12 @@ function OnboardingPortal({ onCreated, onOpenVerification }) {
     setSubmitting(true);
     setFeedback(null);
     try {
+      const request = async (url, options) => {
+        const response = await fetch(url, options);
+        const body = await response.json();
+        if (!response.ok) throw new Error(body.error || "Verification request failed");
+        return body;
+      };
       const registration = await fetch(`${API_BASE}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -227,23 +264,23 @@ function OnboardingPortal({ onCreated, onOpenVerification }) {
       if (!registration.ok) throw new Error(registrationBody.error || "Unable to register vendor");
       const vendorId = registrationBody.vendor._id;
 
-      await fetch(`${API_BASE}/${vendorId}/verify-kyc`, {
+      await request(`${API_BASE}/${vendorId}/verify-kyc`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ idNumber: form.idNumber, idType: "KENYA_NATIONAL_ID", firstName: form.firstName, lastName: form.lastName }),
       });
-      if (form.kraPin) await fetch(`${API_BASE}/${vendorId}/verify-tax`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kraPin: form.kraPin }) });
+      if (form.kraPin) await request(`${API_BASE}/${vendorId}/verify-tax`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kraPin: form.kraPin }) });
 
       if (form.vendorType === "HEALTH_AGRO") {
         const files = new FormData();
         if (form.profLicense) files.append("profLicense", form.profLicense);
         if (form.premisesDoc) files.append("premisesDoc", form.premisesDoc);
-        await fetch(`${API_BASE}/${vendorId}/verify-professional`, { method: "POST", body: files });
+        await request(`${API_BASE}/${vendorId}/verify-professional`, { method: "POST", body: files });
       }
       if (form.vendorType === "RETAIL" && form.businessDoc) {
         const files = new FormData();
         files.append("businessDoc", form.businessDoc);
-        await fetch(`${API_BASE}/${vendorId}/verify-documents`, { method: "POST", body: files });
+        await request(`${API_BASE}/${vendorId}/verify-documents`, { method: "POST", body: files });
       }
       setFeedback({ type: "success", message: `${form.businessName} is now in the verification queue.` });
       setForm(emptyForm);
@@ -303,7 +340,7 @@ function OnboardingPortal({ onCreated, onOpenVerification }) {
   );
 }
 
-function ComplianceDashboard({ vendors, loading, error, onRefresh, onSweep }) {
+function ComplianceDashboard({ vendors, loading, error, onRefresh, onOpenReview, onSweep }) {
   const [query, setQuery] = useState("");
   const [sweepingId, setSweepingId] = useState("");
   const filteredVendors = useMemo(() => vendors.filter((vendor) => `${vendor.businessName} ${vendor.email} ${vendor.vendorType}`.toLowerCase().includes(query.toLowerCase())), [vendors, query]);
@@ -370,12 +407,24 @@ export default function App() {
     }
   };
 
+  const openReview = (vendor) => {
+    setVerificationVendor(vendor);
+    setActiveView("review");
+  };
+
+  const updateReviewedVendor = (updatedVendor) => {
+    setVerificationVendor(updatedVendor);
+    setVendors((current) => current.map((vendor) => vendor._id === updatedVendor._id ? updatedVendor : vendor));
+  };
+
   return <div className="app-shell">
     <header className="topbar"><div className="brand"><span className="brand-mark"><ShieldCheck size={19} /></span><span><strong>Nova Verify</strong><small>Vendor operations</small></span></div><div className="topbar-status"><span className="online-dot" />Compliance workspace <span className="divider-dot" /> <span>Kenya / EAT</span></div></header>
     <main className="page-wrap"><section className="hero"><div><span className="hero-label">Vendor assurance platform</span><h1>Make trust <em>visible.</em></h1><p>One calm workspace for onboarding businesses and keeping every verification track moving.</p></div><div className="hero-stamp"><BadgeCheck size={22} /><span><strong>Live operations</strong><small>Last sync just now</small></span></div></section>
       <nav className="view-tabs" aria-label="Workspace views"><button type="button" className={activeView === "onboarding" ? "active" : ""} onClick={() => setActiveView("onboarding")}><LayoutDashboard size={17} />Onboarding portal</button><button type="button" className={activeView === "verification" ? "active" : ""} onClick={() => setActiveView("verification")}><FileCheck2 size={17} />Verification hub</button><button type="button" className={activeView === "compliance" ? "active" : ""} onClick={() => { setActiveView("compliance"); loadVendors(); }}><ShieldCheck size={17} />Admin compliance <span className="tab-count">{vendors.length}</span></button></nav>
-      {activeView === "verification" ? <VerificationHub vendor={verificationVendor} onBack={() => setActiveView("onboarding")} /> : activeView === "onboarding" ? <OnboardingPortal onCreated={loadVendors} onOpenVerification={openVerificationHub} /> : <ComplianceDashboard vendors={vendors} loading={loading} error={error} onRefresh={loadVendors} onSweep={runVerificationSweep} />}
+      {activeView === "verification" ? <VerificationHub vendor={verificationVendor} onBack={() => setActiveView("onboarding")} /> : activeView === "review" ? <ManualReviewPanel vendor={verificationVendor} onBack={() => setActiveView("compliance")} onReviewed={updateReviewedVendor} /> : activeView === "onboarding" ? <OnboardingPortal onCreated={loadVendors} onOpenVerification={openVerificationHub} /> : <ComplianceDashboard vendors={vendors} loading={loading} error={error} onRefresh={loadVendors} onOpenReview={openReview} onSweep={runVerificationSweep} />}
     </main>
     <footer><span>Nova Verify / Internal operations</span><span>Protected workflow <ShieldCheck size={14} /></span></footer>
   </div>;
 }
+
+                     <td><button type="button" className="table-action" onClick={() => onOpenReview(vendor)}>Review documents <ChevronRight size={15} /></button></td>

@@ -147,16 +147,16 @@ router.post('/:id/verify-professional', upload.withUploadErrors(upload.fields([
     const professionalFile = req.files?.profLicense?.[0];
     const premisesFile = req.files?.premisesDoc?.[0];
     vendor.professionalLicenseVerification = {
-      status: 'VERIFIED',
+      status: 'PENDING',
       referenceId: professionalFile?.filename || 'MOCK_PROFESSIONAL_LICENSE_REF_12345',
-      errorMessage: '',
+      errorMessage: 'Awaiting compliance team review',
       filePath: professionalFile?.path || vendor.professionalLicenseVerification?.filePath || '',
       updatedAt: new Date(),
     };
     vendor.premisesLicenseVerification = {
-      status: 'VERIFIED',
+      status: 'PENDING',
       referenceId: premisesFile?.filename || 'MOCK_PREMISES_LICENSE_REF_12345',
-      errorMessage: '',
+      errorMessage: 'Awaiting compliance team review',
       filePath: premisesFile?.path || vendor.premisesLicenseVerification?.filePath || '',
       updatedAt: new Date(),
     };
@@ -177,9 +177,9 @@ router.post('/:id/verify-documents', upload.withUploadErrors(upload.single('busi
 
     const businessFile = req.file;
     vendor.businessDocumentation = {
-      status: 'VERIFIED',
+      status: 'PENDING',
       referenceId: businessFile?.filename || 'MOCK_BUSINESS_DOCUMENT_REF_12345',
-      errorMessage: '',
+      errorMessage: 'Awaiting compliance team review',
       filePath: businessFile?.path || vendor.businessDocumentation?.filePath || '',
       updatedAt: new Date(),
     };
@@ -187,6 +187,35 @@ router.post('/:id/verify-documents', upload.withUploadErrors(upload.single('busi
     return res.status(200).json({ vendor });
   } catch (error) {
     return res.status(500).json({ error: 'Unable to verify business documents', details: error.message });
+  }
+});
+
+router.patch('/:id/review', async (req, res) => {
+  try {
+    const { check, status, reason = '' } = req.body || {};
+    const reviewableChecks = {
+      businessDocument: 'businessDocumentation',
+      professionalLicense: 'professionalLicenseVerification',
+      premisesDoc: 'premisesLicenseVerification',
+    };
+    const field = reviewableChecks[check];
+
+    if (!field || !['VERIFIED', 'FAILED'].includes(status)) {
+      return res.status(400).json({ error: 'A valid manual check and review status are required' });
+    }
+
+    const vendor = await Vendor.findById(req.params.id);
+    if (!vendor) return res.status(404).json({ error: 'Vendor not found' });
+    if (!vendor[field]) return res.status(400).json({ error: 'This manual check has not been submitted' });
+
+    vendor[field].status = status;
+    vendor[field].errorMessage = status === 'FAILED' ? String(reason || 'Document was not accepted') : '';
+    vendor[field].updatedAt = new Date();
+    await vendor.save();
+
+    return res.status(200).json({ vendor, review: { check, status, reason: vendor[field].errorMessage } });
+  } catch (error) {
+    return res.status(500).json({ error: 'Unable to update manual review', details: error.message });
   }
 });
 
