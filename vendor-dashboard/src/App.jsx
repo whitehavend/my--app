@@ -22,7 +22,7 @@ import {
   WalletCards,
 } from "lucide-react";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api/vendors";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001/api/vendors";
 const industryOptions = [
   { value: "RETAIL", label: "Retail merchant", description: "Shops, marketplaces, and general trade", icon: Store },
   { value: "HEALTH_AGRO", label: "Health & agrovet", description: "Pharmacy, veterinary, and agricultural care", icon: Activity },

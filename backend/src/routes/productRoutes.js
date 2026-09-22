@@ -210,7 +210,9 @@ router.post('/products', authMiddleware, upload.array('images', 10), async (req,
       ? (stockVolume === undefined || stockVolume === null || stockVolume === '' ? null : Number(stockVolume))
       : Number(wholesaleVolume);
     const normalizedSellingMode = sellingMode || (parsedWholesalePrice !== null ? 'both' : 'retail');
-    const normalizedItemCondition = itemCondition || 'generic';
+    const normalizedItemCondition = ['pharmacy', 'agrovet'].includes(String(vendorType || '').toLowerCase())
+      ? 'original'
+      : (itemCondition || 'generic');
     const normalizedRetailPricingType = vendorType === 'retailshopvendor' && retailPricingType === 'flash_sale' ? 'flash_sale' : 'regular';
     const parsedFlashSalePrice = flashSalePrice === undefined || flashSalePrice === null || flashSalePrice === '' ? null : Number(flashSalePrice);
     const parsedFlashSaleEndsAt = flashSaleEndsAt ? new Date(flashSaleEndsAt) : null;

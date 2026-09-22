@@ -117,6 +117,17 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [localValidationError, setLocalValidationError] = useState("");
   const categoryOptions = vendorCategoryOptions[vendorType] || vendorCategoryOptions.shopvendor;
+  const isHealthOrAgrovet = vendorType === "pharmacy" || vendorType === "agrovet";
+  const titlePlaceholder = vendorType === "pharmacy"
+    ? "Example: Amoxicillin 500mg Capsules"
+    : vendorType === "agrovet"
+      ? "Example: Premium Poultry Feed 25kg"
+      : "Example: Nova Pro Smartphone";
+  const brandPlaceholder = vendorType === "pharmacy"
+    ? "Example: Pfizer"
+    : vendorType === "agrovet"
+      ? "Example: NutriFarm"
+      : "Nova";
 
   const handleImageFiles = (event) => {
     const files = Array.from(event.target.files || []);
@@ -181,7 +192,7 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
       title: formData.title || formData.brand || "Vendor listing",
       price: basePriceValue,
       sellingMode: formData.sellingMode,
-      itemCondition: formData.itemCondition,
+      itemCondition: isHealthOrAgrovet ? "original" : formData.itemCondition,
       retailPricingType: vendorType === "retailshopvendor" ? formData.retailPricingType : "regular",
       flashSalePrice: vendorType === "retailshopvendor" && formData.retailPricingType === "flash_sale" ? Number(formData.flashSalePrice) : null,
       flashSaleEndsAt: vendorType === "retailshopvendor" && formData.retailPricingType === "flash_sale" ? flashSaleEndsAt : null,
@@ -247,12 +258,12 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
         <form onSubmit={handleSubmit} className="grid gap-6 md:grid-cols-2">
           <div className="md:col-span-2">
             <label className="mb-2 block text-sm font-medium text-gray-700">Product title</label>
-            <input name="title" value={formData.title} onChange={handleChange} required className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="Example: Nova Pro Smartphone" />
+            <input name="title" value={formData.title} onChange={handleChange} required className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder={titlePlaceholder} />
           </div>
 
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">Brand</label>
-            <input name="brand" value={formData.brand} onChange={handleChange} required className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="Nova" />
+            <input name="brand" value={formData.brand} onChange={handleChange} required className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder={brandPlaceholder} />
           </div>
 
           <div>
@@ -319,13 +330,15 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
             </select>
           </div>
 
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">Item type</label>
-            <select name="itemCondition" value={formData.itemCondition} onChange={handleChange} className="w-full rounded-md border border-gray-300 bg-white p-3 outline-none focus:border-primary">
-              <option value="generic">Generic</option>
-              <option value="original">Original</option>
-            </select>
-          </div>
+          {!isHealthOrAgrovet && (
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Item type</label>
+              <select name="itemCondition" value={formData.itemCondition} onChange={handleChange} className="w-full rounded-md border border-gray-300 bg-white p-3 outline-none focus:border-primary">
+                <option value="generic">Generic</option>
+                <option value="original">Original</option>
+              </select>
+            </div>
+          )}
 
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">Retail stock</label>
