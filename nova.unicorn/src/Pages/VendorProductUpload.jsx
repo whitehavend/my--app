@@ -89,6 +89,11 @@ const getDefaultForm = (selectedVendorType = "retailshopvendor") => ({
     subcategory: "",
   description: "",
   price: "",
+  sellingMode: "retail",
+  itemCondition: "generic",
+  retailPricingType: "regular",
+  flashSalePrice: "",
+  flashSaleDuration: "",
   salePrice: "",
   compareAtPrice: "",
   priceDetails: "",
@@ -164,9 +169,10 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
     const basePriceValue = Number(formData.basePrice || formData.price || 0);
     const wholeSalePriceValue = formData.wholeSalePrice !== "" ? formData.wholeSalePrice : formData.wholesalePrice;
     const wholeSaleVolumeValue = formData.wholeSaleVolume !== "" ? formData.wholeSaleVolume : formData.stockVolume;
+    const flashSaleEndsAt = formData.flashSaleDuration ? new Date(Date.now() + Number(formData.flashSaleDuration) * 60 * 60 * 1000).toISOString() : "";
 
-    if (wholeSalePriceValue !== undefined && wholeSalePriceValue !== "" && Number(wholeSalePriceValue) <= basePriceValue) {
-      setLocalValidationError("Wholesale price must be greater than the base price.");
+    if ((formData.sellingMode === "wholesale" || formData.sellingMode === "both") && !wholeSalePriceValue) {
+      setLocalValidationError("Enter a wholesale price for the selected selling mode.");
       return;
     }
 
@@ -179,11 +185,16 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
       ...formData,
       title: formData.title || formData.brand || "Vendor listing",
       price: basePriceValue,
-      salePrice: wholeSalePriceValue ? Number(wholeSalePriceValue) : (formData.salePrice === "" ? null : Number(formData.salePrice)),
+      sellingMode: formData.sellingMode,
+      itemCondition: formData.itemCondition,
+      retailPricingType: vendorType === "retailshopvendor" ? formData.retailPricingType : "regular",
+      flashSalePrice: vendorType === "retailshopvendor" && formData.retailPricingType === "flash_sale" ? Number(formData.flashSalePrice) : null,
+      flashSaleEndsAt: vendorType === "retailshopvendor" && formData.retailPricingType === "flash_sale" ? flashSaleEndsAt : null,
+      salePrice: null,
       wholesalePrice: wholeSalePriceValue ? Number(wholeSalePriceValue) : null,
       compareAtPrice: formData.compareAtPrice === "" ? null : Number(formData.compareAtPrice),
-      stock: wholeSaleVolumeValue ? Number(wholeSaleVolumeValue) : Number(formData.stock || 0),
-      stockVolume: wholeSaleVolumeValue ? Number(wholeSaleVolumeValue) : null,
+      stock: Number(formData.stock || 0),
+      stockVolume: null,
       wholesaleVolume: wholeSaleVolumeValue ? Number(wholeSaleVolumeValue) : null,
       weight: formData.massVolume === "" ? 0 : Number(formData.massVolume),
       images: normalizedImages,
@@ -312,14 +323,58 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
             <input type="number" min="0" step="0.01" name="basePrice" value={formData.basePrice} onChange={handleChange} required className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="499.99" />
           </div>
 
-          {(vendorType === "retailshopvendor" || vendorType === "cardealer" || vendorType === "pharmacy" || vendorType === "agrovet") && (
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Whole sale price</label>
-              <input type="number" min="0" step="0.01" name="wholeSalePrice" value={formData.wholeSalePrice} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="349.99" />
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">Selling option</label>
+            <select name="sellingMode" value={formData.sellingMode} onChange={handleChange} className="w-full rounded-md border border-gray-300 bg-white p-3 outline-none focus:border-primary">
+              <option value="retail">Retail only</option>
+              <option value="wholesale">Wholesale only</option>
+              <option value="both">Retail and wholesale</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">Item type</label>
+            <select name="itemCondition" value={formData.itemCondition} onChange={handleChange} className="w-full rounded-md border border-gray-300 bg-white p-3 outline-none focus:border-primary">
+              <option value="generic">Generic</option>
+              <option value="original">Original</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">Retail stock</label>
+            <input type="number" min="0" name="stock" value={formData.stock} onChange={handleChange} required className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="100" />
+          </div>
+
+          {vendorType === "retailshopvendor" && (
+            <div className="md:col-span-2 rounded-md border border-red-100 bg-red-50 p-4">
+              <label className="mb-2 block text-sm font-medium text-gray-700">Retail pricing</label>
+              <select name="retailPricingType" value={formData.retailPricingType} onChange={handleChange} className="w-full rounded-md border border-gray-300 bg-white p-3 outline-none focus:border-primary">
+                <option value="regular">Regular pricing</option>
+                <option value="flash_sale">Flash sale</option>
+              </select>
+              {formData.retailPricingType === "flash_sale" && (
+                <div className="mt-3 grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">Flash sale price</label>
+                    <input type="number" min="0" step="0.01" name="flashSalePrice" value={formData.flashSalePrice} onChange={handleChange} required className="w-full rounded-md border border-gray-300 bg-white p-3 outline-none focus:border-primary" placeholder="399.99" />
+                  </div>
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">Flash sale duration (hours)</label>
+                    <input type="number" min="1" step="1" name="flashSaleDuration" value={formData.flashSaleDuration} onChange={handleChange} required className="w-full rounded-md border border-gray-300 bg-white p-3 outline-none focus:border-primary" placeholder="24" />
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
-          {(vendorType === "retailshopvendor" || vendorType === "cardealer" || vendorType === "pharmacy" || vendorType === "agrovet") && (
+          {(formData.sellingMode === "wholesale" || formData.sellingMode === "both") && (
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Wholesale price</label>
+              <input type="number" min="0" step="0.01" name="wholeSalePrice" value={formData.wholeSalePrice} onChange={handleChange} required className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="349.99" />
+            </div>
+          )}
+
+          {(formData.sellingMode === "wholesale" || formData.sellingMode === "both") && (
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">Whole sale volume</label>
               <input type="number" min="0" name="wholeSaleVolume" value={formData.wholeSaleVolume} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="100" />

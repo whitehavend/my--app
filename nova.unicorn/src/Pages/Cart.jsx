@@ -5,7 +5,6 @@ import CartSummary from "../components/cart/CartSummary";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import Alert from "../components/Alert";
 import { resetNotify } from "../Store/cart/CartSlice";
-import FlashSales from "../components/FlashSales";
 
 const Cart = () => {
   const { carts, notify, status } = useAppSelector((state) => state.carts);
@@ -28,7 +27,6 @@ const Cart = () => {
       {carts.length === 0 ? (
         <div className="w-full flex flex-col items-start justify-between px-4 lg:px-0 lg:w-[80%] 2xl:w-[75%] my-4 ">
           <EmptyCart />
-          <FlashSales />
         </div>
       ) : (
         <div className="w-full flex  flex-col items-start justify-between px-4 lg:px-0 lg:w-[80%] 2xl:w-[75%] my-4 ">
@@ -40,7 +38,6 @@ const Cart = () => {
               <CartSummary />
             </div>
           </div>
-          <FlashSales />
         </div>
       )}
     </div>

@@ -8,6 +8,7 @@ const orderItemSchema = new mongoose.Schema(
     image: { type: String, default: '' },
     currency: { type: String, default: 'NGN', uppercase: true, trim: true },
     price: { type: Number, required: true, min: 0 },
+    priceType: { type: String, enum: ['retail', 'wholesale'], default: 'retail' },
     quantity: { type: Number, required: true, min: 1 },
   },
   { _id: true }

@@ -129,6 +129,11 @@ router.post('/products', authMiddleware, upload.array('images', 10), async (req,
       category,
       subcategory,
       price,
+      sellingMode,
+      itemCondition,
+      retailPricingType,
+      flashSalePrice,
+      flashSaleEndsAt,
       currency,
       salePrice,
       wholesalePrice,
@@ -204,6 +209,11 @@ router.post('/products', authMiddleware, upload.array('images', 10), async (req,
     const parsedWholesaleVolume = wholesaleVolume === undefined || wholesaleVolume === null || wholesaleVolume === ''
       ? (stockVolume === undefined || stockVolume === null || stockVolume === '' ? null : Number(stockVolume))
       : Number(wholesaleVolume);
+    const normalizedSellingMode = sellingMode || (parsedWholesalePrice !== null ? 'both' : 'retail');
+    const normalizedItemCondition = itemCondition || 'generic';
+    const normalizedRetailPricingType = vendorType === 'retailshopvendor' && retailPricingType === 'flash_sale' ? 'flash_sale' : 'regular';
+    const parsedFlashSalePrice = flashSalePrice === undefined || flashSalePrice === null || flashSalePrice === '' ? null : Number(flashSalePrice);
+    const parsedFlashSaleEndsAt = flashSaleEndsAt ? new Date(flashSaleEndsAt) : null;
     const normalizedImages = normalizeImages(parsedImages);
     const normalizedVendorName = vendorName || currentUser?.shopName || currentUser?.fullName || 'Vendor';
     const normalizedVendorContactInfo = vendorContactInfo || contactInfo || '';
@@ -217,12 +227,24 @@ router.post('/products', authMiddleware, upload.array('images', 10), async (req,
       return res.status(400).json({ error: 'Stock must be a valid number greater than or equal to zero' });
     }
 
-    if (parsedWholesalePrice !== null && (Number.isNaN(parsedWholesalePrice) || parsedWholesalePrice < 0)) {
-      return res.status(400).json({ error: 'Wholesale price must be a valid number greater than or equal to zero' });
+    if (!['retail', 'wholesale', 'both'].includes(normalizedSellingMode)) {
+      return res.status(400).json({ error: 'Selling mode must be retail, wholesale, or both' });
     }
 
-    if (parsedWholesalePrice !== null && parsedWholesalePrice <= parsedPrice) {
-      return res.status(400).json({ error: 'Wholesale price must be greater than the base price' });
+    if (!['generic', 'original'].includes(normalizedItemCondition)) {
+      return res.status(400).json({ error: 'Item type must be generic or original' });
+    }
+
+    if ((normalizedSellingMode === 'wholesale' || normalizedSellingMode === 'both') && parsedWholesalePrice === null) {
+      return res.status(400).json({ error: 'Wholesale price is required for the selected selling mode' });
+    }
+
+    if (normalizedRetailPricingType === 'flash_sale' && (parsedFlashSalePrice === null || Number.isNaN(parsedFlashSalePrice) || parsedFlashSalePrice < 0 || !parsedFlashSaleEndsAt || Number.isNaN(parsedFlashSaleEndsAt.getTime()) || parsedFlashSaleEndsAt <= new Date())) {
+      return res.status(400).json({ error: 'A valid flash sale price and future end time are required' });
+    }
+
+    if (parsedWholesalePrice !== null && (Number.isNaN(parsedWholesalePrice) || parsedWholesalePrice < 0)) {
+      return res.status(400).json({ error: 'Wholesale price must be a valid number greater than or equal to zero' });
     }
 
     if (parsedWholesaleVolume !== null && (Number.isNaN(parsedWholesaleVolume) || parsedWholesaleVolume < 0)) {
@@ -242,6 +264,11 @@ router.post('/products', authMiddleware, upload.array('images', 10), async (req,
           category: category.toLowerCase().trim(),
           subcategory: subcategory || '',
           price: parsedPrice,
+          sellingMode: normalizedSellingMode,
+          itemCondition: normalizedItemCondition,
+          retailPricingType: normalizedRetailPricingType,
+          flashSalePrice: parsedFlashSalePrice,
+          flashSaleEndsAt: parsedFlashSaleEndsAt,
           currency: currency || 'NGN',
           salePrice: parsedWholesalePrice,
           wholesalePrice: parsedWholesalePrice,
@@ -276,6 +303,11 @@ router.post('/products', authMiddleware, upload.array('images', 10), async (req,
         brand: brand.trim(),
         category: category.toLowerCase().trim(),
         price: parsedPrice,
+        sellingMode: normalizedSellingMode,
+        itemCondition: normalizedItemCondition,
+        retailPricingType: normalizedRetailPricingType,
+        flashSalePrice: parsedFlashSalePrice,
+        flashSaleEndsAt: parsedFlashSaleEndsAt,
         currency: currency || 'NGN',
         salePrice: parsedWholesalePrice,
         wholesalePrice: parsedWholesalePrice,
@@ -307,6 +339,11 @@ router.post('/products', authMiddleware, upload.array('images', 10), async (req,
         brand: brand.trim(),
         category: category.toLowerCase().trim(),
         price: parsedPrice,
+        sellingMode: normalizedSellingMode,
+        itemCondition: normalizedItemCondition,
+        retailPricingType: normalizedRetailPricingType,
+        flashSalePrice: parsedFlashSalePrice,
+        flashSaleEndsAt: parsedFlashSaleEndsAt,
         currency: currency || 'NGN',
         salePrice: parsedWholesalePrice,
         wholesalePrice: parsedWholesalePrice,

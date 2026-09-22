@@ -206,7 +206,7 @@ const CategoryShowcasePage = () => {
                 <div className="p-4">
                   <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">{isShowingVendorProducts ? product.subcategory || product.category : product.tag}</p>
                   <h3 className="mt-2 text-lg font-bold text-slate-900">{product.title}</h3>
-                  <p className="mt-3 text-2xl font-black text-gray-900">{isShowingVendorProducts ? formatCurrency(product.salePrice ?? product.price, product.currency) : product.price}</p>
+                  <p className="mt-3 text-2xl font-black text-gray-900">{isShowingVendorProducts ? formatCurrency(product.price, product.currency) : product.price}</p>
                   <div className="mt-4 flex gap-2">
                     <button type="button" className="flex-1 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5 text-sm font-semibold text-primary transition hover:bg-primary/10">
                       Save

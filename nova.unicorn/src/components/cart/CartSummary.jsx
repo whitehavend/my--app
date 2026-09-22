@@ -34,6 +34,7 @@ const CartSummary = () => {
             title: item.title,
             quantity: item.quantity,
             price: item.price,
+            priceType: item.priceType || "retail",
             currency: item.currency || "NGN",
             image: item.images?.[0],
           })),

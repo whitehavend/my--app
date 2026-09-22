@@ -38,6 +38,30 @@ const productSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    sellingMode: {
+      type: String,
+      enum: ['retail', 'wholesale', 'both'],
+      default: 'retail',
+    },
+    itemCondition: {
+      type: String,
+      enum: ['generic', 'original'],
+      default: 'generic',
+    },
+    retailPricingType: {
+      type: String,
+      enum: ['regular', 'flash_sale'],
+      default: 'regular',
+    },
+    flashSalePrice: {
+      type: Number,
+      default: null,
+      min: 0,
+    },
+    flashSaleEndsAt: {
+      type: Date,
+      default: null,
+    },
     currency: {
       type: String,
       default: 'NGN',

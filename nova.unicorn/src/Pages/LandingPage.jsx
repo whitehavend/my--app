@@ -5,7 +5,6 @@ import Navbar from "../components/Header/Navbar";
 import FirstSection from "../components/FirstSection";
 import SpecialOffers from "../components/SpecialOffers";
 import Trends from "../components/Trends";
-import FlashSales from "../components/FlashSales";
 import FestivalDeals from "../components/FestivalDeals";
 import BestDeals from "../components/BestDeals";
 import { useAppDispatch } from "../Store/hooks";
@@ -36,7 +35,6 @@ const LandingPage = () => {
         <Trends />
         <SmartPhones />
         <FestivalDeals />
-        <FlashSales />
         <BestDeals />
       </div>
     </div>

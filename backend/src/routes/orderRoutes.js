@@ -28,15 +28,19 @@ router.post('/', authMiddleware, async (req, res) => {
       const productId = String(item.id || item.productId || item._id || '');
       const quantity = Number(item.quantity || 1);
       if (productId && quantity > 0) {
-        requestedQuantities.set(productId, (requestedQuantities.get(productId) || 0) + quantity);
+        const key = `${productId}:${item.priceType || 'retail'}`;
+        requestedQuantities.set(key, { productId, priceType: item.priceType || 'retail', quantity: (requestedQuantities.get(key)?.quantity || 0) + quantity });
       }
     });
 
-    const productIds = [...requestedQuantities.keys()];
+    const requestedItems = [...requestedQuantities.values()];
+    const productIds = [...new Set(requestedItems.map(({ productId }) => productId))];
     const products = productIds.length ? await Product.find({ _id: { $in: productIds } }) : [];
     const productsById = new Map(products.map((product) => [String(product._id), product]));
-    for (const [productId, quantity] of requestedQuantities) {
+    for (const { productId, priceType, quantity } of requestedItems) {
       const product = productsById.get(productId);
+      if (priceType !== 'wholesale') continue;
+      
       if (!product || product.wholesaleVolume === null || product.wholesaleVolume === undefined) {
         continue;
       }
@@ -69,6 +73,7 @@ router.post('/', authMiddleware, async (req, res) => {
         image: item.images?.[0] || item.image || '',
         currency: item.currency || 'NGN',
         price: Number(item.price || 0),
+        priceType: item.priceType || 'retail',
         quantity: Number(item.quantity || 1),
       })),
       totalAmount: Number(totalAmount || 0),

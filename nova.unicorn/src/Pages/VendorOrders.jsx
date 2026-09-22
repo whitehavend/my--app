@@ -21,7 +21,7 @@ const VendorOrders = () => {
     const refreshOrders = () => dispatch(getVendorOrders());
     refreshOrders();
     const refreshTimer = setInterval(refreshOrders, 5000);
-    const clockTimer = setInterval(() => setNow(Date.now()), 30000);
+    const clockTimer = setInterval(() => setNow(Date.now()), 1000);
 
     return () => {
       clearInterval(refreshTimer);
@@ -30,6 +30,14 @@ const VendorOrders = () => {
   }, [dispatch]);
 
   const canFulfill = (order) => now - new Date(order.createdAt).getTime() >= 30 * 60 * 1000;
+  const getFulfillmentCountdown = (order) => {
+    const remainingMs = (30 * 60 * 1000) - (now - new Date(order.createdAt).getTime());
+    if (remainingMs <= 0) return "Fulfill order";
+
+    const minutes = Math.floor(remainingMs / 60000);
+    const seconds = Math.floor((remainingMs % 60000) / 1000);
+    return `Available in ${minutes}m ${String(seconds).padStart(2, "0")}s`;
+  };
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
@@ -38,7 +46,6 @@ const VendorOrders = () => {
         <h2 className="mt-1 text-2xl font-bold text-gray-900">Orders to fulfill</h2>
         <p className="mt-2 text-sm text-gray-600">Review orders containing your products and prepare them for delivery.</p>
       </div>
-      {status === "loading" && <p className="text-gray-600">Loading fulfillment orders...</p>}
       {error && <p className="rounded-md bg-red-50 p-3 text-sm text-red-700">{error}</p>}
       {status !== "loading" && !orders.length && !error && (
         <div className="rounded-md border border-dashed border-gray-300 bg-white p-8 text-center text-gray-600">There are no orders to fulfill yet.</div>
@@ -64,7 +71,7 @@ const VendorOrders = () => {
             <div className="mt-4 border-t border-gray-100 pt-3 text-right font-semibold text-gray-900">Total: {formatCurrency(order.totalAmount, order.currency || order.items?.[0]?.currency)}</div>
             {order.status === "pending" && (
               <button type="button" disabled={!canFulfill(order)} onClick={() => handleFulfill(order._id || order.id)} className="mt-4 w-full rounded-md bg-primary px-4 py-3 text-sm font-semibold text-white hover:bg-primary100 disabled:cursor-not-allowed disabled:opacity-50">
-                {canFulfill(order) ? "Fulfill order" : "Available after 30 minutes"}
+                {getFulfillmentCountdown(order)}
               </button>
             )}
             {['delivering', 'picked_up'].includes(order.status) && order.paymentStatus !== "paid" && (

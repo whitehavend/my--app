@@ -63,6 +63,9 @@ const CartCard = () => {
                   {`${cart?.title}`}
                 </h1>
                 <p className="text-primary text-xs">
+                  Price type: <span className="capitalize text-gray-700">{cart?.priceType || "retail"}</span>
+                </p>
+                <p className="text-primary text-xs">
                   Stock:{" "}
                   <span className="text-gray-700">
                     {cart?.availabilityStatus}

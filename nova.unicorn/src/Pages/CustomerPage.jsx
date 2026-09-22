@@ -27,6 +27,7 @@ const CustomerPage = () => {
   const [search, setSearch] = useState("");
   const [savedItems, setSavedItems] = useState([]);
   const [actionMessage, setActionMessage] = useState("");
+  const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
     const refreshProducts = () => dispatch(getAllProducts());
@@ -48,6 +49,11 @@ const CustomerPage = () => {
     return () => clearTimeout(messageTimer);
   }, [actionMessage]);
 
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   const requireCustomerLogin = () => {
     if (!user) {
       navigate("/login");
@@ -66,10 +72,11 @@ const CustomerPage = () => {
     setActionMessage(savedItems.includes(productId) ? "Item removed from saved items" : "Item saved successfully");
   };
 
-  const handleAddToCart = (product) => {
+  const handleAddToCart = (product, priceType = "retail") => {
     if (!requireCustomerLogin()) return;
-    dispatch(addToCart({ product: { ...product, id: product._id || product.id, price: product.salePrice ?? product.price }, quantity: 1 }));
-    setActionMessage(`${product.title} added to cart`);
+    const selectedPrice = priceType === "wholesale" ? product.wholesalePrice : product.price;
+    dispatch(addToCart({ product: { ...product, id: product._id || product.id, price: selectedPrice, priceType }, quantity: 1 }));
+    setActionMessage(`${product.title} added to cart at ${priceType} price`);
   };
 
   const visibleProducts = products.filter((product) => product.vendorId).filter((product) => {
@@ -77,6 +84,16 @@ const CustomerPage = () => {
     const searchableFields = [product.brand, product.description, product.category, product.subcategory];
     return !query || searchableFields.some((value) => String(value || "").toLowerCase().includes(query));
   });
+
+  const getFlashSaleState = (product) => {
+    const endsAt = product.retailPricingType === "flash_sale" ? new Date(product.flashSaleEndsAt).getTime() : 0;
+    const remaining = endsAt - now;
+    if (!product.flashSalePrice || !Number.isFinite(remaining) || remaining <= 0) return null;
+    const hours = Math.floor(remaining / 3600000);
+    const minutes = Math.floor((remaining % 3600000) / 60000);
+    const seconds = Math.floor((remaining % 60000) / 1000);
+    return { price: product.flashSalePrice, time: `${hours}h ${minutes}m ${seconds}s` };
+  };
 
   return (
     <main className="min-h-screen bg-gray-100">
@@ -128,26 +145,33 @@ const CustomerPage = () => {
           {!visibleProducts.length && <ComingSoonBanner label="Vendor marketplace" />}
           {visibleProducts.length > 0 && (
             <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {visibleProducts.map((product) => (
-                <article key={product._id || product.id} role="button" tabIndex="0" onClick={() => navigate(`/${encodeURIComponent(product.title)}`, { state: { product } })} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") navigate(`/${encodeURIComponent(product.title)}`, { state: { product } }); }} className="cursor-pointer overflow-hidden rounded-md bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+              {visibleProducts.map((product) => {
+                const flashSale = getFlashSaleState(product);
+                const displayProduct = flashSale ? { ...product, price: flashSale.price } : product;
+                return <article key={product._id || product.id} role="button" tabIndex="0" onClick={() => navigate(`/${encodeURIComponent(product.title)}`, { state: { product } })} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") navigate(`/${encodeURIComponent(product.title)}`, { state: { product } }); }} className="cursor-pointer overflow-hidden rounded-md bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
                   <img src={product.images?.[0] || "images/phones.png"} alt={product.title} className="h-48 w-full object-cover" />
                   <div className="p-4">
                     <p className="text-xs uppercase text-gray-500">{product.brand} · {product.category}</p>
                     <h2 className="mt-2 text-lg font-semibold capitalize">{product.title}</h2>
                     <p className="mt-2 line-clamp-3 text-sm text-gray-600">{product.description}</p>
+                    {flashSale && <p className="mt-3 rounded-md bg-red-50 p-2 text-xs font-semibold text-red-700">Flash sale: {formatCurrency(flashSale.price, product.currency)} · ends in {flashSale.time}</p>}
                     <div className="mt-3 grid grid-cols-2 gap-2 rounded-md border border-gray-200 bg-gray-50 p-3 text-xs text-gray-700">
                       <div><span className="block text-gray-500">Base price</span><strong>{formatCurrency(product.price, product.currency)}</strong></div>
                       <div><span className="block text-gray-500">Wholesale price</span><strong>{product.wholesalePrice === null || product.wholesalePrice === undefined ? "Not available" : formatCurrency(product.wholesalePrice, product.currency)}</strong></div>
                       <div><span className="block text-gray-500">Wholesale volume</span><strong className={product.wholesaleVolume !== null && product.wholesaleVolume !== undefined && product.wholesaleVolume < 10 ? "text-red-600" : "text-gray-900"}>{product.wholesaleVolume === null || product.wholesaleVolume === undefined ? "Not available" : product.wholesaleVolume}</strong></div>
-                      <div><span className="block text-gray-500">Brand</span><strong>{product.brand || "-"}</strong></div>
+                      <div><span className="block text-gray-500">Item type</span><strong className="capitalize">{product.itemCondition || "generic"}</strong></div>
                     </div>
                     {(product.vendorType === "pharmacy" || product.vendorType === "agrovet") && product.prescription && <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-2 text-xs text-amber-800"><strong>Prescription:</strong> {product.prescription}</p>}
                     <div className="mt-3 rounded-md border border-gray-200 bg-gray-50 p-3 text-xs text-gray-700"><p className="font-semibold uppercase tracking-[0.12em] text-primary">Vendor</p><p className="mt-1 font-medium text-gray-900">{product.vendorName || "Verified vendor"}</p>{product.vendorContactInfo && <p className="mt-1">Contact: {product.vendorContactInfo}</p>}</div>
-                    <p className="mt-3 text-xl font-bold">{formatCurrency(product.salePrice ?? product.price, product.currency)}</p>
-                    <div className="mt-4 flex gap-2"><button onClick={(event) => { event.stopPropagation(); handleSave(product._id || product.id); }} className="flex-1 rounded-md border border-primary px-3 py-3 text-sm font-medium text-primary hover:bg-gray-50">{savedItems.includes(product._id || product.id) ? "Saved" : "Save item"}</button><button onClick={(event) => { event.stopPropagation(); handleAddToCart(product); }} className="flex-1 rounded-md bg-primary px-3 py-3 text-sm font-medium text-white hover:bg-primary100">Add to cart</button></div>
+                    <p className="mt-3 text-xl font-bold">{formatCurrency(product.price, product.currency)}</p>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <button onClick={(event) => { event.stopPropagation(); handleSave(product._id || product.id); }} className="flex-1 rounded-md border border-primary px-3 py-3 text-sm font-medium text-primary hover:bg-gray-50">{savedItems.includes(product._id || product.id) ? "Saved" : "Save item"}</button>
+                      {(product.sellingMode === "retail" || product.sellingMode === "both" || !product.sellingMode) && <button onClick={(event) => { event.stopPropagation(); handleAddToCart(displayProduct, "retail"); }} className="flex-1 rounded-md bg-primary px-3 py-3 text-sm font-medium text-white hover:bg-primary100">Retail: {formatCurrency(displayProduct.price, product.currency)}</button>}
+                      {(product.sellingMode === "wholesale" || product.sellingMode === "both") && product.wholesalePrice !== null && product.wholesalePrice !== undefined && <button onClick={(event) => { event.stopPropagation(); handleAddToCart(product, "wholesale"); }} className="flex-1 rounded-md bg-slate-800 px-3 py-3 text-sm font-medium text-white hover:bg-slate-700">Wholesale: {formatCurrency(product.wholesalePrice, product.currency)}</button>}
+                    </div>
                   </div>
-                </article>
-              ))}
+                </article>;
+              })}
             </div>
           )}
         </section>
