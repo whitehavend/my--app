@@ -148,19 +148,20 @@ const LogisticPage = () => {
                   <p className="mt-1 text-slate-600">Shop: {request.vendorShopName || "Not provided"}</p>
                   <p className="mt-1 text-slate-600">Phone: {request.vendorPhoneNumber || "Not provided"}</p>
                   <p className="mt-1 text-slate-600">Shop address: {request.vendorShopAddress || "Not provided"}</p>
+                  {request.orderStatus && request.orderStatus !== "delivering" && <p className="mt-3 rounded-md bg-amber-50 p-2 text-xs font-semibold text-amber-800">Waiting for the vendor to fulfill this order.</p>}
                   {request.status === "pending" && (
                     <div className="mt-3 flex flex-wrap gap-2">
                       <button type="button" onClick={() => updateRequest(request._id, "accepted")} className="rounded-md bg-emerald-700 px-3 py-2 font-semibold text-white hover:bg-emerald-800">Accept</button>
                       <button type="button" onClick={() => updateRequest(request._id, "rejected")} className="rounded-md border border-red-200 px-3 py-2 font-semibold text-red-700 hover:bg-red-50">Reject</button>
                     </div>
                   )}
-                  {request.status === "accepted" && (
+                  {request.status === "accepted" && request.orderStatus === "delivering" && (
                     <div className="mt-3 flex flex-wrap gap-2">
                       <button type="button" onClick={() => updateRequest(request._id, "picked_up")} className="rounded-md bg-cyan-700 px-3 py-2 font-semibold text-white hover:bg-cyan-800">Goods picked up</button>
                       {request.orderId && <button type="button" onClick={() => promptCustomerPayment(request)} className="rounded-md border border-primary px-3 py-2 font-semibold text-primary hover:bg-white">Item delivered - prompt payment</button>}
                     </div>
                   )}
-                  {request.status === "picked_up" && request.orderId && <div className="mt-3 flex flex-wrap gap-2"><button type="button" onClick={() => promptCustomerPayment(request)} className="rounded-md bg-primary px-3 py-2 font-semibold text-white hover:bg-primary100">Item delivered - prompt payment</button><button type="button" onClick={() => updateRequest(request._id, "delivered")} className="rounded-md border border-emerald-700 px-3 py-2 font-semibold text-emerald-700 hover:bg-emerald-50">Mark delivered</button></div>}
+                  {request.status === "picked_up" && request.orderId && request.orderStatus === "delivering" && <div className="mt-3 flex flex-wrap gap-2"><button type="button" onClick={() => promptCustomerPayment(request)} className="rounded-md bg-primary px-3 py-2 font-semibold text-white hover:bg-primary100">Item delivered - prompt payment</button><button type="button" onClick={() => updateRequest(request._id, "delivered")} className="rounded-md border border-emerald-700 px-3 py-2 font-semibold text-emerald-700 hover:bg-emerald-50">Mark delivered</button></div>}
                 </article>
               ))}
             </div>

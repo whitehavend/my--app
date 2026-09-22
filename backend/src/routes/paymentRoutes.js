@@ -20,6 +20,7 @@ const canInitiateForOrder = async (user, order) => {
   }
 
   if (user.role === 'logistic') {
+    if (order.status !== 'delivering') return false;
     const logistic = await User.findOne({
       _id: user.id,
       role: 'logistic',

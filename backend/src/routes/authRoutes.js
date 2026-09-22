@@ -638,7 +638,17 @@ router.get('/logistics/requests', authMiddleware, async (req, res) => {
     }
 
     const user = await User.findById(req.user.id).select('logisticRequests');
-    return res.status(200).json({ requests: (user?.logisticRequests || []).filter((request) => request.status !== 'rejected') });
+    const Order = require('../models/Order');
+    const requests = (user?.logisticRequests || []).filter((request) => request.status !== 'rejected');
+    const orders = await Order.find({ _id: { $in: requests.map((request) => request.orderId).filter(Boolean) } }).select('_id status paymentStatus');
+    const ordersById = new Map(orders.map((order) => [String(order._id), order]));
+    return res.status(200).json({
+      requests: requests.map((request) => ({
+        ...request.toObject(),
+        orderStatus: ordersById.get(String(request.orderId))?.status || '',
+        paymentStatus: ordersById.get(String(request.orderId))?.paymentStatus || 'not_required',
+      })),
+    });
   } catch (error) {
     console.error('List logistic requests error:', error);
     return res.status(500).json({ error: 'Unable to retrieve pickup requests' });
@@ -721,6 +731,12 @@ router.patch('/logistics/requests/:requestId/status', authMiddleware, async (req
     if (status === 'accepted' && request.status !== 'pending') return res.status(400).json({ error: 'Only pending requests can be accepted' });
     if (status === 'picked_up' && request.status !== 'accepted') return res.status(400).json({ error: 'Accept the request before marking goods picked up' });
     if (status === 'delivered' && request.status !== 'picked_up') return res.status(400).json({ error: 'Only picked up orders can be marked delivered' });
+
+    if (['picked_up', 'delivered'].includes(status) && request.orderId) {
+      const Order = require('../models/Order');
+      const order = await Order.findOne({ _id: request.orderId, userId: request.customerId }).select('status');
+      if (!order || order.status !== 'delivering') return res.status(400).json({ error: 'The vendor must fulfill this order before delivery can begin' });
+    }
 
     request.status = status;
     if (status === 'picked_up') {

@@ -1,5 +1,4 @@
 import React from "react";
-import Banner from "../components/Banner";
 import HeaderBanner from "../components/Header/HeaderBanner";
 import Navbar from "../components/Header/Navbar";
 import { useLocation } from "react-router-dom";
@@ -17,13 +16,6 @@ const Product = () => {
 
   return (
     <div className="flex flex-col items-center bg-gray-100 ">
-      <div className="bg-primary w-full flex items-center justify-center ">
-        <Banner
-          src="images/festival.gif"
-          alt="festival"
-          className="w-full lg:w-[90%] h-[50px]"
-        />
-      </div>
       <HeaderBanner />
       <Navbar />
       {notify && <Alert message={status} />}

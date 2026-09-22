@@ -257,34 +257,26 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
 
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">Category</label>
-
-                      {subcategoryOptions[formData.category]?.length > 0 && (
-                        <div>
-                          <label className="mb-2 block text-sm font-medium text-gray-700">Subcategory</label>
-                          <select name="subcategory" value={formData.subcategory} onChange={handleChange} required className="w-full rounded-md border border-gray-300 bg-white p-3 outline-none focus:border-primary">
-                            <option value="">Select subcategory</option>
-                            {[...new Set([...subcategoryOptions[formData.category], "Other"])].map((subcategory) => <option key={subcategory} value={subcategory}>{subcategory}</option>)}
-                          </select>
-                        </div>
-                      )}
-            <select name="category" value={formData.category} onChange={handleChange} required className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary">
-                      {[...categoryOptions, { value: "other", label: "Other" }].map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
+            <select name="category" value={formData.category} onChange={handleChange} required className="w-full rounded-md border border-gray-300 bg-white p-3 outline-none focus:border-primary">
+              {[...categoryOptions, { value: "other", label: "Other" }].map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
               ))}
             </select>
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="mb-2 block text-sm font-medium text-gray-700">Product description</label>
-            <textarea name="description" value={formData.description} onChange={handleChange} required rows="5" className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="Describe the product, key features, and benefits." />
+            {subcategoryOptions[formData.category]?.length > 0 && (
+              <div className="mt-4">
+                <label className="mb-2 block text-sm font-medium text-gray-700">Subcategory</label>
+                <select name="subcategory" value={formData.subcategory} onChange={handleChange} required className="w-full rounded-md border border-gray-300 bg-white p-3 outline-none focus:border-primary">
+                  <option value="">Select subcategory</option>
+                  {[...new Set([...subcategoryOptions[formData.category], "Other"])].map((subcategory) => <option key={subcategory} value={subcategory}>{subcategory}</option>)}
+                </select>
+              </div>
+            )}
           </div>
 
           {vendorType === "pharmacy" || vendorType === "agrovet" ? (
             <div className="md:col-span-2">
               <label className="mb-2 block text-sm font-medium text-gray-700">Prescription</label>
-              <select name="prescription" value={formData.prescription} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary">
+              <select name="prescription" value={formData.prescription} onChange={handleChange} className="w-full rounded-md border border-gray-300 bg-white p-3 outline-none focus:border-primary">
                 <option value="">Select prescription requirement</option>
                 <option value="required">Required</option>
                 <option value="not-required">Not required</option>

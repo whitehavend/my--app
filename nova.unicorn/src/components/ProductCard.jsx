@@ -87,9 +87,6 @@ const ProductCard = ({ product }) => {
             <h1 className="bg-[#276076] text-white p-0.5 lg:p-1 rounded-sm shadow capitalize mr-2 mb-1 lg:mb-0">
               Official store
             </h1>
-            <h1 className="bg-primary text-white p-0.5 lg:p-1 rounded-sm shadow capitalize">
-              Jumai festival deal
-            </h1>
           </div>
           <h1 className="capitalize py-1.5 lg:py-2">{product.title}</h1>
           <h2 className="text-xs border-b w-full border-gray-100 pb-2 lg:pb-3">
