@@ -13,6 +13,7 @@ import {
   Landmark,
   LayoutDashboard,
   LoaderCircle,
+  MessageCircle,
   RefreshCw,
   Search,
   ShieldCheck,
@@ -368,6 +369,7 @@ export default function App() {
   const [verificationVendor, setVerificationVendor] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showAssistance, setShowAssistance] = useState(false);
 
   const loadVendors = async () => {
     setLoading(true);
@@ -418,7 +420,7 @@ export default function App() {
   };
 
   return <div className="app-shell">
-    <header className="topbar"><div className="brand"><span className="brand-mark"><ShieldCheck size={19} /></span><span><strong>Nova Verify</strong><small>Vendor operations</small></span></div><div className="topbar-status"><span className="online-dot" />Compliance workspace <span className="divider-dot" /> <span>Kenya / EAT</span></div></header>
+    <header className="topbar"><div className="brand"><span className="brand-mark"><ShieldCheck size={19} /></span><span><strong>Nova Verify</strong><small>Vendor operations</small></span></div><div className="topbar-actions"><div className="topbar-status"><span className="online-dot" />Compliance workspace <span className="divider-dot" /> <span>Kenya / EAT</span></div><button type="button" className="assistance-button" onClick={() => setShowAssistance((current) => !current)} aria-expanded={showAssistance}><MessageCircle size={16} />Assistance</button></div>{showAssistance && <div className="assistance-panel"><div><strong>Need a hand?</strong><p>Contact the operations support team for verification or review issues.</p></div><a href="mailto:support@novaunicorn.com">Email support</a></div>}</header>
     <main className="page-wrap"><section className="hero"><div><span className="hero-label">Vendor assurance platform</span><h1>Make trust <em>visible.</em></h1><p>One calm workspace for onboarding businesses and keeping every verification track moving.</p></div><div className="hero-stamp"><BadgeCheck size={22} /><span><strong>Live operations</strong><small>Last sync just now</small></span></div></section>
       <nav className="view-tabs" aria-label="Workspace views"><button type="button" className={activeView === "onboarding" ? "active" : ""} onClick={() => setActiveView("onboarding")}><LayoutDashboard size={17} />Onboarding portal</button><button type="button" className={activeView === "verification" ? "active" : ""} onClick={() => setActiveView("verification")}><FileCheck2 size={17} />Verification hub</button></nav>
       {activeView === "verification" ? <VerificationHub vendor={verificationVendor} onBack={() => setActiveView("onboarding")} /> : activeView === "review" ? <ManualReviewPanel vendor={verificationVendor} onBack={() => setActiveView("compliance")} onReviewed={updateReviewedVendor} /> : activeView === "onboarding" ? <OnboardingPortal onCreated={loadVendors} onOpenVerification={openVerificationHub} /> : <ComplianceDashboard vendors={vendors} loading={loading} error={error} onRefresh={loadVendors} onOpenReview={openReview} onSweep={runVerificationSweep} />}
