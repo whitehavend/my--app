@@ -1,11 +1,17 @@
 const express = require('express');
 const Vendor = require('../models/vendor');
 const upload = require('../middleware/upload');
+const authMiddleware = require('../middleware/authMiddleware');
 const { initiateMpesaStkPush, verifyIdentity } = require('../../services/verificationService');
 
 const router = express.Router();
 
-router.get('/', (req, res) => {
+const requireAdmin = (req, res, next) => {
+  if (req.user?.role !== 'admin') return res.status(403).json({ error: 'Administrator access is required' });
+  return next();
+};
+
+router.get('/', authMiddleware, requireAdmin, (req, res) => {
   Vendor.find({}).sort({ createdAt: -1 }).lean()
     .then((vendors) => res.status(200).json({ vendors }))
     .catch((error) => res.status(500).json({ error: 'Unable to retrieve vendors', details: error.message }));
@@ -190,7 +196,7 @@ router.post('/:id/verify-documents', upload.withUploadErrors(upload.single('busi
   }
 });
 
-router.patch('/:id/review', async (req, res) => {
+router.patch('/:id/review', authMiddleware, requireAdmin, async (req, res) => {
   try {
     const { check, status, reason = '' } = req.body || {};
     const reviewableChecks = {
