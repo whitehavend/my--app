@@ -713,13 +713,14 @@ router.patch('/logistics/requests/:requestId/status', authMiddleware, async (req
   try {
     if (req.user.role !== 'logistic') return res.status(403).json({ error: 'Only logistics can update pickup requests' });
     const { status } = req.body;
-    if (!['accepted', 'rejected', 'picked_up'].includes(status)) return res.status(400).json({ error: 'Invalid pickup request status' });
+    if (!['accepted', 'rejected', 'picked_up', 'delivered'].includes(status)) return res.status(400).json({ error: 'Invalid pickup request status' });
 
     const user = await User.findOne({ _id: req.user.id, 'logisticRequests._id': req.params.requestId });
     const request = user?.logisticRequests.id(req.params.requestId);
     if (!user || !request) return res.status(404).json({ error: 'Pickup request not found' });
     if (status === 'accepted' && request.status !== 'pending') return res.status(400).json({ error: 'Only pending requests can be accepted' });
     if (status === 'picked_up' && request.status !== 'accepted') return res.status(400).json({ error: 'Accept the request before marking goods picked up' });
+    if (status === 'delivered' && request.status !== 'picked_up') return res.status(400).json({ error: 'Only picked up orders can be marked delivered' });
 
     request.status = status;
     if (status === 'picked_up') {
@@ -728,6 +729,13 @@ router.patch('/logistics/requests/:requestId/status', authMiddleware, async (req
         const Order = require('../models/Order');
         await Order.findOneAndUpdate({ _id: request.orderId, userId: request.customerId }, { status: 'picked_up' });
       }
+    }
+    if (status === 'delivered' && request.orderId) {
+      const Order = require('../models/Order');
+      await Order.findOneAndUpdate(
+        { _id: request.orderId, userId: request.customerId },
+        { paymentStatus: 'paid', paymentError: '', status: 'delivered' },
+      );
     }
     await user.save();
     return res.status(200).json({ request });

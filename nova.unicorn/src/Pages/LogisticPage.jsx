@@ -160,7 +160,7 @@ const LogisticPage = () => {
                       {request.orderId && <button type="button" onClick={() => promptCustomerPayment(request)} className="rounded-md border border-primary px-3 py-2 font-semibold text-primary hover:bg-white">Item delivered - prompt payment</button>}
                     </div>
                   )}
-                  {request.status === "picked_up" && request.orderId && <button type="button" onClick={() => promptCustomerPayment(request)} className="mt-3 rounded-md bg-primary px-3 py-2 font-semibold text-white hover:bg-primary100">Item delivered - prompt payment</button>}
+                  {request.status === "picked_up" && request.orderId && <div className="mt-3 flex flex-wrap gap-2"><button type="button" onClick={() => promptCustomerPayment(request)} className="rounded-md bg-primary px-3 py-2 font-semibold text-white hover:bg-primary100">Item delivered - prompt payment</button><button type="button" onClick={() => updateRequest(request._id, "delivered")} className="rounded-md border border-emerald-700 px-3 py-2 font-semibold text-emerald-700 hover:bg-emerald-50">Mark delivered</button></div>}
                 </article>
               ))}
             </div>

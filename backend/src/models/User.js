@@ -109,7 +109,7 @@ const userSchema = new mongoose.Schema(
         vendorShopName: String,
         vendorPhoneNumber: String,
         vendorShopAddress: String,
-        status: { type: String, enum: ['pending', 'accepted', 'rejected', 'picked_up'], default: 'pending' },
+        status: { type: String, enum: ['pending', 'accepted', 'rejected', 'picked_up', 'delivered'], default: 'pending' },
         pickedUpAt: Date,
         requestedAt: { type: Date, default: Date.now },
       }],
