@@ -57,7 +57,7 @@ const trackMap = {
   kycVerification: "KYC identity",
   financialGatewayVerification: "M-Pesa gateway",
   kraPinVerification: "KRA PIN",
-  businessDocumentation: "Business documents",
+  kybVerification: "KYB verification",
   professionalLicenseVerification: "Professional license",
   premisesLicenseVerification: "Premises license",
 };
@@ -66,7 +66,7 @@ const verificationChecklist = {
   RETAIL: [
     { key: "kyc", label: "KYC verification", mode: "auto", required: true },
     { key: "kra", label: "KRA tax details", mode: "auto", required: true },
-    { key: "businessDocument", label: "Business registration document", mode: "manual", required: true },
+    { key: "kyb", label: "KYB verification", mode: "auto", required: true },
     { key: "settlement", label: "Financial settlement info", mode: "manual", required: true },
     { key: "payoutDetails", label: "Payout details", mode: "manual", required: true },
   ],
@@ -151,14 +151,18 @@ function VerificationHub({ vendor, onBack }) {
         if (!response.ok) throw new Error(data.error || "Financial verification failed");
       }
 
-      if (checkKey === "businessDocument" || checkKey === "professionalLicense" || checkKey === "premisesDoc") {
+      if (checkKey === "kyb") {
+        const response = await fetch(`${API_BASE}/${vendor._id}/verify-kyb`, { method: "POST" });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "KYB verification failed");
+      }
+
+      if (checkKey === "professionalLicense" || checkKey === "premisesDoc") {
         const formData = new FormData();
-        if (checkKey === "businessDocument") formData.append("businessDoc", file || new Blob(["business document"], { type: "application/octet-stream" }));
         if (checkKey === "professionalLicense") formData.append("profLicense", file || new Blob(["professional license"], { type: "application/octet-stream" }));
         if (checkKey === "premisesDoc") formData.append("premisesDoc", file || new Blob(["premises doc"], { type: "application/octet-stream" }));
 
-        const endpoint = checkKey === "businessDocument" ? "verify-documents" : "verify-professional";
-        const response = await fetch(`${API_BASE}/${vendor._id}/${endpoint}`, { method: "POST", body: formData });
+        const response = await fetch(`${API_BASE}/${vendor._id}/verify-professional`, { method: "POST", body: formData });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Document verification failed");
       }
@@ -219,7 +223,6 @@ function VerificationHub({ vendor, onBack }) {
 
 function ManualReviewPanel({ vendor, onBack, onReviewed }) {
   const manualChecks = [
-    { key: "businessDocument", label: "Business registration document", field: "businessDocumentation" },
     { key: "professionalLicense", label: "Professional license", field: "professionalLicenseVerification" },
     { key: "premisesDoc", label: "Premises compliance", field: "premisesLicenseVerification" },
     { key: "payoutDetails", label: "Payout details", field: "payoutDetails" },
@@ -305,11 +308,7 @@ function OnboardingPortal({ onCreated, onOpenVerification }) {
         if (form.premisesDoc) files.append("premisesDoc", form.premisesDoc);
         await request(`${API_BASE}/${vendorId}/verify-professional`, { method: "POST", body: files });
       }
-      if (form.vendorType === "RETAIL" && form.businessDoc) {
-        const files = new FormData();
-        files.append("businessDoc", form.businessDoc);
-        await request(`${API_BASE}/${vendorId}/verify-documents`, { method: "POST", body: files });
-      }
+      if (form.vendorType === "RETAIL") await request(`${API_BASE}/${vendorId}/verify-kyb`, { method: "POST" });
       setFeedback({ type: "success", message: `${form.businessName} is now in the verification queue.` });
       setForm(emptyForm);
       onCreated();
@@ -349,7 +348,7 @@ function OnboardingPortal({ onCreated, onOpenVerification }) {
 
           <div className="form-heading subheading"><div><span className="eyebrow">Category evidence</span><h3>Upload supporting files</h3></div><FileCheck2 size={19} /></div>
           {form.vendorType === "HEALTH_AGRO" && <div className="drop-grid"><DropZone name="profLicense" label="Professional registration" hint="Pharmacy or Vet Board certificate · PDF, PNG" accept=".pdf,.png,.jpeg,.jpg" file={form.profLicense} onChange={(file) => setValue("profLicense", file)} /><DropZone name="premisesDoc" label="Premises compliance" hint="Facility approval · PDF, PNG" accept=".pdf,.png,.jpeg,.jpg" file={form.premisesDoc} onChange={(file) => setValue("premisesDoc", file)} /></div>}
-          {form.vendorType === "RETAIL" && <div className="drop-grid"><DropZone name="businessDoc" label="Business registration" hint="Trade permit or registration · PDF, PNG" accept=".pdf,.png,.jpeg,.jpg" file={form.businessDoc} onChange={(file) => setValue("businessDoc", file)} /></div>}
+          {form.vendorType === "RETAIL" && <div className="notice-box"><ShieldCheck size={18} /><span>KYB verification is automatic. Nova will validate the retail business profile without requiring a registration upload here.</span></div>}
           {form.vendorType === "REAL_ESTATE_CAR" && <div className="notice-box"><Landmark size={18} /><span>Asset dealerships start with identity verification. Property title deeds and vehicle documents can be attached during the review stage.</span></div>}
 
           <div className="form-heading subheading"><div><span className="eyebrow">Payout setup</span><h3>Where should Nova send your payouts?</h3></div><WalletCards size={19} /></div>
@@ -434,7 +433,7 @@ export default function App() {
     await jsonRequest("verify-kyc", { idNumber: "12345678", idType: "KENYA_NATIONAL_ID", firstName: "Admin", lastName: "Sweep" });
     await jsonRequest("verify-tax", { kraPin: "A123456789X" });
     if (vendor.vendorType === "HEALTH_AGRO") await jsonRequest("verify-professional", {});
-    if (vendor.vendorType === "RETAIL") await jsonRequest("verify-documents", {});
+    if (vendor.vendorType === "RETAIL") await jsonRequest("verify-kyb", {});
     await loadVendors();
   };
 

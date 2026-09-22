@@ -6,7 +6,6 @@ import { approveVendor, getPendingVendors, rejectVendor } from "../Store/thunk";
 const isLocalRuntime = typeof window !== "undefined" && ["localhost", "127.0.0.1"].includes(window.location.hostname);
 const complianceApiBase = process.env.REACT_APP_VENDOR_VERIFICATION_API || (isLocalRuntime ? "http://localhost:5000/api/vendors" : "https://my-app-1-ggdw.onrender.com/api/vendors");
 const manualChecks = [
-  { key: "businessDocumentation", apiKey: "businessDocument", label: "Business documents" },
   { key: "professionalLicenseVerification", apiKey: "professionalLicense", label: "Professional license" },
   { key: "premisesLicenseVerification", apiKey: "premisesDoc", label: "Premises compliance" },
   { key: "payoutDetails", apiKey: "payoutDetails", label: "Payout details" },

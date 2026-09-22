@@ -96,6 +96,10 @@ const vendorSchema = new mongoose.Schema(
       type: verificationStatusSchema,
       default: () => ({}),
     },
+    kybVerification: {
+      type: verificationStatusSchema,
+      default: () => ({}),
+    },
     financialGatewayVerification: {
       type: verificationStatusSchema,
       default: () => ({}),
@@ -106,9 +110,6 @@ const vendorSchema = new mongoose.Schema(
     },
     businessDocumentation: {
       type: verificationStatusSchema,
-      required: function () {
-        return this.vendorType === 'RETAIL';
-      },
       default: undefined,
     },
     professionalLicenseVerification: {

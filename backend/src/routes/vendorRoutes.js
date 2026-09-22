@@ -86,6 +86,25 @@ router.post('/:id/verify-kyc', async (req, res) => {
   }
 });
 
+router.post('/:id/verify-kyb', async (req, res) => {
+  try {
+    const vendor = await Vendor.findById(req.params.id);
+    if (!vendor) return res.status(404).json({ error: 'Vendor not found' });
+    if (vendor.vendorType !== 'RETAIL') return res.status(400).json({ error: 'KYB verification is only available for retail vendors' });
+
+    vendor.kybVerification = {
+      status: 'VERIFIED',
+      referenceId: `MOCK_KYB_${vendor._id}`,
+      errorMessage: '',
+      updatedAt: new Date(),
+    };
+    await vendor.save();
+    return res.status(200).json({ vendor, kybVerification: vendor.kybVerification });
+  } catch (error) {
+    return res.status(500).json({ error: 'KYB verification failed', details: error.message });
+  }
+});
+
 router.post('/:id/verify-financial', async (req, res) => {
   try {
     const vendor = await Vendor.findById(req.params.id);
