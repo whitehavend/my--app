@@ -132,16 +132,21 @@ const CategoryShowcasePage = () => {
   const matchingProducts = useMemo(() => {
     const selectedSlug = toCategorySlug(selectedSubcategory);
     const allowedSlugs = selectedSlug ? [selectedSlug] : categorySlugs;
+    const selectedGroup = details.subcategories.find((group) => toCategorySlug(group.title) === selectedSlug);
+    const selectedGroupSlugs = selectedGroup
+      ? [toCategorySlug(selectedGroup.title), ...selectedGroup.items.map(toCategorySlug)]
+      : [];
 
     return products.filter((product) => {
       const productSlug = toCategorySlug(product.category);
       const productSubcategorySlug = toCategorySlug(product.subcategory);
       const belongsToParentCategory = categorySlugs.includes(productSlug);
-      return product.vendorId && belongsToParentCategory && (
-        selectedSlug ? productSubcategorySlug === selectedSlug : allowedSlugs.includes(productSlug)
-      );
+      if (!product.vendorId || !belongsToParentCategory) return false;
+      if (!selectedSlug) return allowedSlugs.includes(productSlug);
+      if (selectedGroup) return selectedGroupSlugs.includes(productSlug) || selectedGroupSlugs.includes(productSubcategorySlug);
+      return productSubcategorySlug === selectedSlug || productSlug === selectedSlug;
     });
-  }, [categorySlugs, products, selectedSubcategory]);
+  }, [categorySlugs, details, products, selectedSubcategory]);
 
   const displayedProducts = matchingProducts;
   const isShowingVendorProducts = matchingProducts.length > 0;
@@ -172,7 +177,14 @@ const CategoryShowcasePage = () => {
             <article key={group.title} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
               <div className="mb-4 flex items-center justify-between gap-2">
                 <h2 className="text-xl font-bold text-slate-900">{group.title}</h2>
-                <FiChevronRight className="h-5 w-5 text-gray-400" />
+                <button
+                  type="button"
+                  onClick={() => setSelectedSubcategory(group.title)}
+                  aria-label={`Show all ${group.title}`}
+                  className="rounded-full p-1 text-gray-400 transition hover:bg-primary/10 hover:text-primary"
+                >
+                  <FiChevronRight className="h-5 w-5" />
+                </button>
               </div>
               <div className="flex flex-wrap gap-2">
                 {group.items.map((item) => (

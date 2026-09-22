@@ -84,6 +84,11 @@ const orderSchema = new mongoose.Schema(
       default: 'pending',
       enum: ['pending', 'delivering', 'picked_up', 'delivered', 'cancelled'],
     },
+    historyExpiresAt: {
+      type: Date,
+      default: () => new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+      expires: 0,
+    },
   },
   {
     timestamps: true,

@@ -96,7 +96,13 @@ router.post('/', authMiddleware, async (req, res) => {
 
 router.get('/my-orders', authMiddleware, async (req, res) => {
   try {
-    const userOrders = await Order.find({ userId: req.user.id }).sort({ createdAt: -1 });
+    const userOrders = await Order.find({
+      userId: req.user.id,
+      $or: [
+        { historyExpiresAt: { $gt: new Date() } },
+        { historyExpiresAt: { $exists: false } },
+      ],
+    }).sort({ createdAt: -1 });
     return res.status(200).json({ orders: userOrders });
   } catch (error) {
     console.error('Fetch user orders error:', error);

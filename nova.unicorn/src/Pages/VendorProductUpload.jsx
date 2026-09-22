@@ -12,14 +12,9 @@ const countryOptions = getCountries()
 
 const vendorCategoryOptions = {
   shopvendor: [
-    { value: "smartphones", label: "Smartphones" },
-    { value: "laptops", label: "Laptops" },
-    { value: "gaming", label: "Gaming" },
-    { value: "accessories", label: "Accessories" },
-    { value: "appliances", label: "Appliances" },
-    { value: "fashion", label: "Fashion" },
     { value: "electronics-and-gadgets", label: "Electronics and gadgets" },
     { value: "home-and-lifestyle", label: "Home and lifestyle" },
+    { value: "fashion", label: "Fashion" },
     { value: "groceries", label: "Groceries" },
     { value: "beauty", label: "Beauty" },
     { value: "automobile-parts", label: "Automobile parts" },
