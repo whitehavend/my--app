@@ -118,6 +118,7 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
   const [localValidationError, setLocalValidationError] = useState("");
   const categoryOptions = vendorCategoryOptions[vendorType] || vendorCategoryOptions.shopvendor;
   const isHealthOrAgrovet = vendorType === "pharmacy" || vendorType === "agrovet";
+  const isPropertyOrVehicleVendor = vendorType === "realestate" || vendorType === "cardealer";
   const titlePlaceholder = vendorType === "pharmacy"
     ? "Example: Amoxicillin 500mg Capsules"
     : vendorType === "agrovet"
@@ -189,17 +190,17 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
 
     const payload = {
       ...formData,
-      title: formData.title || formData.brand || "Vendor listing",
+      title: formData.title || `${formData.category || "Vendor"} listing`,
       price: basePriceValue,
-      sellingMode: formData.sellingMode,
-      itemCondition: isHealthOrAgrovet ? "original" : formData.itemCondition,
+      sellingMode: isPropertyOrVehicleVendor ? "retail" : formData.sellingMode,
+      itemCondition: isHealthOrAgrovet ? "original" : (isPropertyOrVehicleVendor ? "original" : formData.itemCondition),
       retailPricingType: vendorType === "retailshopvendor" ? formData.retailPricingType : "regular",
       flashSalePrice: vendorType === "retailshopvendor" && formData.retailPricingType === "flash_sale" ? Number(formData.flashSalePrice) : null,
       flashSaleEndsAt: vendorType === "retailshopvendor" && formData.retailPricingType === "flash_sale" ? flashSaleEndsAt : null,
       salePrice: null,
       wholesalePrice: wholeSalePriceValue ? Number(wholeSalePriceValue) : null,
       compareAtPrice: formData.compareAtPrice === "" ? null : Number(formData.compareAtPrice),
-      stock: Number(formData.stock || 0),
+      stock: isPropertyOrVehicleVendor ? 0 : Number(formData.stock || 0),
       stockVolume: null,
       wholesaleVolume: wholeSaleVolumeValue ? Number(wholeSaleVolumeValue) : null,
       weight: formData.massVolume === "" ? 0 : Number(formData.massVolume),
@@ -256,10 +257,12 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="grid gap-6 md:grid-cols-2">
+          {!isPropertyOrVehicleVendor && (
           <div className="md:col-span-2">
             <label className="mb-2 block text-sm font-medium text-gray-700">Product title</label>
             <input name="title" value={formData.title} onChange={handleChange} required className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder={titlePlaceholder} />
           </div>
+          )}
 
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">Brand</label>
@@ -321,16 +324,16 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
             <input type="number" min="0" step="0.01" name="basePrice" value={formData.basePrice} onChange={handleChange} required className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="499.99" />
           </div>
 
-          <div>
+          {!isPropertyOrVehicleVendor && <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">Selling option</label>
             <select name="sellingMode" value={formData.sellingMode} onChange={handleChange} className="w-full rounded-md border border-gray-300 bg-white p-3 outline-none focus:border-primary">
               <option value="retail">Retail only</option>
               <option value="wholesale">Wholesale only</option>
               <option value="both">Retail and wholesale</option>
             </select>
-          </div>
+          </div>}
 
-          {!isHealthOrAgrovet && (
+          {!isHealthOrAgrovet && !isPropertyOrVehicleVendor && (
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">Item type</label>
               <select name="itemCondition" value={formData.itemCondition} onChange={handleChange} className="w-full rounded-md border border-gray-300 bg-white p-3 outline-none focus:border-primary">
@@ -340,10 +343,10 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
             </div>
           )}
 
-          <div>
+          {!isPropertyOrVehicleVendor && <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">Retail stock</label>
             <input type="number" min="0" name="stock" value={formData.stock} onChange={handleChange} required className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="100" />
-          </div>
+          </div>}
 
           {vendorType === "retailshopvendor" && (
             <div className="md:col-span-2 rounded-md border border-red-100 bg-red-50 p-4">
@@ -426,7 +429,7 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
 
           <div className="md:col-span-2">
             <label className="mb-2 block text-sm font-medium text-gray-700">Price details</label>
-            <input name="priceDetails" value={formData.priceDetails} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="Inclusive of VAT or free shipping over $50" />
+            <input name="priceDetails" value={formData.priceDetails} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder={isPropertyOrVehicleVendor ? "Negotiable or non-negotiable" : "Inclusive of VAT or free shipping over $50"} />
           </div>
 
           {(productError || localValidationError) && (
