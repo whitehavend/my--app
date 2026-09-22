@@ -42,6 +42,8 @@ const emptyForm = {
   premisesDoc: null,
 };
 
+const initialVendorType = new URLSearchParams(window.location.search).get("vendorType");
+
 const trackMap = {
   kycVerification: "KYC identity",
   financialGatewayVerification: "M-Pesa gateway",
@@ -204,7 +206,7 @@ function VerificationHub({ vendor, onBack }) {
 }
 
 function OnboardingPortal({ onCreated, onOpenVerification }) {
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState(() => ({ ...emptyForm, vendorType: industryOptions.some((option) => option.value === initialVendorType) ? initialVendorType : emptyForm.vendorType }));
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState(null);
   const selectedIndustry = industryOptions.find((option) => option.value === form.vendorType);

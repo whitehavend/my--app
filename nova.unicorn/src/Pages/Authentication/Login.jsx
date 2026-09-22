@@ -27,6 +27,16 @@ const vendorTypes = [
   { value: "agrovet", label: "Agrovet" },
 ];
 
+const vendorVerificationUrl = process.env.REACT_APP_VENDOR_VERIFICATION_URL || "http://localhost:5173";
+
+const novaVerifyTypeMap = {
+  retailshopvendor: "RETAIL",
+  pharmacy: "HEALTH_AGRO",
+  agrovet: "HEALTH_AGRO",
+  cardealer: "REAL_ESTATE_CAR",
+  realestate: "REAL_ESTATE_CAR",
+};
+
 const LoginPage = () => {
   const { auth, error, notify, status, user } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
@@ -220,7 +230,10 @@ const LoginPage = () => {
                 {!isLogin && selectedRole === "vendor" && (
                   <button
                     type="button"
-                    onClick={() => navigate(`/vendor/status?vendorType=${selectedVendorType || "retailshopvendor"}`)}
+                    onClick={() => {
+                      const vendorType = novaVerifyTypeMap[selectedVendorType] || "RETAIL";
+                      window.location.assign(`${vendorVerificationUrl}?vendorType=${encodeURIComponent(vendorType)}`);
+                    }}
                     className="w-full rounded-2xl border border-primary bg-white px-4 py-3 text-sm font-semibold text-primary transition hover:bg-primary/5"
                   >
                     Verify your business first
