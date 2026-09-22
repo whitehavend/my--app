@@ -38,6 +38,19 @@ const orderSchema = new mongoose.Schema(
       type: String,
       default: 'cash_on_delivery',
     },
+    paymentStatus: {
+      type: String,
+      enum: ['not_required', 'pending', 'paid', 'failed'],
+      default: 'not_required',
+    },
+    paymentReference: {
+      type: String,
+      default: '',
+    },
+    paymentError: {
+      type: String,
+      default: '',
+    },
     currency: {
       type: String,
       default: 'NGN',

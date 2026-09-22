@@ -2,6 +2,8 @@ const express = require('express');
 const authMiddleware = require('../middleware/authMiddleware');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
+const User = require('../models/User');
+const { initiateMpesaStkPush } = require('../../services/verificationService');
 
 const router = express.Router();
 
@@ -181,12 +183,61 @@ router.patch('/:id/arrived', authMiddleware, async (req, res) => {
     const order = await Order.findOne({ _id: req.params.id, userId: req.user.id });
     if (!order) return res.status(404).json({ error: 'Order not found' });
     if (order.status !== 'picked_up') return res.status(400).json({ error: 'Goods can be confirmed after pickup' });
-    order.status = 'delivered';
+
+    if (order.paymentStatus === 'paid') {
+      order.status = 'delivered';
+      await order.save();
+      return res.status(200).json({ message: 'Delivery confirmed', order });
+    }
+
+    const customer = await User.findById(req.user.id).select('phoneNumber countryCode');
+    const phoneNumber = `${customer?.countryCode || ''}${customer?.phoneNumber || ''}`.replace(/\s+/g, '');
+    if (!phoneNumber) return res.status(400).json({ error: 'A registered phone number is required before confirming delivery' });
+
+    const stkResponse = await initiateMpesaStkPush({
+      phoneNumber,
+      amount: Math.max(1, Math.round(Number(order.totalAmount || 0))),
+      accountReference: `Order-${order._id}`,
+      callbackUrl: `${String(process.env.CALLBACK_URL_BASE || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '')}/api/orders/mpesa-callback`,
+    });
+    const checkoutRequestId = stkResponse.CheckoutRequestID || stkResponse.checkoutRequestId || stkResponse.checkoutId || stkResponse.referenceId || '';
+    if (!checkoutRequestId) return res.status(502).json({ error: 'M-Pesa did not return a checkout reference' });
+
+    order.paymentMethod = 'mpesa';
+    order.paymentStatus = 'pending';
+    order.paymentReference = checkoutRequestId;
+    order.paymentError = '';
     await order.save();
-    return res.status(200).json({ message: 'Delivery confirmed', order });
+    return res.status(200).json({ message: 'M-Pesa payment prompt sent to your registered phone', paymentPending: true, order });
   } catch (error) {
     console.error('Confirm delivery error:', error);
-    return res.status(500).json({ error: 'Unable to confirm delivery' });
+    return res.status(502).json({ error: error.message || 'Unable to start M-Pesa payment' });
+  }
+});
+
+router.post('/mpesa-callback', async (req, res) => {
+  try {
+    const callback = req.body?.Body?.stkCallback || req.body?.stkCallback || req.body || {};
+    const checkoutRequestId = callback.CheckoutRequestID || callback.checkoutRequestId || callback.referenceId;
+    if (!checkoutRequestId) return res.status(400).json({ error: 'CheckoutRequestID is required' });
+
+    const order = await Order.findOne({ paymentReference: checkoutRequestId });
+    if (!order) return res.status(404).json({ error: 'Order payment not found' });
+
+    const resultCode = Number(callback.ResultCode ?? callback.resultCode);
+    if (resultCode === 0) {
+      order.paymentStatus = 'paid';
+      order.paymentError = '';
+      order.status = 'delivered';
+    } else {
+      order.paymentStatus = 'failed';
+      order.paymentError = callback.ResultDesc || callback.resultDescription || 'M-Pesa payment was not completed';
+    }
+    await order.save();
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('M-Pesa order callback error:', error);
+    return res.status(500).json({ error: 'Unable to process M-Pesa callback' });
   }
 });
 

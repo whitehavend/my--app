@@ -14,8 +14,11 @@ const Orders = () => {
     dispatch(cancelOrder(orderId));
   };
 
-  const handleConfirmArrived = (orderId) => {
-    dispatch(confirmOrderArrived(orderId));
+  const handleConfirmArrived = async (orderId) => {
+    const result = await dispatch(confirmOrderArrived(orderId));
+    if (confirmOrderArrived.fulfilled.match(result) && result.payload?.paymentPending) {
+      window.alert("An M-Pesa payment prompt has been sent to your registered phone. Complete it to confirm delivery.");
+    }
   };
 
   useEffect(() => {
@@ -53,6 +56,7 @@ const Orders = () => {
                   <p className="text-xs uppercase text-gray-500">Order ID</p>
                   <h2 className="font-semibold">{order._id || order.id}</h2>
                 </div>
+                {order.paymentStatus === "pending" && <p className="mt-2 text-xs font-medium text-amber-700">M-Pesa payment is awaiting confirmation on your phone.</p>}
                 <div>
                   <p className="text-xs uppercase text-gray-500">Status</p>
                   <h2 className={`font-semibold ${["delivering", "picked_up", "delivered"].includes(order.status) ? "text-green-600" : ""}`}>{order.status === "delivering" ? "Your product is being delivered" : order.status === "picked_up" ? "Picked up and on the way" : order.status}</h2>
@@ -78,7 +82,7 @@ const Orders = () => {
               )}
               {order.status === "picked_up" && (
                 <button type="button" onClick={() => handleConfirmArrived(order._id || order.id)} className="mt-4 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary100">
-                  Goods have arrived
+                  {order.paymentStatus === "pending" ? "Payment prompt sent" : "Confirm delivery and pay"}
                 </button>
               )}
             </div>
