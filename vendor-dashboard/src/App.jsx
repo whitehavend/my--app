@@ -22,7 +22,8 @@ import {
   WalletCards,
 } from "lucide-react";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001/api/vendors";
+const isLocalRuntime = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || (isLocalRuntime ? "http://localhost:5001/api/vendors" : "https://my-app-1-ggdw.onrender.com/api/vendors");
 const industryOptions = [
   { value: "RETAIL", label: "Retail merchant", description: "Shops, marketplaces, and general trade", icon: Store },
   { value: "HEALTH_AGRO", label: "Health & agrovet", description: "Pharmacy, veterinary, and agricultural care", icon: Activity },
