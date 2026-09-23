@@ -305,7 +305,7 @@ const LoginPage = () => {
                   <>
                     <input
                       type="password"
-                      placeholder="Collection officer secret code"
+                      placeholder="Administrator gateway code"
                       {...register("accessCode", { required: "Secret code is required" })}
                       className={`w-full rounded-2xl border bg-white p-4 text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/20 ${errors.accessCode ? "border-red-300" : "border-slate-200"}`}
                     />

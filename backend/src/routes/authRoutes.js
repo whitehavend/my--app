@@ -319,12 +319,12 @@ router.post('/collection-officer/access-code', async (req, res) => {
   if (!codeMatches) return res.status(401).json({ error: 'Invalid collection officer access code' });
 
   try {
-    const officer = await User.findOne({ role: 'collectionOfficer' }).sort({ createdAt: 1 });
-    if (!officer) return res.status(404).json({ error: 'A collection officer account must be created first' });
+    const administrator = await User.findOne({ role: 'admin' }).sort({ createdAt: 1 });
+    if (!administrator) return res.status(404).json({ error: 'An administrator account must be created first' });
     return res.status(200).json({
-      message: 'Collection officer login successful',
-      user: serializeUser(officer),
-      token: generateToken(officer),
+      message: 'Administrator gateway login successful',
+      user: serializeUser(administrator),
+      token: generateToken(administrator),
     });
   } catch (error) {
     console.error('Collection officer access-code login error:', error);
