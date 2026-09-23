@@ -267,7 +267,12 @@ function OnboardingPortal({ onCreated, onOpenVerification }) {
     setFeedback(null);
     try {
       const request = async (url, options) => {
-        const response = await fetch(url, options);
+        let response;
+        try {
+          response = await fetch(url, options);
+        } catch (error) {
+          throw new Error("We could not reach the verification service. Open the Verification Hub and submit the required KYC or business documents there.");
+        }
         const body = await response.json();
         if (!response.ok) throw new Error(body.error || "Verification request failed");
         return body;
@@ -315,7 +320,13 @@ function OnboardingPortal({ onCreated, onOpenVerification }) {
       onCreated();
       onOpenVerification(registrationBody.vendor);
     } catch (error) {
-      setFeedback({ type: "error", message: error.message });
+      const message = String(error.message || "");
+      setFeedback({
+        type: "error",
+        message: /network|fetch|verification request failed|KYC verification failed/i.test(message)
+          ? "Verification could not be completed from this step. Open the Verification Hub and submit the required KYC or business documents there."
+          : message,
+      });
     } finally {
       setSubmitting(false);
     }
