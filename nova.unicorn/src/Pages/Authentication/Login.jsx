@@ -208,6 +208,7 @@ const LoginPage = () => {
                       <option value="logistic">Logistic</option>
                       <option value="blackmarket">Black market</option>
                       <option value="collectionOfficer">Collection officer</option>
+                      <option value="adminGateway">Administrator gateway</option>
                     </select>
                     {errors.role && <p className="mt-1 text-xs text-red-500">{errors.role.message}</p>}
                   </div>
@@ -256,10 +257,6 @@ const LoginPage = () => {
                         <input type="radio" value="advert" {...register("role")} />
                         Advert
                       </label>
-                      <label className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700">
-                        <input type="radio" value="logistic" {...register("role")} />
-                        Logistic
-                      </label>
                       <label className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 sm:col-span-2">
                         <input type="radio" value="blackmarket" {...register("role")} />
                         Black market
@@ -301,7 +298,7 @@ const LoginPage = () => {
                   </>
                 )}
 
-                {isLogin && selectedRole === "collectionOfficer" ? (
+                {isLogin && selectedRole === "adminGateway" ? (
                   <>
                     <input
                       type="password"
@@ -399,7 +396,7 @@ const LoginPage = () => {
                 {!isLogin && selectedRole === "logistic" && <CountryPhoneField register={register} errors={errors} />}
                 {!isLogin && ["customer", "blackmarket"].includes(selectedRole) && <CountryPhoneField register={register} errors={errors} />}
 
-                {!(isLogin && selectedRole === "collectionOfficer") && <div className="relative">
+                {!(isLogin && selectedRole === "adminGateway") && <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
                     placeholder="Password"
@@ -416,7 +413,7 @@ const LoginPage = () => {
                     {showPassword ? <HiEyeOff className="h-5 w-5" /> : <HiEye className="h-5 w-5" />}
                   </button>
                 </div>}
-                {!(isLogin && selectedRole === "collectionOfficer") && errors.password && <p className="text-xs text-red-500">{errors.password.message}</p>}
+                {!(isLogin && selectedRole === "adminGateway") && errors.password && <p className="text-xs text-red-500">{errors.password.message}</p>}
 
                 <button
                   type="submit"

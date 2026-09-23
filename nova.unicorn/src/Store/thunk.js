@@ -68,7 +68,7 @@ export const handleLogin = createAsyncThunk(
     const normalizedEmail = normalizeEmailForRequest(email);
 
     try {
-      if (role === "collectionOfficer") {
+      if (role === "adminGateway") {
         const response = await axios.post(`${apiBaseUrl}/auth/collection-officer/access-code`, { accessCode });
         if (response.data?.token) localStorage.setItem("unicorn_token", response.data.token);
         return response.data;

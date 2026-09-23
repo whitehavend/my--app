@@ -141,7 +141,7 @@ router.post('/signup', async (req, res) => {
     return res.status(400).json({ error: 'Please enter a valid email address' });
   }
 
-  if (!['customer', 'vendor', 'advert', 'logistic', 'blackmarket'].includes(role)) {
+  if (!['customer', 'vendor', 'advert', 'blackmarket'].includes(role)) {
     return res.status(400).json({ error: 'This role cannot be created through public signup' });
   }
 
@@ -304,6 +304,44 @@ router.post('/collection-officers', authMiddleware, requireAdmin, async (req, re
     if (error && error.code === 11000) return res.status(409).json({ error: 'User already exists' });
     console.error('Create collection officer error:', error);
     return res.status(500).json({ error: 'Unable to create collection officer account' });
+  }
+});
+
+router.post('/logistics', authMiddleware, requireAdmin, async (req, res) => {
+  const { firstName, secondName, username, email, password, phoneNumber = '', countryCode = '' } = req.body;
+  const normalizedEmail = normalizeEmail(email);
+
+  if (!firstName || !secondName || !username || !normalizedEmail || !password) {
+    return res.status(400).json({ error: 'First name, second name, username, email, and password are required' });
+  }
+
+  if (!isValidEmail(normalizedEmail)) {
+    return res.status(400).json({ error: 'Please enter a valid email address' });
+  }
+
+  try {
+    const existingUser = await getUserByEmail(normalizedEmail);
+    if (existingUser) return res.status(409).json({ error: 'User already exists' });
+
+    const logistic = await createUserRecord({
+      firstName: String(firstName).trim(),
+      secondName: String(secondName).trim(),
+      fullName: `${String(firstName).trim()} ${String(secondName).trim()}`,
+      username: String(username).trim(),
+      email: normalizedEmail,
+      password: await bcrypt.hash(String(password), 10),
+      role: 'logistic',
+      phoneNumber: String(phoneNumber).replace(/\s+/g, '').trim(),
+      countryCode: String(countryCode).trim(),
+      isApproved: true,
+      logisticAvailable: false,
+    });
+
+    return res.status(201).json({ message: 'Logistic account created successfully', user: serializeUser(logistic) });
+  } catch (error) {
+    if (error && error.code === 11000) return res.status(409).json({ error: 'User already exists' });
+    console.error('Create logistic error:', error);
+    return res.status(500).json({ error: 'Unable to create logistic account' });
   }
 });
 
