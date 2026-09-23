@@ -60,7 +60,7 @@ const LoginPage = () => {
     if (notify) {
       setTimeout(() => {
         dispatch(resetNotify());
-        navigate(user?.role === "vendor" ? `/vendor/${user.vendorType || "retailshopvendor"}` : user?.role === "blackmarket" ? "/blackmarket" : user?.role === "admin" ? "/admin/vendors" : `/${user?.role || "customer"}`);
+        navigate(user?.role === "vendor" ? `/vendor/${user.vendorType || "retailshopvendor"}` : user?.role === "blackmarket" ? "/blackmarket" : user?.role === "admin" ? "/collection-officer" : user?.role === "collectionOfficer" ? "/admin/vendors" : `/${user?.role || "customer"}`);
       }, 1000); 
     }
   }, [notify, dispatch, navigate, user]);
@@ -207,7 +207,7 @@ const LoginPage = () => {
                       <option value="advert">Advert</option>
                       <option value="logistic">Logistic</option>
                       <option value="blackmarket">Black market</option>
-                      <option value="admin">Administrator</option>
+                      <option value="collectionOfficer">Collection officer</option>
                     </select>
                     {errors.role && <p className="mt-1 text-xs text-red-500">{errors.role.message}</p>}
                   </div>
@@ -301,13 +301,27 @@ const LoginPage = () => {
                   </>
                 )}
 
-                <input
-                  type="email"
-                  placeholder="Email address"
-                  {...register("email", { required: "Email is required", pattern: { value: /^\S+@\S+$/i, message: "Invalid email format" } })}
-                  className={`w-full rounded-2xl border bg-white p-4 text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/20 ${errors.email ? "border-red-300" : "border-slate-200"}`}
-                />
-                {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
+                {isLogin && selectedRole === "collectionOfficer" ? (
+                  <>
+                    <input
+                      type="password"
+                      placeholder="Collection officer secret code"
+                      {...register("accessCode", { required: "Secret code is required" })}
+                      className={`w-full rounded-2xl border bg-white p-4 text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/20 ${errors.accessCode ? "border-red-300" : "border-slate-200"}`}
+                    />
+                    {errors.accessCode && <p className="text-xs text-red-500">{errors.accessCode.message}</p>}
+                  </>
+                ) : (
+                  <>
+                    <input
+                      type="email"
+                      placeholder="Email address"
+                      {...register("email", { required: "Email is required", pattern: { value: /^\S+@\S+$/i, message: "Invalid email format" } })}
+                      className={`w-full rounded-2xl border bg-white p-4 text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/20 ${errors.email ? "border-red-300" : "border-slate-200"}`}
+                    />
+                    {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
+                  </>
+                )}
 
                 {!isLogin && selectedRole === "vendor" && (
                   <>
@@ -385,7 +399,7 @@ const LoginPage = () => {
                 {!isLogin && selectedRole === "logistic" && <CountryPhoneField register={register} errors={errors} />}
                 {!isLogin && ["customer", "blackmarket"].includes(selectedRole) && <CountryPhoneField register={register} errors={errors} />}
 
-                <div className="relative">
+                {!(isLogin && selectedRole === "collectionOfficer") && <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
                     placeholder="Password"
@@ -401,8 +415,8 @@ const LoginPage = () => {
                   >
                     {showPassword ? <HiEyeOff className="h-5 w-5" /> : <HiEye className="h-5 w-5" />}
                   </button>
-                </div>
-                {errors.password && <p className="text-xs text-red-500">{errors.password.message}</p>}
+                </div>}
+                {!(isLogin && selectedRole === "collectionOfficer") && errors.password && <p className="text-xs text-red-500">{errors.password.message}</p>}
 
                 <button
                   type="submit"

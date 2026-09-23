@@ -23,6 +23,7 @@ import AdvertPage from "./Pages/AdvertPage";
 import LogisticPage from "./Pages/LogisticPage";
 import SavedItems from "./Pages/SavedItems";
 import CategoryShowcasePage from "./Pages/CategoryShowcasePage";
+import CollectionOfficerPage from "./Pages/CollectionOfficerPage";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -55,12 +56,13 @@ function App() {
         <Route path="/vendor/help" element={<ProtectedRoleRoute role="vendor"><VendorPage><VendorHelp /></VendorPage></ProtectedRoleRoute>} />
         <Route path="/advert" element={<ProtectedRoleRoute role="advert"><AdvertPage /></ProtectedRoleRoute>} />
         <Route path="/logistic" element={<ProtectedRoleRoute role="logistic"><LogisticPage /></ProtectedRoleRoute>} />
+        <Route path="/collection-officer" element={<ProtectedRoleRoute role="admin"><AdminVendors /></ProtectedRoleRoute>} />
         <Route path="/:productName" element={<Product />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/orders" element={<Orders />} />
         <Route path="/account" element={<Account />} />
-        <Route path="/admin/vendors" element={<ProtectedRoleRoute role="admin"><AdminVendors /></ProtectedRoleRoute>} />
+        <Route path="/admin/vendors" element={<ProtectedRoleRoute role="collectionOfficer"><CollectionOfficerPage /></ProtectedRoleRoute>} />
       </Routes>
       <Footer />
     </Router>

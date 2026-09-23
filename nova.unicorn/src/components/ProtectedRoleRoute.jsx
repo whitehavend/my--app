@@ -14,7 +14,7 @@ const ProtectedRoleRoute = ({ role, vendorType, children }) => {
   }
 
   if (user.role !== role) {
-    return <Navigate to={user.role === "admin" ? "/admin/vendors" : `/${user.role}`} replace />;
+    return <Navigate to={user.role === "admin" ? "/collection-officer" : user.role === "collectionOfficer" ? "/admin/vendors" : `/${user.role}`} replace />;
   }
 
   if (role === "vendor" && vendorType && user.vendorType !== vendorType) {

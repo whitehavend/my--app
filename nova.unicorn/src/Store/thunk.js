@@ -64,10 +64,16 @@ export const handleLogin = createAsyncThunk(
   "handleLogin",
   async ({ data }, thunkAPI) => {
     const payload = data?.data ?? data;
-    const { email, password, role = "customer", vendorType = "" } = payload || {};
+    const { email, password, role = "customer", vendorType = "", accessCode = "" } = payload || {};
     const normalizedEmail = normalizeEmailForRequest(email);
 
     try {
+      if (role === "collectionOfficer") {
+        const response = await axios.post(`${apiBaseUrl}/auth/collection-officer/access-code`, { accessCode });
+        if (response.data?.token) localStorage.setItem("unicorn_token", response.data.token);
+        return response.data;
+      }
+
       const response = await axios.post(
         `${apiBaseUrl}/auth/login`,
         { email: normalizedEmail, password, role, vendorType }

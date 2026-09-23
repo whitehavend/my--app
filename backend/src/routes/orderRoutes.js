@@ -7,6 +7,13 @@ const { initiateMpesaStkPush } = require('../../services/verificationService');
 
 const router = express.Router();
 
+const requireCollectionOfficer = (req, res, next) => {
+  if (req.user?.role !== 'collectionOfficer') {
+    return res.status(403).json({ error: 'Collection officer access is required' });
+  }
+  return next();
+};
+
 router.post('/', authMiddleware, async (req, res) => {
   const { items, totalAmount, shippingAddress, paymentMethod } = req.body;
 
@@ -122,6 +129,70 @@ router.get('/vendor', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error('Fetch vendor orders error:', error);
     return res.status(500).json({ error: 'Unable to fetch fulfillment orders' });
+  }
+});
+
+router.get('/collection-officer', authMiddleware, requireCollectionOfficer, async (req, res) => {
+  try {
+    const [orders, logistics] = await Promise.all([
+      Order.find({
+        $or: [
+          { historyExpiresAt: { $gt: new Date() } },
+          { historyExpiresAt: { $exists: false } },
+        ],
+      }).sort({ createdAt: -1 }).lean(),
+      User.find({ role: 'logistic', logisticAvailable: true })
+        .select('fullName phoneNumber countryCode email logisticAvailable')
+        .sort({ fullName: 1 })
+        .lean(),
+    ]);
+
+    const customerIds = [...new Set(orders.map((order) => String(order.userId)))];
+    const customers = await User.find({ _id: { $in: customerIds } }).select('fullName email phoneNumber countryCode').lean();
+    const customersById = new Map(customers.map((customer) => [String(customer._id), customer]));
+
+    return res.status(200).json({
+      orders: orders.map((order) => ({ ...order, customer: customersById.get(String(order.userId)) || null })),
+      logistics,
+    });
+  } catch (error) {
+    console.error('Fetch collection officer data error:', error);
+    return res.status(500).json({ error: 'Unable to fetch collection officer data' });
+  }
+});
+
+router.post('/collection-officer/:orderId/assign-logistic', authMiddleware, requireCollectionOfficer, async (req, res) => {
+  try {
+    const logisticId = String(req.body.logisticId || '');
+    const [order, logistic] = await Promise.all([
+      Order.findById(req.params.orderId),
+      User.findOne({ _id: logisticId, role: 'logistic', logisticAvailable: true }),
+    ]);
+
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+    if (!logistic) return res.status(404).json({ error: 'Available logistic not found' });
+    if (!['pending', 'delivering'].includes(order.status)) {
+      return res.status(400).json({ error: 'Only pending or delivering orders can be assigned' });
+    }
+
+    const alreadyAssigned = logistic.logisticRequests.some((request) => (
+      String(request.orderId) === String(order._id) && !['rejected', 'delivered'].includes(request.status)
+    ));
+    if (alreadyAssigned) return res.status(409).json({ error: 'This order is already assigned to this logistic' });
+
+    logistic.logisticRequests.push({
+      orderId: String(order._id),
+      customerId: String(order.userId),
+      vendorFullName: 'Collection officer assignment',
+      vendorShopName: 'Nova Unicorn collection desk',
+      vendorShopAddress: order.shippingAddress?.address || order.shippingAddress?.deliveryAddress || '',
+    });
+    await logistic.save();
+
+    return res.status(201).json({ message: 'Order assigned to logistic successfully', logisticId: String(logistic._id) });
+  } catch (error) {
+    console.error('Assign collection order error:', error);
+    return res.status(500).json({ error: 'Unable to assign order to logistic' });
   }
 });
 

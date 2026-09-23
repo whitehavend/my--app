@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const { cert, getApps, initializeApp } = require('firebase-admin/app');
 const { getAuth } = require('firebase-admin/auth');
 const authMiddleware = require('../middleware/authMiddleware');
@@ -266,6 +267,68 @@ router.post('/signup', async (req, res) => {
 
     console.error('Signup error:', error);
     return res.status(500).json({ error: 'Unable to create user', details: error.message });
+  }
+});
+
+router.post('/collection-officers', authMiddleware, requireAdmin, async (req, res) => {
+  const { firstName, secondName, username, email, password, phoneNumber = '', countryCode = '' } = req.body;
+  const normalizedEmail = normalizeEmail(email);
+
+  if (!firstName || !secondName || !username || !normalizedEmail || !password) {
+    return res.status(400).json({ error: 'First name, second name, username, email, and password are required' });
+  }
+
+  if (!isValidEmail(normalizedEmail)) {
+    return res.status(400).json({ error: 'Please enter a valid email address' });
+  }
+
+  try {
+    const existingUser = await getUserByEmail(normalizedEmail);
+    if (existingUser) return res.status(409).json({ error: 'User already exists' });
+
+    const officer = await createUserRecord({
+      firstName: String(firstName).trim(),
+      secondName: String(secondName).trim(),
+      fullName: `${String(firstName).trim()} ${String(secondName).trim()}`,
+      username: String(username).trim(),
+      email: normalizedEmail,
+      password: await bcrypt.hash(String(password), 10),
+      role: 'collectionOfficer',
+      phoneNumber: String(phoneNumber).replace(/\s+/g, '').trim(),
+      countryCode: String(countryCode).trim(),
+      isApproved: true,
+    });
+
+    return res.status(201).json({ message: 'Collection officer account created successfully', user: serializeUser(officer) });
+  } catch (error) {
+    if (error && error.code === 11000) return res.status(409).json({ error: 'User already exists' });
+    console.error('Create collection officer error:', error);
+    return res.status(500).json({ error: 'Unable to create collection officer account' });
+  }
+});
+
+router.post('/collection-officer/access-code', async (req, res) => {
+  const configuredCode = String(process.env.COLLECTION_OFFICER_ACCESS_CODE || '');
+  const submittedCode = String(req.body.accessCode || '');
+
+  if (!configuredCode) return res.status(503).json({ error: 'Collection officer access code is not configured' });
+  const configuredBuffer = Buffer.from(configuredCode);
+  const submittedBuffer = Buffer.from(submittedCode);
+  const codeMatches = configuredBuffer.length === submittedBuffer.length
+    && crypto.timingSafeEqual(configuredBuffer, submittedBuffer);
+  if (!codeMatches) return res.status(401).json({ error: 'Invalid collection officer access code' });
+
+  try {
+    const officer = await User.findOne({ role: 'collectionOfficer' }).sort({ createdAt: 1 });
+    if (!officer) return res.status(404).json({ error: 'A collection officer account must be created first' });
+    return res.status(200).json({
+      message: 'Collection officer login successful',
+      user: serializeUser(officer),
+      token: generateToken(officer),
+    });
+  } catch (error) {
+    console.error('Collection officer access-code login error:', error);
+    return res.status(500).json({ error: 'Unable to log in as collection officer' });
   }
 });
 
