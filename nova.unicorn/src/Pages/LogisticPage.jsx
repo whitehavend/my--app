@@ -105,6 +105,9 @@ const LogisticPage = () => {
                 <Link to="/orders" className="rounded-full bg-white px-5 py-3 text-sm font-bold text-emerald-900 transition hover:bg-emerald-50">
                   View deliveries
                 </Link>
+                <Link to="/logistic/drop-offs" className="rounded-full border border-emerald-200 bg-emerald-300 px-5 py-3 text-sm font-bold text-emerald-950 transition hover:bg-emerald-200">
+                  Where to drop off items
+                </Link>
                 <Link to="/vendor/help" className="rounded-full border border-white/20 bg-white/5 px-5 py-3 text-sm font-bold text-white transition hover:bg-white/10">
                   Safety tips
                 </Link>

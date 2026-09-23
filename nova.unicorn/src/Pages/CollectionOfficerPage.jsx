@@ -14,6 +14,7 @@ const CollectionOfficerPage = () => {
   const [selectedLogistics, setSelectedLogistics] = useState({});
   const [assigningOrder, setAssigningOrder] = useState("");
   const [assignmentMessage, setAssignmentMessage] = useState("");
+  const [pinningOrder, setPinningOrder] = useState("");
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState("");
 
@@ -62,6 +63,35 @@ const CollectionOfficerPage = () => {
     }
   };
 
+  const pinOrderLocation = async (orderId) => {
+    if (!navigator.geolocation) {
+      setAssignmentMessage("Location services are not available in this browser.");
+      return;
+    }
+    setPinningOrder(orderId);
+    setAssignmentMessage("");
+    navigator.geolocation.getCurrentPosition(async (position) => {
+      try {
+        const response = await fetch(`${apiBaseUrl}/orders/collection-officer/${orderId}/drop-off-location`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json", ...tokenHeaders() },
+          body: JSON.stringify({ latitude: position.coords.latitude, longitude: position.coords.longitude }),
+        });
+        const body = await response.json();
+        if (!response.ok) throw new Error(body.error || "Unable to save drop-off location");
+        setAssignmentMessage(`Drop-off location saved for order ${orderId}.`);
+        await loadData();
+      } catch (pinError) {
+        setAssignmentMessage(pinError.message);
+      } finally {
+        setPinningOrder("");
+      }
+    }, () => {
+      setAssignmentMessage("Allow location access so the drop-off point can be pinned.");
+      setPinningOrder("");
+    });
+  };
+
   const filteredOrders = useMemo(() => orders.filter((order) => {
     const query = orderQuery.trim().toLowerCase();
     return !query || String(order._id || "").toLowerCase().includes(query);
@@ -96,7 +126,7 @@ const CollectionOfficerPage = () => {
           <section className="rounded-2xl bg-white p-5 shadow-sm sm:p-6">
             <div className="flex flex-wrap items-start justify-between gap-4 border-b border-gray-100 pb-5"><div><p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700">Customer orders</p><h2 className="mt-1 text-2xl font-bold text-gray-900">Order lookup</h2></div><span className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-bold text-emerald-700">{filteredOrders.length} shown</span></div>
             <div className="relative mt-5"><FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" /><input value={orderQuery} onChange={(event) => setOrderQuery(event.target.value)} placeholder="Search by order ID" className="w-full rounded-xl border border-gray-200 py-3 pl-10 pr-3 text-sm outline-none focus:border-emerald-600" /></div>
-            <div className="mt-5 space-y-3">{status !== "loading" && !filteredOrders.length && <p className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-8 text-center text-sm text-gray-500">No customer orders match this order ID.</p>}{filteredOrders.map((order) => <article key={order._id} className="rounded-xl border border-gray-100 p-4"><div className="flex flex-col justify-between gap-2 sm:flex-row"><div><p className="font-bold text-gray-900">Order {order._id}</p><p className="mt-1 text-sm text-gray-500">Customer: {order.customer?.fullName || order.customer?.email || "Customer details unavailable"}</p></div><span className="h-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-bold capitalize text-slate-700">{order.status}</span></div><div className="mt-3 grid gap-2 text-sm text-gray-600 sm:grid-cols-3"><p>Total: {order.currency} {Number(order.totalAmount || 0).toLocaleString()}</p><p>Payment: <span className="capitalize">{String(order.paymentStatus || "not_required").replaceAll("_", " ")}</span></p><p>Items: {order.items?.reduce((total, item) => total + Number(item.quantity || 0), 0) || 0}</p></div><div className="mt-4 flex flex-col gap-2 border-t border-gray-100 pt-4 sm:flex-row"><select value={selectedLogistics[order._id] || ""} onChange={(event) => setSelectedLogistics((current) => ({ ...current, [order._id]: event.target.value }))} className="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white p-3 text-sm"><option value="">Choose an available logistic</option>{filteredLogistics.map((logistic) => <option key={logistic._id} value={logistic._id}>{logistic.fullName} - {logistic.phoneNumber}</option>)}</select><button type="button" disabled={!selectedLogistics[order._id] || assigningOrder === order._id} onClick={() => assignLogistic(order._id)} className="rounded-xl bg-emerald-700 px-4 py-3 text-sm font-bold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50">{assigningOrder === order._id ? "Assigning..." : "Assign logistic"}</button></div></article>)}</div>
+            <div className="mt-5 space-y-3">{status !== "loading" && !filteredOrders.length && <p className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-8 text-center text-sm text-gray-500">No customer orders match this order ID.</p>}{filteredOrders.map((order) => <article key={order._id} className="rounded-xl border border-gray-100 p-4"><div className="flex flex-col justify-between gap-2 sm:flex-row"><div><p className="font-bold text-gray-900">Order {order._id}</p><p className="mt-1 text-sm text-gray-500">Customer: {order.customer?.fullName || order.customer?.email || "Customer details unavailable"}</p></div><span className="h-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-bold capitalize text-slate-700">{order.status}</span></div><div className="mt-3 grid gap-2 text-sm text-gray-600 sm:grid-cols-3"><p>Total: {order.currency} {Number(order.totalAmount || 0).toLocaleString()}</p><p>Payment: <span className="capitalize">{String(order.paymentStatus || "not_required").replaceAll("_", " ")}</span></p><p>Items: {order.items?.reduce((total, item) => total + Number(item.quantity || 0), 0) || 0}</p></div><div className="mt-4 flex flex-wrap gap-2 border-t border-gray-100 pt-4"><button type="button" onClick={() => pinOrderLocation(order._id)} disabled={pinningOrder === order._id} className="rounded-xl border border-rose-200 px-4 py-3 text-sm font-bold text-rose-700 disabled:opacity-50">{pinningOrder === order._id ? "Pinning..." : "Pin drop-off location"}</button>{order.shippingAddress?.googleMapsUrl && <a href={order.shippingAddress.googleMapsUrl} target="_blank" rel="noreferrer" className="rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-700">Open current pin</a>}<select value={selectedLogistics[order._id] || ""} onChange={(event) => setSelectedLogistics((current) => ({ ...current, [order._id]: event.target.value }))} className="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white p-3 text-sm"><option value="">Choose an available logistic</option>{filteredLogistics.map((logistic) => <option key={logistic._id} value={logistic._id}>{logistic.fullName} - {logistic.phoneNumber}</option>)}</select><button type="button" disabled={!selectedLogistics[order._id] || assigningOrder === order._id} onClick={() => assignLogistic(order._id)} className="rounded-xl bg-emerald-700 px-4 py-3 text-sm font-bold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50">{assigningOrder === order._id ? "Assigning..." : "Assign logistic"}</button></div></article>)}</div>
           </section>
 
           <section className="rounded-2xl bg-white p-5 shadow-sm sm:p-6">

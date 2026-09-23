@@ -86,6 +86,8 @@ const getDefaultForm = (selectedVendorType = "retailshopvendor") => ({
   price: "",
   sellingMode: "retail",
   itemCondition: "generic",
+  isFragile: false,
+  isHighValue: false,
   retailPricingType: "regular",
   flashSalePrice: "",
   flashSaleDuration: "",
@@ -340,6 +342,11 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
                 <option value="generic">Generic</option>
                 <option value="original">Original</option>
               </select>
+              <div className="mt-4 space-y-3 rounded-md border border-gray-200 bg-gray-50 p-4">
+                <p className="text-sm font-medium text-gray-700">Handling information</p>
+                <label className="flex items-center gap-3 text-sm text-gray-700"><input type="checkbox" name="isFragile" checked={formData.isFragile} onChange={(event) => setFormData((prev) => ({ ...prev, isFragile: event.target.checked }))} className="h-4 w-4" />Fragile item</label>
+                <label className="flex items-center gap-3 text-sm text-gray-700"><input type="checkbox" name="isHighValue" checked={formData.isHighValue} onChange={(event) => setFormData((prev) => ({ ...prev, isHighValue: event.target.checked }))} className="h-4 w-4" />High-value item</label>
+              </div>
             </div>
           )}
 

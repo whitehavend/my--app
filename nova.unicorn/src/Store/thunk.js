@@ -125,7 +125,7 @@ export const handleSignup = createAsyncThunk(
     try {
       const response = await axios.post(
         `${apiBaseUrl}/auth/signup`,
-        { firstName, secondName, username, email: normalizedEmail, password, role, vendorType, shopName, phoneNumber, businessName, countryCode, advertSocials: selectedAdvertSocials, deliveryAddress, shopAddress }
+        { firstName, secondName, username, email: normalizedEmail, password, role, vendorType, shopName, phoneNumber, businessName, countryCode, advertSocials: selectedAdvertSocials, deliveryAddress, shopAddress, verificationCode: payload.verificationCode }
       );
 
       if (response.data?.token) {
@@ -137,6 +137,19 @@ export const handleSignup = createAsyncThunk(
       return thunkAPI.rejectWithValue(
         error.response?.data?.error || error.message || "Signup failed"
       );
+    }
+  }
+);
+
+export const requestSignupVerificationCode = createAsyncThunk(
+  "requestSignupVerificationCode",
+  async ({ data }, thunkAPI) => {
+    const payload = data?.data ?? data;
+    try {
+      const response = await axios.post(`${apiBaseUrl}/auth/signup/request-code`, payload);
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.error || error.message || "Unable to send verification code");
     }
   }
 );

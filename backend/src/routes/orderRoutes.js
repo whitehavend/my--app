@@ -186,6 +186,10 @@ router.post('/collection-officer/:orderId/assign-logistic', authMiddleware, requ
       vendorFullName: 'Collection officer assignment',
       vendorShopName: 'Nova Unicorn collection desk',
       vendorShopAddress: order.shippingAddress?.address || order.shippingAddress?.deliveryAddress || '',
+      dropOffAddress: order.shippingAddress?.address || '',
+      dropOffLatitude: Number(order.shippingAddress?.latitude),
+      dropOffLongitude: Number(order.shippingAddress?.longitude),
+      dropOffGoogleMapsUrl: order.shippingAddress?.googleMapsUrl || '',
     });
     await logistic.save();
 
@@ -193,6 +197,31 @@ router.post('/collection-officer/:orderId/assign-logistic', authMiddleware, requ
   } catch (error) {
     console.error('Assign collection order error:', error);
     return res.status(500).json({ error: 'Unable to assign order to logistic' });
+  }
+});
+
+router.patch('/collection-officer/:orderId/drop-off-location', authMiddleware, requireCollectionOfficer, async (req, res) => {
+  const latitude = Number(req.body.latitude);
+  const longitude = Number(req.body.longitude);
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+    return res.status(400).json({ error: 'A valid drop-off location is required' });
+  }
+
+  try {
+    const order = await Order.findById(req.params.orderId);
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+    order.shippingAddress = {
+      ...(order.shippingAddress || {}),
+      address: String(req.body.address || order.shippingAddress?.address || '').trim(),
+      latitude,
+      longitude,
+      googleMapsUrl: `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`,
+    };
+    await order.save();
+    return res.status(200).json({ message: 'Drop-off location saved', order });
+  } catch (error) {
+    console.error('Save collection drop-off location error:', error);
+    return res.status(500).json({ error: 'Unable to save drop-off location' });
   }
 });
 

@@ -7,6 +7,7 @@ const { cert, getApps, initializeApp } = require('firebase-admin/app');
 const { getAuth } = require('firebase-admin/auth');
 const authMiddleware = require('../middleware/authMiddleware');
 const User = require('../models/User');
+const PendingSignup = require('../models/PendingSignup');
 const SettlementInfo = require('../models/SettlementInfo');
 const { isValidPhoneForCountry } = require('../utils/phoneValidation');
 const { normalizeEmail, isValidEmail } = require('../utils/emailValidation');
@@ -14,6 +15,7 @@ const {
   getRequiredVerificationChecks,
   validateVendorPreAccountRequirements,
 } = require('../utils/vendorCompliance');
+const { sendRegistrationCode } = require('../utils/emailVerification');
 
 const router = express.Router();
 const vendorTypes = ['retailshopvendor', 'cardealer', 'realestate', 'pharmacy', 'agrovet'];
@@ -111,6 +113,36 @@ const serializeUser = (user) => ({
     : {},
 });
 
+router.post('/signup/request-code', async (req, res) => {
+  const { email, role = 'customer' } = req.body;
+  const normalizedEmail = normalizeEmail(email);
+  const publicRoles = ['customer', 'vendor', 'advert', 'blackmarket'];
+
+  if (!normalizedEmail || !isValidEmail(normalizedEmail)) return res.status(400).json({ error: 'Please enter a valid email address' });
+  if (!publicRoles.includes(role)) return res.status(400).json({ error: 'This account type requires administrator creation' });
+
+  try {
+    if (await getUserByEmail(normalizedEmail)) return res.status(409).json({ error: 'User already exists' });
+    const code = String(crypto.randomInt(100000, 1000000));
+    await PendingSignup.findOneAndUpdate(
+      { email: normalizedEmail },
+      {
+        email: normalizedEmail,
+        verificationCodeHash: crypto.createHash('sha256').update(code).digest('hex'),
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+        registration: { ...req.body, email: normalizedEmail, password: undefined },
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true },
+    );
+    await sendRegistrationCode(normalizedEmail, code);
+    return res.status(200).json({ message: 'Verification code sent to your email' });
+  } catch (error) {
+    if (error.message === 'EMAIL_DELIVERY_NOT_CONFIGURED') return res.status(503).json({ error: 'Email delivery is not configured' });
+    console.error('Send registration code error:', error);
+    return res.status(500).json({ error: 'Unable to send verification code' });
+  }
+});
+
 router.post('/signup', async (req, res) => {
   const {
     firstName,
@@ -127,6 +159,7 @@ router.post('/signup', async (req, res) => {
     shopAddress,
     countryCode,
     advertSocials = {},
+    verificationCode = '',
     verification = {},
     settlementInfo,
   } = req.body;
@@ -143,10 +176,6 @@ router.post('/signup', async (req, res) => {
 
   if (!['customer', 'vendor', 'advert', 'blackmarket'].includes(role)) {
     return res.status(400).json({ error: 'This role cannot be created through public signup' });
-  }
-
-  if (role === 'vendor' && !vendorTypes.includes(vendorType)) {
-    return res.status(400).json({ error: 'Choose a valid vendor type' });
   }
 
   if (!phoneNumber || !countryCode) {
@@ -211,6 +240,13 @@ router.post('/signup', async (req, res) => {
       throw error;
     }
 
+    if (!verificationCode) return res.status(428).json({ error: 'Verify your email before creating this account' });
+    const pendingSignup = await PendingSignup.findOne({ email: normalizedEmail });
+    const submittedCodeHash = crypto.createHash('sha256').update(String(verificationCode).trim()).digest('hex');
+    if (!pendingSignup || pendingSignup.expiresAt <= new Date() || pendingSignup.verificationCodeHash !== submittedCodeHash) {
+      return res.status(400).json({ error: 'The email verification code is invalid or expired' });
+    }
+
     const vendorVerificationRequired = role === 'vendor' ? getRequiredVerificationChecks(vendorType) : [];
     const settlementRecord = role === 'vendor' && settlementInfo ? await SettlementInfo.create({
       vendorType: String(vendorType).trim(),
@@ -254,6 +290,7 @@ router.post('/signup', async (req, res) => {
     };
 
     const newUser = await createUserRecord(userData);
+    await PendingSignup.deleteOne({ _id: pendingSignup._id });
 
     return res.status(201).json({
       message: role === 'vendor' ? 'Vendor registration submitted successfully' : role === 'advert' ? 'Advert account created successfully' : role === 'logistic' ? 'Logistic account created successfully' : role === 'blackmarket' ? 'Black market account created successfully' : 'User created successfully',

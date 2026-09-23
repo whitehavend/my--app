@@ -48,6 +48,14 @@ const productSchema = new mongoose.Schema(
       enum: ['generic', 'original'],
       default: 'generic',
     },
+    isFragile: {
+      type: Boolean,
+      default: false,
+    },
+    isHighValue: {
+      type: Boolean,
+      default: false,
+    },
     retailPricingType: {
       type: String,
       enum: ['regular', 'flash_sale'],

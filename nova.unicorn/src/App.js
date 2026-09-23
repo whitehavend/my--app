@@ -21,6 +21,7 @@ import VendorVerificationStatus from "./Pages/VendorVerificationStatus";
 import BlackMarketPage from "./Pages/BlackMarketPage";
 import AdvertPage from "./Pages/AdvertPage";
 import LogisticPage from "./Pages/LogisticPage";
+import LogisticDropOffPage from "./Pages/LogisticDropOffPage";
 import SavedItems from "./Pages/SavedItems";
 import CategoryShowcasePage from "./Pages/CategoryShowcasePage";
 import CollectionOfficerPage from "./Pages/CollectionOfficerPage";
@@ -56,6 +57,7 @@ function App() {
         <Route path="/vendor/help" element={<ProtectedRoleRoute role="vendor"><VendorPage><VendorHelp /></VendorPage></ProtectedRoleRoute>} />
         <Route path="/advert" element={<ProtectedRoleRoute role="advert"><AdvertPage /></ProtectedRoleRoute>} />
         <Route path="/logistic" element={<ProtectedRoleRoute role="logistic"><LogisticPage /></ProtectedRoleRoute>} />
+        <Route path="/logistic/drop-offs" element={<ProtectedRoleRoute role="logistic"><LogisticDropOffPage /></ProtectedRoleRoute>} />
         <Route path="/collection-officer" element={<ProtectedRoleRoute role="admin"><AdminVendors /></ProtectedRoleRoute>} />
         <Route path="/:productName" element={<Product />} />
         <Route path="/cart" element={<Cart />} />

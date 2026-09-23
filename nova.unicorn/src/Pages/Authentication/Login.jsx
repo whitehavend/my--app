@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../Store/hooks";
-import { handleGoogleLogin, handleLogin, handleSignup } from "../../Store/thunk";
+import { handleGoogleLogin, handleLogin, handleSignup, requestSignupVerificationCode } from "../../Store/thunk";
 import Alert from "../../components/Alert";
 import { resetNotify } from "../../Store/auth/AuthSlice";
 import MiniLoader from "../../components/preloader/MiniLoader";
@@ -43,6 +43,8 @@ const LoginPage = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [googleError, setGoogleError] = useState("");
+  const [verificationSent, setVerificationSent] = useState(false);
+  const [verificationError, setVerificationError] = useState("");
   const navigate = useNavigate();
   const {
     register,
@@ -96,6 +98,18 @@ const LoginPage = () => {
   };
 
   const signupHandler = async (data) => {
+    if (selectedRole === "logistic" || selectedRole === "collectionOfficer" || selectedRole === "adminGateway") return;
+    if (!verificationSent) {
+      const response = await dispatch(requestSignupVerificationCode({ data }));
+      if (requestSignupVerificationCode.fulfilled.match(response)) {
+        setVerificationSent(true);
+        setVerificationError("");
+      } else {
+        setVerificationError(response.payload || "Unable to send verification code");
+      }
+      return;
+    }
+
     await dispatch(handleSignup({ data })).then((res) => {
       if (res.meta.requestStatus === "fulfilled") {
         console.log(res, "User created successfully");  
@@ -265,6 +279,14 @@ const LoginPage = () => {
                   </div>
                 )}
 
+                {!isLogin && verificationSent && (
+                  <div>
+                    <input type="text" inputMode="numeric" maxLength="6" placeholder="Email verification code" {...register("verificationCode", { required: "Verification code is required", minLength: { value: 6, message: "Enter the 6-digit code" }, maxLength: { value: 6, message: "Enter the 6-digit code" } })} className={`w-full rounded-2xl border bg-white p-4 text-slate-800 shadow-sm outline-none ${errors.verificationCode ? "border-red-300" : "border-slate-200"}`} />
+                    <p className="mt-2 text-xs text-slate-500">Copy the code sent to your email and enter it here.</p>
+                    {errors.verificationCode && <p className="mt-1 text-xs text-red-500">{errors.verificationCode.message}</p>}
+                  </div>
+                )}
+
                 {!isLogin && (
                   <>
                     <div className="grid gap-3 sm:grid-cols-2">
@@ -424,6 +446,7 @@ const LoginPage = () => {
               </form>
 
               {error && error !== "nil" && <p className="mt-3 text-center text-xs text-red-500">{error}</p>}
+              {verificationError && <p className="mt-3 text-center text-xs text-red-500">{verificationError}</p>}
               {googleError && <p className="mt-3 text-center text-xs text-red-500">{googleError}</p>}
 
               <div className="mt-5 flex items-center gap-3">
