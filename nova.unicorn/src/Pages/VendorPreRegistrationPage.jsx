@@ -12,6 +12,7 @@ const VendorPreRegistrationPage = () => {
   const [shopName, setShopName] = useState("");
   const [accessCode, setAccessCode] = useState("");
   const [registrationMessage, setRegistrationMessage] = useState("");
+  const [showCelebration, setShowCelebration] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [unlocking, setUnlocking] = useState(false);
@@ -30,6 +31,7 @@ const VendorPreRegistrationPage = () => {
       const body = await response.json();
       if (!response.ok) throw new Error(body.error || "Unable to preregister shop");
       setRegistrationMessage("Shop preregistered. We will contact you when vendor onboarding opens.");
+      setShowCelebration(true);
       setShopName("");
     } catch (registrationError) {
       setError(registrationError.message);
@@ -53,6 +55,7 @@ const VendorPreRegistrationPage = () => {
 
   return (
     <main className="min-h-screen bg-[#081f2b] px-4 py-8 text-slate-900 sm:px-8 lg:px-12">
+      {showCelebration && <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#081f2b]/70 px-4" role="status" aria-live="polite"><div className="relative w-full max-w-lg overflow-hidden rounded-3xl bg-white p-8 text-center shadow-2xl sm:p-12"><div className="pointer-events-none absolute inset-0" aria-hidden="true">{Array.from({ length: 28 }, (_, index) => <span key={index} className="absolute h-3 w-2 animate-bounce rounded-sm" style={{ left: `${(index * 37) % 100}%`, top: `${(index * 19) % 75}%`, backgroundColor: ["#10b981", "#f59e0b", "#ec4899", "#06b6d4", "#6366f1"][index % 5], transform: `rotate(${index * 29}deg)`, animationDelay: `${(index % 7) * 80}ms` }} />)}<span className="absolute left-8 top-8 h-20 w-16 rounded-[50%] bg-rose-400 shadow-lg" /><span className="absolute right-8 top-12 h-24 w-16 rounded-[50%] bg-cyan-400 shadow-lg" /><span className="absolute bottom-8 left-1/2 h-20 w-14 rounded-[50%] bg-amber-300 shadow-lg" /></div><div className="relative"><p className="text-5xl">Thank you!</p><h2 className="mt-4 text-3xl font-black text-emerald-900">Thank you for registering</h2><p className="mt-3 text-sm leading-6 text-slate-600">Your shop has been added to the NovaUnicorn vendor interest list.</p><button type="button" onClick={() => setShowCelebration(false)} className="mt-7 rounded-xl bg-emerald-800 px-6 py-3 text-sm font-bold text-white hover:bg-emerald-900">Continue</button></div></div></div>}
       <div className="mx-auto max-w-7xl overflow-hidden rounded-[2rem] bg-[#f4f1e8] shadow-2xl">
         <section className="relative overflow-hidden bg-[#123d3a] px-6 py-16 text-white sm:px-12 sm:py-24 lg:px-20 lg:py-32">
           <div className="absolute -right-24 -top-32 h-80 w-80 rounded-full border-[48px] border-emerald-300/15" />
