@@ -8,6 +8,7 @@ const { getAuth } = require('firebase-admin/auth');
 const authMiddleware = require('../middleware/authMiddleware');
 const User = require('../models/User');
 const PendingSignup = require('../models/PendingSignup');
+const VendorPreRegistration = require('../models/VendorPreRegistration');
 const SettlementInfo = require('../models/SettlementInfo');
 const { isValidPhoneForCountry } = require('../utils/phoneValidation');
 const { normalizeEmail, isValidEmail } = require('../utils/emailValidation');
@@ -140,6 +141,22 @@ router.post('/signup/request-code', async (req, res) => {
     if (error.message === 'EMAIL_DELIVERY_NOT_CONFIGURED') return res.status(503).json({ error: 'Email delivery is not configured' });
     console.error('Send registration code error:', error);
     return res.status(500).json({ error: 'Unable to send verification code' });
+  }
+});
+
+router.post('/vendor-pre-registrations', async (req, res) => {
+  const shopName = String(req.body.shopName || '').trim();
+  if (!shopName) return res.status(400).json({ error: 'Shop name is required' });
+  if (shopName.length > 120) return res.status(400).json({ error: 'Shop name must be 120 characters or fewer' });
+
+  try {
+    const normalizedShopName = shopName.toLowerCase().replace(/\s+/g, ' ');
+    const registration = await VendorPreRegistration.create({ shopName, normalizedShopName });
+    return res.status(201).json({ message: 'Shop preregistered successfully', registration: { id: registration._id, shopName: registration.shopName } });
+  } catch (error) {
+    if (error && error.code === 11000) return res.status(409).json({ error: 'This shop is already preregistered' });
+    console.error('Vendor preregistration error:', error);
+    return res.status(500).json({ error: 'Unable to preregister shop' });
   }
 });
 
@@ -647,6 +664,19 @@ router.get('/vendors/pending', authMiddleware, requireAdmin, async (req, res) =>
   } catch (error) {
     console.error('List pending vendors error:', error);
     return res.status(500).json({ error: 'Unable to retrieve pending vendors' });
+  }
+});
+
+router.get('/vendor-pre-registrations', authMiddleware, requireAdmin, async (req, res) => {
+  try {
+    const [count, registrations] = await Promise.all([
+      VendorPreRegistration.countDocuments(),
+      VendorPreRegistration.find({}).sort({ createdAt: -1 }).lean(),
+    ]);
+    return res.status(200).json({ count, registrations });
+  } catch (error) {
+    console.error('List vendor preregistrations error:', error);
+    return res.status(500).json({ error: 'Unable to load vendor preregistrations' });
   }
 });
 
