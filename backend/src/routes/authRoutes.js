@@ -19,7 +19,8 @@ const {
 const { sendRegistrationCode } = require('../utils/emailVerification');
 
 const router = express.Router();
-const vendorTypes = ['retailshopvendor', 'cardealer', 'realestate', 'pharmacy', 'agrovet'];
+const vendorTypes = ['retailshopvendor', 'cardealer', 'realestate', 'pharmacy', 'agrovet', 'uberdriver'];
+const publicRoles = ['customer', 'vendor', 'uberdriver', 'advert', 'blackmarket'];
 
 const requireAdmin = (req, res, next) => {
   if (req.user?.role !== 'admin') {
@@ -117,10 +118,10 @@ const serializeUser = (user) => ({
 router.post('/signup/request-code', async (req, res) => {
   const { email, role = 'customer' } = req.body;
   const normalizedEmail = normalizeEmail(email);
-  const publicRoles = ['customer', 'vendor', 'advert', 'blackmarket'];
+  const normalizedRole = String(role || 'customer').trim().toLowerCase();
 
   if (!normalizedEmail || !isValidEmail(normalizedEmail)) return res.status(400).json({ error: 'Please enter a valid email address' });
-  if (!publicRoles.includes(role)) return res.status(400).json({ error: 'This account type requires administrator creation' });
+  if (!publicRoles.includes(normalizedRole)) return res.status(400).json({ error: 'This account type requires administrator creation' });
 
   try {
     if (await getUserByEmail(normalizedEmail)) return res.status(409).json({ error: 'User already exists' });
@@ -181,6 +182,7 @@ router.post('/signup', async (req, res) => {
     settlementInfo,
   } = req.body;
 
+  const normalizedRole = String(role || 'customer').trim().toLowerCase();
   const normalizedEmail = normalizeEmail(email);
 
   if (!firstName || !secondName || !username || !normalizedEmail || !password) {
@@ -191,7 +193,7 @@ router.post('/signup', async (req, res) => {
     return res.status(400).json({ error: 'Please enter a valid email address' });
   }
 
-  if (!['customer', 'vendor', 'advert', 'blackmarket'].includes(role)) {
+  if (!publicRoles.includes(normalizedRole)) {
     return res.status(400).json({ error: 'This role cannot be created through public signup' });
   }
 
@@ -210,19 +212,19 @@ router.post('/signup', async (req, res) => {
     });
   }
 
-  if (role === 'customer' && !deliveryAddress) {
+  if (normalizedRole === 'customer' && !deliveryAddress) {
     return res.status(400).json({ error: 'Delivery address is required for this account' });
   }
 
-  if (role === 'vendor' && !shopAddress) {
+  if (normalizedRole === 'vendor' && !shopAddress) {
     return res.status(400).json({ error: 'Shop address is required for vendor registration' });
   }
 
-  if (role === 'advert' && (typeof advertSocials !== 'object' || Array.isArray(advertSocials))) {
+  if (normalizedRole === 'advert' && (typeof advertSocials !== 'object' || Array.isArray(advertSocials))) {
     return res.status(400).json({ error: 'Advert social media details are invalid' });
   }
 
-  if (role === 'vendor') {
+  if (normalizedRole === 'vendor') {
     try {
       validateVendorPreAccountRequirements(vendorType, { ...verification, settlementInfo });
     } catch (error) {
@@ -264,9 +266,10 @@ router.post('/signup', async (req, res) => {
       return res.status(400).json({ error: 'The email verification code is invalid or expired' });
     }
 
-    const vendorVerificationRequired = role === 'vendor' ? getRequiredVerificationChecks(vendorType) : [];
-    const settlementRecord = role === 'vendor' && settlementInfo ? await SettlementInfo.create({
-      vendorType: String(vendorType).trim(),
+    const verificationVendorType = normalizedRole === 'vendor' ? vendorType : '';
+    const vendorVerificationRequired = normalizedRole === 'vendor' ? getRequiredVerificationChecks(verificationVendorType) : [];
+    const settlementRecord = normalizedRole === 'vendor' && settlementInfo ? await SettlementInfo.create({
+      vendorType: String(verificationVendorType).trim(),
       payoutMethod: String(settlementInfo.payoutMethod || '').trim(),
       accountHolderName: String(settlementInfo.accountHolderName || '').trim(),
       accountNumber: String(settlementInfo.accountNumber || '').trim(),
@@ -283,34 +286,34 @@ router.post('/signup', async (req, res) => {
       username: String(username).trim(),
       email: normalizedEmail,
       password: await bcrypt.hash(String(password), 10),
-      role,
-      vendorType: role === 'vendor' ? String(vendorType).trim() : '',
-      isApproved: role !== 'vendor',
+      role: normalizedRole,
+      vendorType: normalizedRole === 'vendor' ? String(vendorType).trim() : normalizedRole === 'uberdriver' ? 'uberdriver' : '',
+      isApproved: normalizedRole !== 'vendor' && normalizedRole !== 'uberdriver',
       verificationRequired: vendorVerificationRequired,
       verificationStatus: {
-        kycVerified: Boolean(role === 'vendor' ? verification?.kycVerified : false),
-        kraVerified: Boolean(role === 'vendor' ? verification?.kraVerified : false),
-        financialGatewayVerified: Boolean(role === 'vendor' ? verification?.financialGatewayVerified : false),
-        professionalLicenseVerified: Boolean(role === 'vendor' ? verification?.professionalLicenseVerified : false),
-        premisesLicenseVerified: Boolean(role === 'vendor' ? verification?.premisesLicenseVerified : false),
-        financialSettlementVerified: Boolean(role === 'vendor' ? verification?.financialSettlementVerified : false),
+        kycVerified: Boolean(normalizedRole === 'vendor' ? verification?.kycVerified : false),
+        kraVerified: Boolean(normalizedRole === 'vendor' ? verification?.kraVerified : false),
+        financialGatewayVerified: Boolean(normalizedRole === 'vendor' ? verification?.financialGatewayVerified : false),
+        professionalLicenseVerified: Boolean(normalizedRole === 'vendor' ? verification?.professionalLicenseVerified : false),
+        premisesLicenseVerified: Boolean(normalizedRole === 'vendor' ? verification?.premisesLicenseVerified : false),
+        financialSettlementVerified: Boolean(normalizedRole === 'vendor' ? verification?.financialSettlementVerified : false),
         lastUpdated: new Date(),
       },
       settlementInfo: settlementRecord ? settlementRecord._id : null,
-      shopName: role === 'vendor' ? String(shopName || '').trim() : '',
+      shopName: normalizedRole === 'vendor' || normalizedRole === 'uberdriver' ? String(shopName || '').trim() : '',
       phoneNumber: normalizedPhone,
-      businessName: role === 'vendor' ? String(businessName || '').trim() : '',
-      deliveryAddress: ['customer', 'blackmarket'].includes(role) ? String(deliveryAddress || '').trim() : '',
-      shopAddress: role === 'vendor' ? String(shopAddress || '').trim() : '',
+      businessName: normalizedRole === 'vendor' || normalizedRole === 'uberdriver' ? String(businessName || '').trim() : '',
+      deliveryAddress: ['customer', 'blackmarket'].includes(normalizedRole) ? String(deliveryAddress || '').trim() : '',
+      shopAddress: normalizedRole === 'vendor' || normalizedRole === 'uberdriver' ? String(shopAddress || '').trim() : '',
       countryCode: normalizedCountryCode,
-      advertSocials: role === 'advert' ? normalizedAdvertSocials : {},
+      advertSocials: normalizedRole === 'advert' ? normalizedAdvertSocials : {},
     };
 
     const newUser = await createUserRecord(userData);
     await PendingSignup.deleteOne({ _id: pendingSignup._id });
 
     return res.status(201).json({
-      message: role === 'vendor' ? 'Vendor registration submitted successfully' : role === 'advert' ? 'Advert account created successfully' : role === 'logistic' ? 'Logistic account created successfully' : role === 'blackmarket' ? 'Black market account created successfully' : 'User created successfully',
+      message: normalizedRole === 'vendor' ? 'Vendor registration submitted successfully' : normalizedRole === 'uberdriver' ? 'Uber driver account created successfully' : normalizedRole === 'advert' ? 'Advert account created successfully' : normalizedRole === 'logistic' ? 'Logistic account created successfully' : normalizedRole === 'blackmarket' ? 'Black market account created successfully' : 'User created successfully',
       user: serializeUser(newUser),
       token: generateToken(newUser),
     });
@@ -500,12 +503,16 @@ router.post('/google', async (req, res) => {
     return res.status(400).json({ error: 'Google authentication token is required' });
   }
 
-  if (!['customer', 'vendor', 'advert', 'logistic', 'blackmarket'].includes(role)) {
+  if (!['customer', 'vendor', 'uberdriver', 'advert', 'logistic', 'blackmarket'].includes(role)) {
     return res.status(400).json({ error: 'Choose a valid account type' });
   }
 
   if (role === 'vendor' && !vendorTypes.includes(vendorType)) {
     return res.status(400).json({ error: 'Choose a valid vendor type' });
+  }
+
+  if (role === 'uberdriver' && vendorType && !vendorTypes.includes(vendorType)) {
+    return res.status(400).json({ error: 'Choose a valid driver verification type' });
   }
 
   try {
@@ -534,7 +541,7 @@ router.post('/google', async (req, res) => {
           email,
           password: await bcrypt.hash(`google:${firebaseUser.uid}`, 10),
           role,
-          vendorType: role === 'vendor' ? vendorType : '',
+          vendorType: role === 'vendor' ? vendorType : role === 'uberdriver' ? 'uberdriver' : '',
           isApproved: true,
           shopName: '',
           phoneNumber: '',

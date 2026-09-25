@@ -10,6 +10,7 @@ import { HiEye, HiEyeOff } from "react-icons/hi";
 import CountryPhoneField from "../../components/CountryPhoneField";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth as firebaseAuth } from "../../firebaseConfig";
+import { getUserDashboardPath } from "../../utils/userRoutes";
 
 const googleErrorMessages = {
   "auth/popup-closed-by-user": "Google sign-in was cancelled",
@@ -27,6 +28,17 @@ const vendorTypes = [
   { value: "agrovet", label: "Agrovet" },
 ];
 
+const accountRoleOptions = [
+  { value: "customer", label: "Customer" },
+  { value: "vendor", label: "Vendor" },
+  { value: "uberdriver", label: "Uber driver" },
+  { value: "advert", label: "Advert" },
+  { value: "logistic", label: "Logistic" },
+  { value: "blackmarket", label: "Black market" },
+  { value: "collectionOfficer", label: "Collection officer" },
+  { value: "adminGateway", label: "Administrator gateway" },
+];
+
 const vendorVerificationUrl = process.env.REACT_APP_VENDOR_VERIFICATION_URL || "http://localhost:5174";
 
 const novaVerifyTypeMap = {
@@ -35,6 +47,7 @@ const novaVerifyTypeMap = {
   agrovet: "HEALTH_AGRO",
   cardealer: "REAL_ESTATE_CAR",
   realestate: "REAL_ESTATE_CAR",
+  uberdriver: "UBER_DRIVER",
 };
 
 const LoginPage = () => {
@@ -62,8 +75,8 @@ const LoginPage = () => {
     if (notify) {
       setTimeout(() => {
         dispatch(resetNotify());
-        navigate(user?.role === "vendor" ? `/vendor/${user.vendorType || "retailshopvendor"}` : user?.role === "blackmarket" ? "/blackmarket" : user?.role === "admin" ? "/collection-officer" : user?.role === "collectionOfficer" ? "/admin/vendors" : `/${user?.role || "customer"}`);
-      }, 1000); 
+        navigate(getUserDashboardPath(user));
+      }, 1000);
     }
   }, [notify, dispatch, navigate, user]);
 
@@ -99,8 +112,16 @@ const LoginPage = () => {
 
   const signupHandler = async (data) => {
     if (selectedRole === "logistic" || selectedRole === "collectionOfficer" || selectedRole === "adminGateway") return;
+
+    const normalizedRole = selectedRole === "uberdriver" ? "uberdriver" : selectedRole;
+    const submissionData = {
+      ...data,
+      role: normalizedRole,
+      vendorType: normalizedRole === "uberdriver" ? "uberdriver" : data.vendorType || selectedVendorType || "",
+    };
+
     if (!verificationSent) {
-      const response = await dispatch(requestSignupVerificationCode({ data }));
+      const response = await dispatch(requestSignupVerificationCode({ data: submissionData }));
       if (requestSignupVerificationCode.fulfilled.match(response)) {
         setVerificationSent(true);
         setVerificationError("");
@@ -110,7 +131,7 @@ const LoginPage = () => {
       return;
     }
 
-    await dispatch(handleSignup({ data })).then((res) => {
+    await dispatch(handleSignup({ data: submissionData })).then((res) => {
       if (res.meta.requestStatus === "fulfilled") {
         console.log(res, "User created successfully");  
       } else {
@@ -124,6 +145,10 @@ const LoginPage = () => {
     if (selectedRole === "vendor" && !selectedVendorType) {
       setGoogleError("Select a vendor type before continuing with Google");
       return;
+    }
+
+    if (selectedRole === "uberdriver") {
+      setGoogleError("");
     }
 
     const provider = new GoogleAuthProvider();
@@ -216,13 +241,9 @@ const LoginPage = () => {
                       className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-slate-800 shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                     >
                       <option value="">Select account type</option>
-                      <option value="customer">Customer</option>
-                      <option value="vendor">Vendor</option>
-                      <option value="advert">Advert</option>
-                      <option value="logistic">Logistic</option>
-                      <option value="blackmarket">Black market</option>
-                      <option value="collectionOfficer">Collection officer</option>
-                      <option value="adminGateway">Administrator gateway</option>
+                      {accountRoleOptions.map((option) => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
                     </select>
                     {errors.role && <p className="mt-1 text-xs text-red-500">{errors.role.message}</p>}
                   </div>
@@ -266,6 +287,10 @@ const LoginPage = () => {
                       <label className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700">
                         <input type="radio" value="vendor" {...register("role")} />
                         Vendor
+                      </label>
+                      <label className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700">
+                        <input type="radio" value="uberdriver" {...register("role")} />
+                        Uber driver
                       </label>
                       <label className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700">
                         <input type="radio" value="advert" {...register("role")} />
@@ -342,19 +367,19 @@ const LoginPage = () => {
                   </>
                 )}
 
-                {!isLogin && selectedRole === "vendor" && (
+                {!isLogin && ["vendor", "uberdriver"].includes(selectedRole) && (
                   <>
                     <input
                       type="text"
-                      placeholder="Business Name"
+                      placeholder={selectedRole === "uberdriver" ? "Driver name / business name" : "Business Name"}
                       {...register("businessName")}
                       className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/20"
                     />
 
                     <input
                       type="text"
-                      placeholder="Shop Name"
-                      {...register("shopName", { required: isLogin ? false : "Shop name is required for vendors" })}
+                      placeholder={selectedRole === "uberdriver" ? "Driver profile name" : "Shop Name"}
+                      {...register("shopName", { required: isLogin ? false : selectedRole === "uberdriver" ? "Driver profile name is required" : "Shop name is required for vendors" })}
                       className={`w-full rounded-2xl border bg-white p-4 text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/20 ${errors.shopName ? "border-red-300" : "border-slate-200"}`}
                     />
                     {errors.shopName && <p className="text-xs text-red-500">{errors.shopName.message}</p>}
@@ -363,8 +388,8 @@ const LoginPage = () => {
 
                     <input
                       type="text"
-                      placeholder="Shop address"
-                      {...register("shopAddress", { required: "Shop address is required for vendors" })}
+                      placeholder={selectedRole === "uberdriver" ? "Address" : "Shop address"}
+                      {...register("shopAddress", { required: selectedRole === "uberdriver" ? "Address is required for drivers" : "Shop address is required for vendors" })}
                       className={`w-full rounded-2xl border bg-white p-4 text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/20 ${errors.shopAddress ? "border-red-300" : "border-slate-200"}`}
                     />
                     {errors.shopAddress && <p className="text-xs text-red-500">{errors.shopAddress.message}</p>}

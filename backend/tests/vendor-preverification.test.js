@@ -67,3 +67,12 @@ test('retail vendors require KYC, KRA and settlement info before creation', () =
     },
   }));
 });
+
+test('uber drivers can create accounts without pre-verification requirements', () => {
+  assert.deepEqual(getRequiredVerificationChecks('uberdriver'), []);
+
+  assert.doesNotThrow(() => validateVendorPreAccountRequirements('uberdriver', {
+    kycVerified: false,
+    settlementInfo: null,
+  }));
+});

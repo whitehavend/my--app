@@ -4,6 +4,7 @@ const vendorVerificationRequirements = {
   cardealer: ['kyc'],
   pharmacy: ['kyc', 'kra', 'financialGateway', 'professionalLicense', 'premisesLicense', 'financialSettlement'],
   agrovet: ['kyc', 'kra', 'financialGateway', 'professionalLicense', 'premisesLicense', 'financialSettlement'],
+  uberdriver: [],
 };
 
 const normalizeVendorType = (vendorType = '') => String(vendorType).trim().toLowerCase();
