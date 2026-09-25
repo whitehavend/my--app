@@ -163,32 +163,32 @@ const CategoryShowcasePage = () => {
   };
 
   return (
-    <main className="min-h-screen bg-slate-100 px-4 py-6 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-[#040d19] px-4 py-6 text-slate-100 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
-        <header className="mb-6 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-          <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-4 sm:px-6">
-            <Link to="/customer" className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary100">
+        <header className="mb-6 overflow-hidden rounded-3xl border border-sky-500/20 bg-[#0b1323] shadow-[0_0_30px_rgba(59,130,246,0.14)]">
+          <div className="flex items-center justify-between gap-3 border-b border-sky-500/20 bg-[#0d182b] px-4 py-4 sm:px-6">
+            <Link to="/customer" className="inline-flex items-center gap-2 text-sm font-semibold text-sky-300 transition hover:text-sky-200">
               <FiArrowLeft className="h-4 w-4" />
               Back to home
             </Link>
-            <div className="rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+            <div className="rounded-full border border-sky-300/30 bg-sky-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-sky-200">
               {details.label}
             </div>
           </div>
 
-          <div className="bg-gradient-to-r from-primary via-primary100 to-[#1d4ed8] px-5 py-8 text-white sm:px-8 sm:py-10">
-            <p className="text-xs font-bold uppercase tracking-[0.28em] text-white/80">Category showcase</p>
+          <div className="bg-gradient-to-r from-[#081827] via-[#11233d] to-[#1d4ed8] px-5 py-8 text-white sm:px-8 sm:py-10">
+            <p className="text-xs font-bold uppercase tracking-[0.28em] text-sky-100/80">Category showcase</p>
             <h1 className="mt-3 text-3xl font-black sm:text-5xl">{details.title}</h1>
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-white/85 sm:text-base">{details.description}</p>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-sky-100/85 sm:text-base">{details.description}</p>
           </div>
         </header>
 
         <section className="mb-8 grid gap-5 md:grid-cols-2">
           {details.subcategories.map((group) => (
-            <article key={group.title} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <article key={group.title} className="rounded-2xl border border-sky-900/60 bg-[#0c1727] p-5 shadow-[0_12px_28px_rgba(2,6,23,0.45)]">
               <div className="mb-4 flex items-center justify-between gap-2">
-                <h2 className="text-xl font-bold text-slate-900">{group.title}</h2>
-                <Link to={`/category/${category}/subcategory/${toCategorySlug(group.title)}`} aria-label={`Show all ${group.title}`} className="rounded-full p-1 text-gray-400 transition hover:bg-primary/10 hover:text-primary">
+                <h2 className="text-xl font-bold text-sky-100">{group.title}</h2>
+                <Link to={`/category/${category}/subcategory/${toCategorySlug(group.title)}`} aria-label={`Show all ${group.title}`} className="rounded-full p-1 text-sky-300 transition hover:bg-sky-500/10 hover:text-sky-100">
                   <FiChevronRight className="h-5 w-5" />
                 </Link>
               </div>
@@ -197,7 +197,7 @@ const CategoryShowcasePage = () => {
                   <Link
                     key={item}
                     to={`/category/${category}/subcategory/${toCategorySlug(item)}`}
-                    className={`rounded-full border px-3 py-1.5 text-sm transition ${toCategorySlug(selectedSubcategory) === toCategorySlug(item) ? "border-primary bg-primary text-white" : "border-slate-200 bg-slate-50 text-slate-700 hover:border-primary hover:text-primary"}`}
+                    className={`rounded-full border px-3 py-1.5 text-sm transition ${toCategorySlug(selectedSubcategory) === toCategorySlug(item) ? "border-sky-400 bg-sky-500 text-white" : "border-sky-800 bg-[#091422] text-sky-100 hover:border-sky-400 hover:text-sky-200"}`}
                   >
                     {item}
                   </Link>
@@ -210,25 +210,25 @@ const CategoryShowcasePage = () => {
         <section className="mb-4">
           <div className="mb-5 flex items-center justify-between gap-3">
             <div>
-              <h2 className="text-2xl font-black text-slate-900">{selectedLabel || "Featured products"}</h2>
-              {selectedSubcategory && <button type="button" onClick={() => setSelectedSubcategory("")} className="mt-1 text-sm font-medium text-primary hover:underline">Show all {details.label.toLowerCase()} products</button>}
+              <h2 className="text-2xl font-black text-sky-50">{selectedLabel || "Featured products"}</h2>
+              {selectedSubcategory && <button type="button" onClick={() => setSelectedSubcategory("")} className="mt-1 text-sm font-medium text-sky-300 hover:text-sky-200 hover:underline">Show all {details.label.toLowerCase()} products</button>}
             </div>
-            <span className="rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary">{details.label}</span>
+            <span className="rounded-full border border-sky-400/30 bg-sky-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-sky-200">{details.label}</span>
           </div>
 
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
             {displayedProducts.map((product) => (
-              <article key={product._id || product.title} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+              <article key={product._id || product.title} className="overflow-hidden rounded-2xl border border-sky-900/60 bg-[#0d182c] shadow-[0_12px_28px_rgba(2,6,23,0.45)] transition hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(37,99,235,0.18)]">
                 <img src={isShowingVendorProducts ? product.images?.[0] || "images/phones.png" : product.image} alt={product.title} className="h-44 w-full object-cover" onError={(event) => { event.currentTarget.src = "images/phones.png"; }} />
                 <div className="p-4">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">{isShowingVendorProducts ? product.subcategory || product.category : product.tag}</p>
-                  <h3 className="mt-2 text-lg font-bold text-slate-900">{product.title}</h3>
-                  <p className="mt-3 text-2xl font-black text-gray-900">{isShowingVendorProducts ? formatCurrency(product.price, product.currency) : product.price}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-sky-300">{isShowingVendorProducts ? product.subcategory || product.category : product.tag}</p>
+                  <h3 className="mt-2 text-lg font-bold text-sky-50">{product.title}</h3>
+                  <p className="mt-3 text-2xl font-black text-sky-50">{isShowingVendorProducts ? formatCurrency(product.price, product.currency) : product.price}</p>
                   <div className="mt-4 flex gap-2">
-                    <button type="button" onClick={() => window.location.assign(user ? "/saved-items" : "/login")} className="flex-1 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5 text-sm font-semibold text-primary transition hover:bg-primary/10">
+                    <button type="button" onClick={() => window.location.assign(user ? "/saved-items" : "/login")} className="flex-1 rounded-xl border border-sky-500/30 bg-sky-500/10 px-3 py-2.5 text-sm font-semibold text-sky-200 transition hover:bg-sky-500/20">
                       Save
                     </button>
-                    <button type="button" onClick={() => isShowingVendorProducts && addProductToCart(product)} className="flex-1 rounded-xl bg-primary px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-primary100">
+                    <button type="button" onClick={() => isShowingVendorProducts && addProductToCart(product)} className="flex-1 rounded-xl bg-sky-600 px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-500">
                       Add to cart
                     </button>
                   </div>
@@ -237,7 +237,7 @@ const CategoryShowcasePage = () => {
             ))}
           </div>
           {selectedSubcategory && !displayedProducts.length && (
-            <p className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-600">
+            <p className="rounded-2xl border border-dashed border-sky-700 bg-[#0d182c] p-8 text-center text-sm text-sky-100/80">
               No vendor products are available in {selectedSubcategory} yet.
             </p>
           )}
