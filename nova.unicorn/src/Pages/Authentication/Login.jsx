@@ -27,7 +27,7 @@ const vendorTypes = [
   { value: "agrovet", label: "Agrovet" },
 ];
 
-const vendorVerificationUrl = process.env.REACT_APP_VENDOR_VERIFICATION_URL || "http://localhost:5173";
+const vendorVerificationUrl = process.env.REACT_APP_VENDOR_VERIFICATION_URL || "http://localhost:5174";
 
 const novaVerifyTypeMap = {
   retailshopvendor: "RETAIL",
