@@ -45,8 +45,10 @@
 .store-nav-item svg {
   border-radius: 999px;
   padding: 0.22rem;
-  background: rgba(139, 92, 246, 0.22);
-  box-shadow: 0 0 0.7rem rgba(168, 85, 247, 0.72), inset 0 0 0.35rem rgba(196, 181, 253, 0.55);
+  color: #f3e8ff;
+  background: #7c3aed;
+  box-shadow: 0 0 0.35rem #c084fc, 0 0 1rem rgba(168, 85, 247, 0.95), inset 0 0 0.35rem #ede9fe;
+  filter: drop-shadow(0 0 0.35rem rgba(192, 132, 252, 0.95));
   font-size: 1.35rem;
   transition: transform 160ms ease, box-shadow 160ms ease;
 }
@@ -59,7 +61,7 @@
 
 .store-nav-item:hover svg {
   transform: scale(1.12);
-  box-shadow: 0 0 1.1rem rgba(192, 132, 252, 0.95), inset 0 0 0.45rem rgba(233, 213, 255, 0.8);
+  box-shadow: 0 0 0.5rem #d8b4fe, 0 0 1.4rem #a855f7, inset 0 0 0.45rem #ffffff;
 }
 
 .assistance-nav-item {
