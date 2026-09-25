@@ -27,6 +27,8 @@ import SavedItems from "./Pages/SavedItems";
 import CategoryShowcasePage from "./Pages/CategoryShowcasePage";
 import CollectionOfficerPage from "./Pages/CollectionOfficerPage";
 import VendorPreRegistrationPage from "./Pages/VendorPreRegistrationPage";
+import UberDriversPage from "./Pages/UberDriversPage";
+import UberDriverDashboardPage from "./Pages/UberDriverDashboardPage";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -42,6 +44,9 @@ function App() {
       <Routes>
         <Route path="/" element={<VendorPreRegistrationPage />} />
         <Route path="/customer" element={<CustomerPage />} />
+        <Route path="/uber" element={<UberDriversPage />} />
+        <Route path="/uber-driver" element={<ProtectedRoleRoute role="uberdriver"><UberDriverDashboardPage /></ProtectedRoleRoute>} />
+        <Route path="/vendor/uberdriver" element={<ProtectedRoleRoute role="uberdriver"><UberDriverDashboardPage /></ProtectedRoleRoute>} />
         <Route path="/blackmarket" element={<ProtectedRoleRoute role="blackmarket"><BlackMarketPage /></ProtectedRoleRoute>} />
         <Route path="/blackmarket/products/new" element={<ProtectedRoleRoute role="blackmarket"><VendorProductUpload vendorType="blackmarket" /></ProtectedRoleRoute>} />
         <Route path="/category/:category" element={<CategoryShowcasePage />} />

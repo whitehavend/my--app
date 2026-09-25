@@ -5,7 +5,7 @@ import { addToCart } from "../Store/cart/CartSlice";
 import { Link, useNavigate } from "react-router-dom";
 import { FiHeadphones, FiSearch, FiSettings, FiShoppingCart, FiUser, FiArrowRight, FiShoppingBag } from "react-icons/fi";
 import { BsBuildings, BsShop } from "react-icons/bs";
-import { FaCarSide, FaCapsules } from "react-icons/fa";
+import { FaCarSide, FaCapsules, FaUber } from "react-icons/fa";
 import { GiPlantRoots } from "react-icons/gi";
 import ComingSoonBanner from "../components/ComingSoonBanner";
 import { formatCurrency } from "../utils/currency";
@@ -101,6 +101,7 @@ const CustomerPage = () => {
           <Link to="/category/realestate" aria-label="Realestate" title="Realestate" className="store-nav-item"><BsBuildings /><span className="sr-only">Realestate</span></Link>
           <Link to="/category/pharmacy" aria-label="Pharmacy" title="Pharmacy" className="store-nav-item"><FaCapsules /><span className="sr-only">Pharmacy</span></Link>
           <Link to="/category/agrovet" aria-label="Agrovet" title="Agrovet" className="store-nav-item"><GiPlantRoots /><span className="sr-only">Agrovet</span></Link>
+          <Link to="/uber" aria-label="Uber" title="Uber" className="store-nav-item"><FaUber /><span className="sr-only">Uber</span></Link>
           <button type="button" aria-label="Assistance" title="Assistance" onClick={() => window.alert("Our assistance team is available to help you with your order.")} className="store-nav-item assistance-nav-item"><FiHeadphones /></button>
           <Link to="/category/blackmarket" className="store-nav-item"><FiShoppingCart /><span>Blackmarket</span></Link>
         </div></nav>

@@ -5,7 +5,7 @@ const settlementInfoSchema = new mongoose.Schema(
     vendorType: {
       type: String,
       required: true,
-      enum: ['retailshopvendor', 'cardealer', 'realestate', 'pharmacy', 'agrovet'],
+      enum: ['retailshopvendor', 'cardealer', 'realestate', 'pharmacy', 'agrovet', 'uberdriver'],
     },
     payoutMethod: {
       type: String,

@@ -74,7 +74,7 @@ const vendorSchema = new mongoose.Schema(
     vendorType: {
       type: String,
       required: true,
-      enum: ['RETAIL', 'HEALTH_AGRO', 'REAL_ESTATE_CAR'],
+      enum: ['RETAIL', 'HEALTH_AGRO', 'REAL_ESTATE_CAR', 'UBER_DRIVER'],
     },
     businessName: {
       type: String,
@@ -134,6 +134,13 @@ const vendorSchema = new mongoose.Schema(
       type: verificationStatusSchema,
       required: function () {
         return this.vendorType === 'HEALTH_AGRO';
+      },
+      default: undefined,
+    },
+    driverLicenseVerification: {
+      type: verificationStatusSchema,
+      required: function () {
+        return this.vendorType === 'UBER_DRIVER';
       },
       default: undefined,
     },

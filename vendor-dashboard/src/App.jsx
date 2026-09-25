@@ -28,6 +28,7 @@ const industryOptions = [
   { value: "RETAIL", label: "Retail merchant", description: "Shops, marketplaces, and general trade", icon: Store },
   { value: "HEALTH_AGRO", label: "Health & agrovet", description: "Pharmacy, veterinary, and agricultural care", icon: Activity },
   { value: "REAL_ESTATE_CAR", label: "Property & automotive", description: "Dealerships, property, and asset sales", icon: Building2 },
+  { value: "UBER_DRIVER", label: "Uber driver", description: "Ride partners and driver onboarding", icon: BadgeCheck },
 ];
 
 const payoutOptions = [
@@ -69,6 +70,7 @@ const trackMap = {
   kybVerification: "KYB verification",
   professionalLicenseVerification: "Professional license",
   premisesLicenseVerification: "Premises license",
+  driverLicenseVerification: "Driver license",
 };
 
 const verificationChecklist = {
@@ -90,6 +92,11 @@ const verificationChecklist = {
   ],
   REAL_ESTATE_CAR: [
     { key: "kyc", label: "KYC verification", mode: "auto", required: true },
+    { key: "payoutDetails", label: "Payout details", mode: "manual", required: true },
+  ],
+  UBER_DRIVER: [
+    { key: "kyc", label: "KYC verification", mode: "auto", required: true },
+    { key: "driverLicense", label: "Driver license", mode: "manual", required: true },
     { key: "payoutDetails", label: "Payout details", mode: "manual", required: true },
   ],
 };
@@ -176,6 +183,15 @@ function VerificationHub({ vendor, onBack }) {
         if (!response.ok) throw new Error(data.error || "Document verification failed");
       }
 
+      if (checkKey === "driverLicense") {
+        const formData = new FormData();
+        formData.append("driverLicense", file || new Blob(["driver license"], { type: "application/octet-stream" }));
+
+        const response = await fetch(`${API_BASE}/${vendor._id}/verify-driver-license`, { method: "POST", body: formData });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Driver license verification failed");
+      }
+
       setUploadState((current) => ({ ...current, [checkKey]: { status: "submitted", message: "Submitted to verification queue" } }));
     } catch (error) {
       setUploadState((current) => ({ ...current, [checkKey]: { status: "error", message: error.message } }));
@@ -234,6 +250,7 @@ function ManualReviewPanel({ vendor, onBack, onReviewed }) {
   const manualChecks = [
     { key: "professionalLicense", label: "Professional license", field: "professionalLicenseVerification" },
     { key: "premisesDoc", label: "Premises compliance", field: "premisesLicenseVerification" },
+    { key: "driverLicense", label: "Driver license", field: "driverLicenseVerification" },
     { key: "payoutDetails", label: "Payout details", field: "payoutDetails" },
   ].filter((check) => vendor?.[check.field]);
   const [messages, setMessages] = useState({});
@@ -326,6 +343,11 @@ function OnboardingPortal({ onCreated, onOpenVerification }) {
         if (form.premisesDoc) files.append("premisesDoc", form.premisesDoc);
         await request(`${API_BASE}/${vendorId}/verify-professional`, { method: "POST", body: files });
       }
+      if (form.vendorType === "UBER_DRIVER") {
+        const files = new FormData();
+        if (form.driverLicense) files.append("driverLicense", form.driverLicense);
+        await request(`${API_BASE}/${vendorId}/verify-driver-license`, { method: "POST", body: files });
+      }
       if (form.vendorType === "RETAIL") await request(`${API_BASE}/${vendorId}/verify-kyb`, { method: "POST" });
       setFeedback({ type: "success", message: `${form.businessName} is now in the verification queue.` });
       setForm(emptyForm);
@@ -372,6 +394,7 @@ function OnboardingPortal({ onCreated, onOpenVerification }) {
 
           <div className="form-heading subheading"><div><span className="eyebrow">Category evidence</span><h3>Upload supporting files</h3></div><FileCheck2 size={19} /></div>
           {form.vendorType === "HEALTH_AGRO" && <div className="drop-grid"><DropZone name="profLicense" label="Professional registration" hint="Pharmacy or Vet Board certificate · PDF, PNG" accept=".pdf,.png,.jpeg,.jpg" file={form.profLicense} onChange={(file) => setValue("profLicense", file)} /><DropZone name="premisesDoc" label="Premises compliance" hint="Facility approval · PDF, PNG" accept=".pdf,.png,.jpeg,.jpg" file={form.premisesDoc} onChange={(file) => setValue("premisesDoc", file)} /></div>}
+          {form.vendorType === "UBER_DRIVER" && <div className="drop-grid"><DropZone name="driverLicense" label="Driver license" hint="Valid driving permit or license · PDF, PNG" accept=".pdf,.png,.jpeg,.jpg" file={form.driverLicense || null} onChange={(file) => setValue("driverLicense", file)} /></div>}
           {form.vendorType === "RETAIL" && <div className="notice-box"><ShieldCheck size={18} /><span>KYB verification is automatic. Nova will validate the retail business profile without requiring a registration upload here.</span></div>}
           {form.vendorType === "REAL_ESTATE_CAR" && <div className="notice-box"><Landmark size={18} /><span>Asset dealerships start with identity verification. Property title deeds and vehicle documents can be attached during the review stage.</span></div>}
 
@@ -422,7 +445,7 @@ function ComplianceDashboard({ vendors, loading, error, onRefresh, onOpenReview,
   return <section className="dashboard-view">
     <div className="dashboard-toolbar"><div><div className="section-kicker">02 / Operations desk</div><h2>Compliance queue</h2><p className="section-intro">A live view of every vendor identity and industry track.</p></div><button className="ghost-button" type="button" onClick={onRefresh} disabled={loading}><RefreshCw size={16} className={loading ? "spin" : ""} />Refresh queue</button></div>
     <div className="metric-row"><div className="metric-card"><span>Registered vendors</span><strong>{counts.total}</strong><small>Across all verticals</small></div><div className="metric-card accent"><span>KYC verified</span><strong>{counts.verified}</strong><small>Identity milestones cleared</small></div><div className="metric-card"><span>Needs attention</span><strong>{counts.pending}</strong><small>Financial or document tracks</small></div></div>
-    <div className="table-shell"><div className="table-head"><div><h3>Vendor records</h3><span>{filteredVendors.length} visible records</span></div><label className="search-field"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search vendors" /></label></div>{error && <div className="feedback error"><CircleAlert size={17} />{error}</div>}{loading ? <div className="empty-state"><LoaderCircle className="spin" />Loading vendor records</div> : filteredVendors.length === 0 ? <div className="empty-state"><Building2 />No vendor records match this search.</div> : <div className="table-scroll"><table><thead><tr><th>Vendor</th><th>Industry</th><th>Core tracks</th><th>Industry tracks</th><th>Action</th></tr></thead><tbody>{filteredVendors.map((vendor) => <tr key={vendor._id}><td><div className="vendor-cell"><span className="vendor-avatar">{vendor.businessName?.slice(0, 1).toUpperCase() || "V"}</span><span><strong>{vendor.businessName || "Unnamed business"}</strong><small>{vendor.email}</small></span></div></td><td><span className="type-pill">{vendor.vendorType}</span></td><td><div className="chip-stack"><StatusChip status={vendor.kycVerification?.status} /><StatusChip status={vendor.financialGatewayVerification?.status} /><StatusChip status={vendor.kraPinVerification?.status} /></div></td><td><div className="chip-stack">{vendor.vendorType === "HEALTH_AGRO" && <><StatusChip status={vendor.professionalLicenseVerification?.status} /><StatusChip status={vendor.premisesLicenseVerification?.status} /></>}{vendor.vendorType === "RETAIL" && <StatusChip status={vendor.businessDocumentation?.status} />}{vendor.vendorType === "REAL_ESTATE_CAR" && <span className="muted-cell">KYC only</span>}</div></td><td><button type="button" className="table-action" onClick={() => window.alert(`Verification sweep queued for ${vendor.businessName}`)}>Run sweep <ChevronRight size={15} /></button></td></tr>)}</tbody></table></div>}</div>
+    <div className="table-shell"><div className="table-head"><div><h3>Vendor records</h3><span>{filteredVendors.length} visible records</span></div><label className="search-field"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search vendors" /></label></div>{error && <div className="feedback error"><CircleAlert size={17} />{error}</div>}{loading ? <div className="empty-state"><LoaderCircle className="spin" />Loading vendor records</div> : filteredVendors.length === 0 ? <div className="empty-state"><Building2 />No vendor records match this search.</div> : <div className="table-scroll"><table><thead><tr><th>Vendor</th><th>Industry</th><th>Core tracks</th><th>Industry tracks</th><th>Action</th></tr></thead><tbody>{filteredVendors.map((vendor) => <tr key={vendor._id}><td><div className="vendor-cell"><span className="vendor-avatar">{vendor.businessName?.slice(0, 1).toUpperCase() || "V"}</span><span><strong>{vendor.businessName || "Unnamed business"}</strong><small>{vendor.email}</small></span></div></td><td><span className="type-pill">{vendor.vendorType}</span></td><td><div className="chip-stack"><StatusChip status={vendor.kycVerification?.status} /><StatusChip status={vendor.financialGatewayVerification?.status} /><StatusChip status={vendor.kraPinVerification?.status} /></div></td><td><div className="chip-stack">{vendor.vendorType === "HEALTH_AGRO" && <><StatusChip status={vendor.professionalLicenseVerification?.status} /><StatusChip status={vendor.premisesLicenseVerification?.status} /></>}{vendor.vendorType === "UBER_DRIVER" && <><StatusChip status={vendor.driverLicenseVerification?.status} /><StatusChip status={vendor.payoutDetails?.status} /></>}{vendor.vendorType === "RETAIL" && <StatusChip status={vendor.businessDocumentation?.status} />}{vendor.vendorType === "REAL_ESTATE_CAR" && <span className="muted-cell">KYC only</span>}</div></td><td><button type="button" className="table-action" onClick={() => onOpenReview(vendor)}>Review documents <ChevronRight size={15} /></button></td></tr>)}</tbody></table></div>}</div>
   </section>;
 }
 
@@ -459,6 +482,7 @@ export default function App() {
     await jsonRequest("verify-kyc", { idNumber: "12345678", idType: "KENYA_NATIONAL_ID", firstName: "Admin", lastName: "Sweep" });
     await jsonRequest("verify-tax", { kraPin: "A123456789X" });
     if (vendor.vendorType === "HEALTH_AGRO") await jsonRequest("verify-professional", {});
+    if (vendor.vendorType === "UBER_DRIVER") await jsonRequest("verify-driver-license", {});
     if (vendor.vendorType === "RETAIL") await jsonRequest("verify-kyb", {});
     await loadVendors();
   };

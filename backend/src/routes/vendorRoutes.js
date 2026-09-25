@@ -54,6 +54,7 @@ router.post('/register', async (req, res) => {
       businessDocumentation: vendorType === 'RETAIL' ? {} : undefined,
       professionalLicenseVerification: vendorType === 'HEALTH_AGRO' ? {} : undefined,
       premisesLicenseVerification: vendorType === 'HEALTH_AGRO' ? {} : undefined,
+      driverLicenseVerification: vendorType === 'UBER_DRIVER' ? {} : undefined,
     });
 
     return res.status(201).json({ vendor });
@@ -197,6 +198,29 @@ router.post('/:id/payout-details', async (req, res) => {
     return res.status(200).json({ vendor, payoutDetails: vendor.payoutDetails });
   } catch (error) {
     return res.status(500).json({ error: 'Unable to save payout details', details: error.message });
+  }
+});
+
+router.post('/:id/verify-driver-license', upload.withUploadErrors(upload.single('driverLicense')), async (req, res) => {
+  try {
+    const vendor = await Vendor.findById(req.params.id);
+    if (!vendor) return res.status(404).json({ error: 'Vendor not found' });
+    if (vendor.vendorType !== 'UBER_DRIVER') {
+      return res.status(400).json({ error: 'Driver license verification is only available for UBER_DRIVER vendors' });
+    }
+
+    const driverLicenseFile = req.file;
+    vendor.driverLicenseVerification = {
+      status: 'PENDING',
+      referenceId: driverLicenseFile?.filename || 'MOCK_DRIVER_LICENSE_REF_12345',
+      errorMessage: 'Awaiting compliance team review',
+      filePath: driverLicenseFile?.path || vendor.driverLicenseVerification?.filePath || '',
+      updatedAt: new Date(),
+    };
+    await vendor.save();
+    return res.status(200).json({ vendor });
+  } catch (error) {
+    return res.status(500).json({ error: 'Unable to verify driver license', details: error.message });
   }
 });
 

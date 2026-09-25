@@ -35,12 +35,12 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['customer', 'vendor', 'advert', 'logistic', 'collectionOfficer', 'blackmarket', 'admin'],
+      enum: ['customer', 'vendor', 'uberdriver', 'advert', 'logistic', 'collectionOfficer', 'blackmarket', 'admin'],
       default: 'customer',
     },
     vendorType: {
       type: String,
-      enum: ['retailshopvendor', 'cardealer', 'realestate', 'pharmacy', 'agrovet', ''],
+      enum: ['retailshopvendor', 'cardealer', 'realestate', 'pharmacy', 'agrovet', 'uberdriver', ''],
       default: '',
     },
     isApproved: {
