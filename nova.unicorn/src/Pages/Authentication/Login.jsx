@@ -58,6 +58,7 @@ const LoginPage = () => {
   const [googleError, setGoogleError] = useState("");
   const [verificationSent, setVerificationSent] = useState(false);
   const [verificationError, setVerificationError] = useState("");
+  const [verificationNotice, setVerificationNotice] = useState("");
   const navigate = useNavigate();
   const {
     register,
@@ -120,12 +121,21 @@ const LoginPage = () => {
       vendorType: normalizedRole === "uberdriver" ? "uberdriver" : data.vendorType || selectedVendorType || "",
     };
 
+    const normalizedEmail = normalizeEmailValue(data?.email || "");
+    if (!normalizedEmail) {
+      setVerificationNotice("");
+      setVerificationError("Email is required before sending the verification code");
+      return;
+    }
+
     if (!verificationSent) {
-      const response = await dispatch(requestSignupVerificationCode({ data: submissionData }));
+      const response = await dispatch(requestSignupVerificationCode({ data: { ...submissionData, email: normalizedEmail } }));
       if (requestSignupVerificationCode.fulfilled.match(response)) {
         setVerificationSent(true);
         setVerificationError("");
+        setVerificationNotice("Verification code sent. Check your email and then complete the form.");
       } else {
+        setVerificationNotice("");
         setVerificationError(response.payload || "Unable to send verification code");
       }
       return;
@@ -133,7 +143,7 @@ const LoginPage = () => {
 
     await dispatch(handleSignup({ data: submissionData })).then((res) => {
       if (res.meta.requestStatus === "fulfilled") {
-        console.log(res, "User created successfully");  
+        console.log(res, "User created successfully");
       } else {
         console.log(res.payload, "Login failed");
       }
@@ -312,7 +322,9 @@ const LoginPage = () => {
                   </div>
                 )}
 
-                {!isLogin && (
+                {!isLogin && verificationSent && <CountryPhoneField register={register} errors={errors} />}
+
+                {!isLogin && verificationSent && (
                   <>
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div>
@@ -367,7 +379,7 @@ const LoginPage = () => {
                   </>
                 )}
 
-                {!isLogin && ["vendor", "uberdriver"].includes(selectedRole) && (
+                {!isLogin && verificationSent && ["vendor", "uberdriver"].includes(selectedRole) && (
                   <>
                     <input
                       type="text"
@@ -384,8 +396,6 @@ const LoginPage = () => {
                     />
                     {errors.shopName && <p className="text-xs text-red-500">{errors.shopName.message}</p>}
 
-                    <CountryPhoneField register={register} errors={errors} />
-
                     <input
                       type="text"
                       placeholder={selectedRole === "uberdriver" ? "Address" : "Shop address"}
@@ -396,7 +406,7 @@ const LoginPage = () => {
                   </>
                 )}
 
-                {!isLogin && selectedRole === "customer" && (
+                {!isLogin && verificationSent && selectedRole === "customer" && (
                   <>
                     <input
                       type="text"
@@ -408,10 +418,8 @@ const LoginPage = () => {
                   </>
                 )}
 
-                {!isLogin && selectedRole === "advert" && (
+                {!isLogin && verificationSent && selectedRole === "advert" && (
                   <>
-                    <CountryPhoneField register={register} errors={errors} />
-
                     <fieldset className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                       <legend className="mb-2 text-sm font-medium text-slate-700">Advertising platforms</legend>
                       <div className="space-y-3">
@@ -440,10 +448,7 @@ const LoginPage = () => {
                   </>
                 )}
 
-                {!isLogin && selectedRole === "logistic" && <CountryPhoneField register={register} errors={errors} />}
-                {!isLogin && ["customer", "blackmarket"].includes(selectedRole) && <CountryPhoneField register={register} errors={errors} />}
-
-                {!(isLogin && selectedRole === "adminGateway") && <div className="relative">
+                {!(isLogin && selectedRole === "adminGateway") && verificationSent && <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
                     placeholder="Password"
@@ -460,7 +465,7 @@ const LoginPage = () => {
                     {showPassword ? <HiEyeOff className="h-5 w-5" /> : <HiEye className="h-5 w-5" />}
                   </button>
                 </div>}
-                {!(isLogin && selectedRole === "adminGateway") && errors.password && <p className="text-xs text-red-500">{errors.password.message}</p>}
+                {!(isLogin && selectedRole === "adminGateway") && verificationSent && errors.password && <p className="text-xs text-red-500">{errors.password.message}</p>}
 
                 <button
                   type="submit"
@@ -471,6 +476,7 @@ const LoginPage = () => {
               </form>
 
               {error && error !== "nil" && <p className="mt-3 text-center text-xs text-red-500">{error}</p>}
+              {verificationNotice && <p className="mt-3 text-center text-xs text-emerald-600">{verificationNotice}</p>}
               {verificationError && <p className="mt-3 text-center text-xs text-red-500">{verificationError}</p>}
               {googleError && <p className="mt-3 text-center text-xs text-red-500">{googleError}</p>}
 
