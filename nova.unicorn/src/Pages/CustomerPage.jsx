@@ -3,21 +3,12 @@ import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { getAllProducts } from "../Store/thunk";
 import { addToCart } from "../Store/cart/CartSlice";
 import { Link, useNavigate } from "react-router-dom";
-import { FiHeadphones, FiSearch, FiSettings, FiShoppingCart, FiUser } from "react-icons/fi";
+import { FiHeadphones, FiSearch, FiSettings, FiShoppingCart, FiUser, FiArrowRight, FiShoppingBag } from "react-icons/fi";
 import { BsBuildings, BsShop } from "react-icons/bs";
 import { FaCarSide, FaCapsules } from "react-icons/fa";
 import { GiPlantRoots } from "react-icons/gi";
 import ComingSoonBanner from "../components/ComingSoonBanner";
 import { formatCurrency } from "../utils/currency";
-
-const categoryCards = [
-  { key: "shopvendor", label: "Shop Vendor", icon: BsShop, path: "/category/shopvendor" },
-  { key: "cardealer", label: "Car Dealer", icon: FaCarSide, path: "/category/cardealer" },
-  { key: "realestate", label: "Real Estate", icon: BsBuildings, path: "/category/realestate" },
-  { key: "pharmacy", label: "Pharmacy", icon: FaCapsules, path: "/category/pharmacy" },
-  { key: "agrovet", label: "Agrovet", icon: GiPlantRoots, path: "/category/agrovet" },
-  { key: "blackmarket", label: "Black Market", icon: FiShoppingCart, path: "/category/blackmarket" },
-];
 
 const CustomerPage = () => {
   const dispatch = useAppDispatch();
@@ -96,84 +87,31 @@ const CustomerPage = () => {
   };
 
   return (
-    <main className="min-h-screen bg-gray-100">
-      <header className="border-b border-gray-200 bg-white shadow-sm">
-        <div className="mx-auto grid max-w-7xl items-center gap-4 px-4 py-4 lg:grid-cols-[180px_minmax(260px,1fr)_360px]">
-          <Link to="/" className="flex items-center gap-2 text-xl font-black uppercase tracking-[0.16em] text-gray-900">Nova Unicorn</Link>
-          <div className="relative">
-            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
-            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search brand, description, category, or subcategory" aria-label="Search brand, description, category, or subcategory" className="w-full rounded-md border border-gray-300 bg-gray-50 p-3 pl-11 outline-none focus:border-primary focus:bg-white" />
-          </div>
-          <nav className="flex items-center justify-between gap-2 text-sm text-gray-700" aria-label="Customer navigation">
-            {user?.role === "vendor" && <Link to={`/vendor/${user.vendorType || "retailshopvendor"}`} className="rounded-md bg-primary px-3 py-2 font-medium text-white hover:bg-primary100">Return to dashboard</Link>}
-            <Link to={user ? "/account" : "/login"} className="flex items-center gap-2 rounded-md px-2 py-2 hover:bg-gray-100"><FiUser /><span>{user?.username || "My account"}</span></Link>
-            <button type="button" onClick={() => window.alert("Our assistance team is available to help you with your order.")} className="flex items-center gap-2 rounded-md px-2 py-2 hover:bg-gray-100"><FiHeadphones /><span>Assistance</span></button>
-            <Link to="/cart" className="flex items-center gap-2 rounded-md px-2 py-2 hover:bg-gray-100"><FiShoppingCart /><span>Cart</span></Link>
-          </nav>
+    <main className="min-h-screen bg-[#f6f3ea] text-[#171717]">
+      <header className="bg-[#102f2c] shadow-[0_4px_0_rgba(0,0,0,0.12)]">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 text-white sm:px-6 lg:px-8">
+          <Link to="/customer" className="flex items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-lime-200 text-2xl text-[#102f2c]"><FiShoppingBag /></span><span className="text-2xl font-black uppercase leading-[0.8] tracking-[-0.06em]">Nova<br />unicorn</span></Link>
+          <div className="flex justify-end"><Link to={user ? "/account" : "/login"} className="flex items-center gap-3 text-sm font-black uppercase"><FiUser className="text-2xl" /><span>{user?.username || "My account"}</span></Link></div>
+          <div className="relative w-full"><FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search products..." aria-label="Search products" className="w-full border-2 border-black/10 bg-white px-12 py-3 text-sm outline-none focus:border-black" /></div>
         </div>
+        <nav className="border-t border-black/15" aria-label="Store navigation"><div className="mx-auto grid max-w-7xl grid-cols-4 gap-1 px-4 py-2 sm:grid-cols-8 sm:px-6 lg:px-8">
+          <Link to="/account" aria-label="Settings" title="Settings" className="store-nav-item"><FiSettings /><span className="sr-only">Settings</span></Link>
+          <Link to="/category/shopvendor" aria-label="Shopvendor" title="Shopvendor" className="store-nav-item"><BsShop /><span className="sr-only">Shopvendor</span></Link>
+          <Link to="/category/cardealer" aria-label="Car dealer" title="Car dealer" className="store-nav-item"><FaCarSide /><span className="sr-only">Car dealer</span></Link>
+          <Link to="/category/realestate" aria-label="Realestate" title="Realestate" className="store-nav-item"><BsBuildings /><span className="sr-only">Realestate</span></Link>
+          <Link to="/category/pharmacy" aria-label="Pharmacy" title="Pharmacy" className="store-nav-item"><FaCapsules /><span className="sr-only">Pharmacy</span></Link>
+          <Link to="/category/agrovet" aria-label="Agrovet" title="Agrovet" className="store-nav-item"><GiPlantRoots /><span className="sr-only">Agrovet</span></Link>
+          <button type="button" aria-label="Assistance" title="Assistance" onClick={() => window.alert("Our assistance team is available to help you with your order.")} className="store-nav-item assistance-nav-item"><FiHeadphones /><span className="sr-only">Assistance</span></button>
+          <Link to="/category/blackmarket" className="store-nav-item"><FiShoppingCart /><span>Blackmarket</span></Link>
+        </div></nav>
       </header>
       {actionMessage && <div role="status" className="fixed right-4 top-4 z-50 rounded-md bg-emerald-600 px-4 py-3 text-sm font-medium text-white shadow-lg">{actionMessage}</div>}
 
-      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 lg:grid-cols-[190px_minmax(0,1fr)]">
-        <aside className="h-fit rounded-md bg-white p-4 shadow-sm">
-          <h2 className="flex items-center gap-2 border-b border-gray-200 pb-4 text-sm font-semibold uppercase tracking-wider"><FiSettings /> Settings</h2>
-          <div className="space-y-2 pt-4 text-sm text-gray-600">
-            <Link to={user ? "/account" : "/login"} className="block rounded-md px-3 py-2 hover:bg-gray-100 hover:text-primary">Account settings</Link>
-            <Link to="/orders" className="block rounded-md px-3 py-2 hover:bg-gray-100 hover:text-primary">Orders</Link>
-            <Link to={user ? "/saved-items" : "/login"} className="block rounded-md px-3 py-2 hover:bg-gray-100 hover:text-primary">Saved items</Link>
-          </div>
-        </aside>
-
-        <section>
-          <div className="mb-6"><p className="text-sm font-medium uppercase tracking-[0.2em] text-primary">Customer marketplace</p><h1 className="mt-2 text-3xl font-bold">Products from our vendors</h1><p className="mt-2 text-gray-600">Browse, search, and shop vendor listings.</p></div>
-
-          <div className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {categoryCards.map(({ key, label, icon: Icon, path }) => (
-              <Link key={key} to={path} className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-primary hover:shadow-md">
-                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <Icon className="h-5 w-5" />
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <h2 className="text-lg font-bold text-slate-900">{label}</h2>
-                  <span className="text-sm font-medium text-primary">Explore</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-
-          {error && error !== "nil" && <p className="text-red-600">{error}</p>}
-          {!visibleProducts.length && <ComingSoonBanner label="Vendor marketplace" />}
-          {visibleProducts.length > 0 && (
-            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {visibleProducts.map((product) => {
-                const flashSale = getFlashSaleState(product);
-                const displayProduct = flashSale ? { ...product, price: flashSale.price } : product;
-                return <article key={product._id || product.id} role="button" tabIndex="0" onClick={() => navigate(`/${encodeURIComponent(product.title)}`, { state: { product } })} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") navigate(`/${encodeURIComponent(product.title)}`, { state: { product } }); }} className="cursor-pointer overflow-hidden rounded-md bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-                  <img src={product.images?.[0] || "images/phones.png"} alt={product.title} className="h-48 w-full object-cover" />
-                  <div className="p-4">
-                    <p className="text-xs uppercase text-gray-500">{product.brand} · {product.category}</p>
-                    <h2 className="mt-2 text-lg font-semibold capitalize">{product.title}</h2>
-                    <p className="mt-2 line-clamp-3 text-sm text-gray-600">{product.description}</p>
-                    {flashSale && <p className="mt-3 rounded-md bg-red-50 p-2 text-xs font-semibold text-red-700">Flash sale: {formatCurrency(flashSale.price, product.currency)} · ends in {flashSale.time}</p>}
-                    <div className="mt-3 grid grid-cols-2 gap-2 rounded-md border border-gray-200 bg-gray-50 p-3 text-xs text-gray-700">
-                      <div><span className="block text-gray-500">Base price</span><strong>{formatCurrency(product.price, product.currency)}</strong></div>
-                      <div><span className="block text-gray-500">Wholesale price</span><strong>{product.wholesalePrice === null || product.wholesalePrice === undefined ? "Not available" : formatCurrency(product.wholesalePrice, product.currency)}</strong></div>
-                      <div><span className="block text-gray-500">Wholesale volume</span><strong className={product.wholesaleVolume !== null && product.wholesaleVolume !== undefined && product.wholesaleVolume < 10 ? "text-red-600" : "text-gray-900"}>{product.wholesaleVolume === null || product.wholesaleVolume === undefined ? "Not available" : product.wholesaleVolume}</strong></div>
-                      <div><span className="block text-gray-500">Item type</span><strong className="capitalize">{product.itemCondition || "generic"}</strong></div>
-                    </div>
-                    {(product.vendorType === "pharmacy" || product.vendorType === "agrovet") && product.prescription && <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-2 text-xs text-amber-800"><strong>Prescription:</strong> {product.prescription}</p>}
-                    <div className="mt-3 rounded-md border border-gray-200 bg-gray-50 p-3 text-xs text-gray-700"><p className="font-semibold uppercase tracking-[0.12em] text-primary">Vendor</p><p className="mt-1 font-medium text-gray-900">{product.vendorName || "Verified vendor"}</p>{product.vendorContactInfo && <p className="mt-1">Contact: {product.vendorContactInfo}</p>}</div>
-                    <p className="mt-3 text-xl font-bold">{formatCurrency(product.price, product.currency)}</p>
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      <button onClick={(event) => { event.stopPropagation(); handleSave(product._id || product.id); }} className="flex-1 rounded-md border border-primary px-3 py-3 text-sm font-medium text-primary hover:bg-gray-50">{savedItems.includes(product._id || product.id) ? "Saved" : "Save item"}</button>
-                      {(product.sellingMode === "retail" || product.sellingMode === "both" || !product.sellingMode) && <button onClick={(event) => { event.stopPropagation(); handleAddToCart(displayProduct, "retail"); }} className="flex-1 rounded-md bg-primary px-3 py-3 text-sm font-medium text-white hover:bg-primary100">Retail: {formatCurrency(displayProduct.price, product.currency)}</button>}
-                      {(product.sellingMode === "wholesale" || product.sellingMode === "both") && product.wholesalePrice !== null && product.wholesalePrice !== undefined && <button onClick={(event) => { event.stopPropagation(); handleAddToCart(product, "wholesale"); }} className="flex-1 rounded-md bg-slate-800 px-3 py-3 text-sm font-medium text-white hover:bg-slate-700">Wholesale: {formatCurrency(product.wholesalePrice, product.currency)}</button>}
-                    </div>
-                  </div>
-                </article>;
-              })}
-            </div>
-          )}
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <section className="store-hero relative overflow-hidden bg-[#102f2c] px-6 py-10 text-white sm:px-12 sm:py-16"><div className="relative z-10 max-w-3xl"><p className="font-serif text-3xl italic text-lime-200/80 sm:text-5xl">Welcome to NovaUnicorn</p><h1 className="mt-3 text-4xl font-black uppercase leading-[0.95] tracking-tight sm:text-7xl">A market filled with unlimited opportunities</h1><p className="mt-5 max-w-2xl text-sm font-medium leading-6 text-emerald-50/75 sm:text-base">Discover trusted vendors, explore new categories, and find something made for your everyday life.</p><Link to="/category/shopvendor" className="mt-7 inline-flex items-center gap-2 bg-lime-200 px-6 py-3 text-sm font-black uppercase text-[#102f2c] hover:bg-lime-100">Start exploring <FiArrowRight /></Link></div><div className="absolute -right-10 bottom-[-5rem] h-72 w-72 rounded-full bg-lime-200/10 sm:right-12 sm:h-96 sm:w-96" /><div className="absolute right-16 top-12 h-28 w-28 rounded-full border-[18px] border-lime-200/20 sm:right-40 sm:h-44 sm:w-44" /></section>
+        <div className="mt-5 grid gap-4 md:grid-cols-3"><Link to="/category/shopvendor" className="promo-tile bg-[#102f2c]">Shop vendor <span>Everyday finds</span><FiArrowRight /></Link><Link to="/category/cardealer" className="promo-tile bg-[#2f5d50]">Car dealer <span>Drive something great</span><FiArrowRight /></Link><Link to="/category/blackmarket" className="promo-tile bg-[#243746]">Blackmarket <span>Unique offers</span><FiArrowRight /></Link></div>
+        <section className="mt-10"><div className="flex flex-col justify-between gap-3 border-b-2 border-[#102f2c] pb-3 sm:flex-row sm:items-end"><div><p className="text-xs font-black uppercase tracking-[0.25em] text-[#2f5d50]">Vendor marketplace</p><h2 className="mt-1 text-3xl font-black uppercase">Latest arrivals</h2></div><span className="text-sm font-semibold text-gray-600">{visibleProducts.length} products available</span></div>
+          {error && error !== "nil" && <p className="mt-4 text-red-600">{error}</p>}{!visibleProducts.length && <div className="mt-6"><ComingSoonBanner label="Vendor marketplace" /></div>}{visibleProducts.length > 0 && <div className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{visibleProducts.map((product) => { const flashSale = getFlashSaleState(product); const displayProduct = flashSale ? { ...product, price: flashSale.price } : product; return <article key={product._id || product.id} role="button" tabIndex="0" onClick={() => navigate(`/${encodeURIComponent(product.title)}`, { state: { product } })} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") navigate(`/${encodeURIComponent(product.title)}`, { state: { product } }); }} className="store-product-card cursor-pointer"><div className="relative bg-[#f0eee7] p-3"><img src={product.images?.[0] || "images/phones.png"} alt={product.title} className="h-56 w-full object-contain mix-blend-multiply" />{(product.isFragile || product.isHighValue) && <div className="absolute left-5 top-5 flex flex-wrap gap-1">{product.isFragile && <span className="bg-black px-2 py-1 text-[10px] font-black uppercase text-white">Fragile</span>}{product.isHighValue && <span className="bg-lime-200 px-2 py-1 text-[10px] font-black uppercase text-[#102f2c]">High value</span>}</div>}</div><div className="p-4"><p className="text-[10px] font-black uppercase tracking-[0.15em] text-[#2f5d50]">{product.brand} · {product.category}</p><h3 className="mt-2 text-lg font-black capitalize">{product.title}</h3><p className="mt-2 line-clamp-2 text-sm text-gray-600">{product.description}</p>{flashSale && <p className="mt-3 bg-red-50 p-2 text-xs font-bold text-red-700">Flash sale: {formatCurrency(flashSale.price, product.currency)} · {flashSale.time}</p>}<div className="mt-4 flex items-end justify-between border-t border-gray-200 pt-3"><strong className="text-xl">{formatCurrency(displayProduct.price, product.currency)}</strong><span className="text-xs font-semibold capitalize text-gray-500">{product.itemCondition || "generic"}</span></div><p className="mt-2 text-xs text-gray-500">From {product.vendorName || "Verified vendor"}</p><div className="mt-4 flex gap-2"><button onClick={(event) => { event.stopPropagation(); handleSave(product._id || product.id); }} className="flex-1 border border-[#102f2c] px-3 py-2 text-xs font-black uppercase hover:bg-gray-100">{savedItems.includes(product._id || product.id) ? "Saved" : "Save"}</button>{(product.sellingMode === "retail" || product.sellingMode === "both" || !product.sellingMode) && <button onClick={(event) => { event.stopPropagation(); handleAddToCart(displayProduct, "retail"); }} className="flex-1 bg-[#102f2c] px-3 py-2 text-xs font-black uppercase text-white hover:bg-[#2f5d50]">Add to cart</button>}</div></div></article>; })}</div>}
         </section>
       </div>
     </main>

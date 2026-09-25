@@ -44,6 +44,7 @@ function App() {
         <Route path="/blackmarket" element={<ProtectedRoleRoute role="blackmarket"><BlackMarketPage /></ProtectedRoleRoute>} />
         <Route path="/blackmarket/products/new" element={<ProtectedRoleRoute role="blackmarket"><VendorProductUpload vendorType="blackmarket" /></ProtectedRoleRoute>} />
         <Route path="/category/:category" element={<CategoryShowcasePage />} />
+        <Route path="/category/:category/subcategory/:subcategory" element={<CategoryShowcasePage />} />
         <Route path="/saved-items" element={<ProtectedRoleRoute role="customer"><SavedItems /></ProtectedRoleRoute>} />
         <Route path="/vendor" element={<ProtectedRoleRoute role="vendor"><VendorPage><VendorProductUpload /></VendorPage></ProtectedRoleRoute>} />
         <Route path="/vendor/retailshopvendor" element={<ProtectedRoleRoute role="vendor" vendorType="retailshopvendor"><VendorPage><VendorProductUpload /></VendorPage></ProtectedRoleRoute>} />

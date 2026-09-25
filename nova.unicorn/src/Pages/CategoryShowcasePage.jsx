@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { FiArrowLeft, FiChevronRight } from "react-icons/fi";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { getAllProducts } from "../Store/thunk";
+import { addToCart } from "../Store/cart/CartSlice";
 import { formatCurrency } from "../utils/currency";
 
 const categoryConfig = {
@@ -109,20 +110,21 @@ const toCategorySlug = (value) => String(value || "")
   .replace(/^-|-$/g, "");
 
 const CategoryShowcasePage = () => {
-  const { category = "shopvendor" } = useParams();
+  const { category = "shopvendor", subcategory: routeSubcategory = "" } = useParams();
   const details = categoryConfig[category] || categoryConfig.shopvendor;
   const dispatch = useAppDispatch();
   const { products } = useAppSelector((state) => state.products);
-  const [selectedSubcategory, setSelectedSubcategory] = useState("");
+  const { user } = useAppSelector((state) => state.auth);
+  const [selectedSubcategory, setSelectedSubcategory] = useState(routeSubcategory);
 
   useEffect(() => {
     const refreshProducts = () => dispatch(getAllProducts());
     refreshProducts();
-    setSelectedSubcategory("");
+    setSelectedSubcategory(routeSubcategory);
     const refreshTimer = setInterval(refreshProducts, 5000);
 
     return () => clearInterval(refreshTimer);
-  }, [category, dispatch]);
+  }, [category, dispatch, routeSubcategory]);
 
   const categorySlugs = useMemo(() => details.subcategories.flatMap((group) => [
     toCategorySlug(group.title),
@@ -150,13 +152,22 @@ const CategoryShowcasePage = () => {
 
   const displayedProducts = matchingProducts;
   const isShowingVendorProducts = matchingProducts.length > 0;
+  const selectedLabel = details.subcategories.flatMap((group) => [group.title, ...group.items]).find((item) => toCategorySlug(item) === toCategorySlug(selectedSubcategory)) || selectedSubcategory;
+
+  const addProductToCart = (product) => {
+    if (!user || user.role !== "customer") {
+      window.location.assign("/login");
+      return;
+    }
+    dispatch(addToCart({ product: { ...product, id: product._id || product.id, price: product.price, priceType: "retail" }, quantity: 1 }));
+  };
 
   return (
     <main className="min-h-screen bg-slate-100 px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <header className="mb-6 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
           <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-4 sm:px-6">
-            <Link to="/" className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary100">
+            <Link to="/customer" className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary100">
               <FiArrowLeft className="h-4 w-4" />
               Back to home
             </Link>
@@ -177,25 +188,19 @@ const CategoryShowcasePage = () => {
             <article key={group.title} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
               <div className="mb-4 flex items-center justify-between gap-2">
                 <h2 className="text-xl font-bold text-slate-900">{group.title}</h2>
-                <button
-                  type="button"
-                  onClick={() => setSelectedSubcategory(group.title)}
-                  aria-label={`Show all ${group.title}`}
-                  className="rounded-full p-1 text-gray-400 transition hover:bg-primary/10 hover:text-primary"
-                >
+                <Link to={`/category/${category}/subcategory/${toCategorySlug(group.title)}`} aria-label={`Show all ${group.title}`} className="rounded-full p-1 text-gray-400 transition hover:bg-primary/10 hover:text-primary">
                   <FiChevronRight className="h-5 w-5" />
-                </button>
+                </Link>
               </div>
               <div className="flex flex-wrap gap-2">
                 {group.items.map((item) => (
-                  <button
+                  <Link
                     key={item}
-                    type="button"
-                    onClick={() => setSelectedSubcategory(item)}
-                    className={`rounded-full border px-3 py-1.5 text-sm transition ${selectedSubcategory === item ? "border-primary bg-primary text-white" : "border-slate-200 bg-slate-50 text-slate-700 hover:border-primary hover:text-primary"}`}
+                    to={`/category/${category}/subcategory/${toCategorySlug(item)}`}
+                    className={`rounded-full border px-3 py-1.5 text-sm transition ${toCategorySlug(selectedSubcategory) === toCategorySlug(item) ? "border-primary bg-primary text-white" : "border-slate-200 bg-slate-50 text-slate-700 hover:border-primary hover:text-primary"}`}
                   >
                     {item}
-                  </button>
+                  </Link>
                 ))}
               </div>
             </article>
@@ -205,7 +210,7 @@ const CategoryShowcasePage = () => {
         <section className="mb-4">
           <div className="mb-5 flex items-center justify-between gap-3">
             <div>
-              <h2 className="text-2xl font-black text-slate-900">{selectedSubcategory || "Featured products"}</h2>
+              <h2 className="text-2xl font-black text-slate-900">{selectedLabel || "Featured products"}</h2>
               {selectedSubcategory && <button type="button" onClick={() => setSelectedSubcategory("")} className="mt-1 text-sm font-medium text-primary hover:underline">Show all {details.label.toLowerCase()} products</button>}
             </div>
             <span className="rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary">{details.label}</span>
@@ -220,10 +225,10 @@ const CategoryShowcasePage = () => {
                   <h3 className="mt-2 text-lg font-bold text-slate-900">{product.title}</h3>
                   <p className="mt-3 text-2xl font-black text-gray-900">{isShowingVendorProducts ? formatCurrency(product.price, product.currency) : product.price}</p>
                   <div className="mt-4 flex gap-2">
-                    <button type="button" className="flex-1 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5 text-sm font-semibold text-primary transition hover:bg-primary/10">
+                    <button type="button" onClick={() => window.location.assign(user ? "/saved-items" : "/login")} className="flex-1 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5 text-sm font-semibold text-primary transition hover:bg-primary/10">
                       Save
                     </button>
-                    <button type="button" className="flex-1 rounded-xl bg-primary px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-primary100">
+                    <button type="button" onClick={() => isShowingVendorProducts && addProductToCart(product)} className="flex-1 rounded-xl bg-primary px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-primary100">
                       Add to cart
                     </button>
                   </div>
