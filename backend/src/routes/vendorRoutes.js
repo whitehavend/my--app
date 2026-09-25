@@ -160,8 +160,11 @@ router.post('/:id/verify-tax', async (req, res) => {
 
 router.post('/:id/payout-details', async (req, res) => {
   try {
-    const { method, accountHolderName, bankName, accountNumber, branchCode, mpesaPhoneNumber, paypalEmail, currency = 'KES' } = req.body || {};
+    const { method, payoutOption, commissionPercent, accountHolderName, bankName, accountNumber, branchCode, mpesaPhoneNumber, paypalEmail, currency = 'KES' } = req.body || {};
+    const validPayoutOptions = ['DIRECT_PAYMENT', 'WEEKLY', 'BI_WEEKLY', 'MONTHLY'];
+    const normalizedPayoutOption = String(payoutOption || 'DIRECT_PAYMENT').toUpperCase();
     if (!['BANK', 'MPESA', 'PAYPAL'].includes(method)) return res.status(400).json({ error: 'Choose bank, M-Pesa, or PayPal as your payout method' });
+    if (!validPayoutOptions.includes(normalizedPayoutOption)) return res.status(400).json({ error: 'Choose a valid payout schedule option' });
     if (!accountHolderName || !String(accountHolderName).trim()) return res.status(400).json({ error: 'Account holder name is required' });
     if (method === 'BANK' && (!bankName || !accountNumber)) return res.status(400).json({ error: 'Bank name and account number are required' });
     if (method === 'MPESA' && !mpesaPhoneNumber) return res.status(400).json({ error: 'M-Pesa phone number is required' });
@@ -169,8 +172,16 @@ router.post('/:id/payout-details', async (req, res) => {
 
     const vendor = await Vendor.findById(req.params.id);
     if (!vendor) return res.status(404).json({ error: 'Vendor not found' });
+    const payoutCommission = Number(commissionPercent ?? {
+      DIRECT_PAYMENT: 15,
+      WEEKLY: 13,
+      BI_WEEKLY: 12,
+      MONTHLY: 10,
+    }[normalizedPayoutOption]);
     vendor.payoutDetails = {
       method,
+      payoutOption: normalizedPayoutOption,
+      commissionPercent: Number.isFinite(payoutCommission) ? payoutCommission : 15,
       accountHolderName: String(accountHolderName).trim(),
       bankName: String(bankName || '').trim(),
       accountNumber: String(accountNumber || '').trim(),

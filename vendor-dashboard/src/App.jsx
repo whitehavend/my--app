@@ -30,6 +30,13 @@ const industryOptions = [
   { value: "REAL_ESTATE_CAR", label: "Property & automotive", description: "Dealerships, property, and asset sales", icon: Building2 },
 ];
 
+const payoutOptions = [
+  { value: "DIRECT_PAYMENT", label: "Direct payment", commission: 15 },
+  { value: "WEEKLY", label: "Weekly", commission: 13 },
+  { value: "BI_WEEKLY", label: "Bi-weekly", commission: 12 },
+  { value: "MONTHLY", label: "Monthly", commission: 10 },
+];
+
 const emptyForm = {
   vendorType: "HEALTH_AGRO",
   email: "",
@@ -43,6 +50,7 @@ const emptyForm = {
   profLicense: null,
   premisesDoc: null,
   payoutMethod: "BANK",
+  payoutOption: "DIRECT_PAYMENT",
   payoutAccountHolderName: "",
   bankName: "",
   accountNumber: "",
@@ -286,11 +294,15 @@ function OnboardingPortal({ onCreated, onOpenVerification }) {
       if (!registration.ok) throw new Error(registrationBody.error || "Unable to register vendor");
       const vendorId = registrationBody.vendor._id;
 
+      const selectedPayoutOption = payoutOptions.find((option) => option.value === form.payoutOption) || payoutOptions[0];
+
       await request(`${API_BASE}/${vendorId}/payout-details`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           method: form.payoutMethod,
+          payoutOption: form.payoutOption,
+          commissionPercent: selectedPayoutOption.commission,
           accountHolderName: form.payoutAccountHolderName,
           bankName: form.bankName,
           accountNumber: form.accountNumber,
@@ -365,6 +377,7 @@ function OnboardingPortal({ onCreated, onOpenVerification }) {
 
           <div className="form-heading subheading"><div><span className="eyebrow">Payout setup</span><h3>Where should Nova send your payouts?</h3></div><WalletCards size={19} /></div>
           <div className="input-grid">
+            <label>Payout option<select value={form.payoutOption} onChange={(event) => setValue("payoutOption", event.target.value)}>{payoutOptions.map((option) => <option key={option.value} value={option.value}>{option.label} ({option.commission}% commission)</option>)}</select></label>
             <label>Payout method<select value={form.payoutMethod} onChange={(event) => setValue("payoutMethod", event.target.value)}><option value="BANK">Bank account</option><option value="MPESA">M-Pesa</option><option value="PAYPAL">PayPal</option></select></label>
             <label>Account holder name<input required value={form.payoutAccountHolderName} onChange={(event) => setValue("payoutAccountHolderName", event.target.value)} placeholder="Name on the payout account" /></label>
             {form.payoutMethod === "BANK" && <><label>Bank name<input required value={form.bankName} onChange={(event) => setValue("bankName", event.target.value)} placeholder="Your bank" /></label><label>Account number<input required value={form.accountNumber} onChange={(event) => setValue("accountNumber", event.target.value)} placeholder="Account number" /></label><label>Branch code<input value={form.branchCode} onChange={(event) => setValue("branchCode", event.target.value)} placeholder="Optional branch code" /></label></>}
@@ -372,6 +385,7 @@ function OnboardingPortal({ onCreated, onOpenVerification }) {
             {form.payoutMethod === "PAYPAL" && <label>PayPal email<input required type="email" value={form.paypalEmail} onChange={(event) => setValue("paypalEmail", event.target.value)} placeholder="payouts@example.com" /></label>}
             <label>Currency<select value={form.payoutCurrency} onChange={(event) => setValue("payoutCurrency", event.target.value)}><option value="KES">KES</option><option value="USD">USD</option><option value="NGN">NGN</option><option value="EUR">EUR</option></select></label>
           </div>
+          <p className="section-intro">Selected payout option: {payoutOptions.find((option) => option.value === form.payoutOption)?.label} with {payoutOptions.find((option) => option.value === form.payoutOption)?.commission}% commission.</p>
           <p className="section-intro">Payout details are encrypted in transit and remain pending until the compliance team verifies them.</p>
 
           {feedback && <div className={`feedback ${feedback.type}`}><CircleAlert size={17} />{feedback.message}</div>}

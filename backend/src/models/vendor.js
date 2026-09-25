@@ -33,6 +33,17 @@ const payoutDetailsSchema = {
     enum: ['BANK', 'MPESA', 'PAYPAL'],
     default: null,
   },
+  payoutOption: {
+    type: String,
+    enum: ['DIRECT_PAYMENT', 'WEEKLY', 'BI_WEEKLY', 'MONTHLY'],
+    default: 'DIRECT_PAYMENT',
+  },
+  commissionPercent: {
+    type: Number,
+    min: 0,
+    max: 100,
+    default: 15,
+  },
   accountHolderName: { type: String, trim: true, default: '' },
   bankName: { type: String, trim: true, default: '' },
   accountNumber: { type: String, trim: true, default: '' },
