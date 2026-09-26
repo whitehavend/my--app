@@ -61,8 +61,8 @@ const UberDriverDashboardPage = () => {
 
   const stats = useMemo(
     () => [
-      { label: "Today's rides", value: "18", icon: <FaBolt className="text-amber-300" /> },
-      { label: "Earnings", value: "$540", icon: <FaWallet className="text-emerald-300" /> },
+      { label: "Today's rides", value: "0", icon: <FaBolt className="text-amber-300" /> },
+      { label: "Earnings", value: "KSh 0", icon: <FaWallet className="text-emerald-300" /> },
       { label: "Verified", value: "KYC OK", icon: <FaShieldAlt className="text-cyan-300" /> },
     ],
     []
@@ -85,8 +85,8 @@ const UberDriverDashboardPage = () => {
               <p className="text-lg font-black uppercase leading-[0.9] tracking-[-0.05em]">Driver dashboard</p>
             </div>
           </div>
-          <Link to="/customer" className="rounded-full border border-sky-400/40 bg-sky-500/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-sky-200">
-            Storefront
+          <Link to="/account" className="rounded-full border border-sky-400/40 bg-sky-500/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-sky-200">
+            My account
           </Link>
         </div>
       </header>
@@ -174,23 +174,9 @@ const UberDriverDashboardPage = () => {
           <p className="text-xs font-black uppercase tracking-[0.25em] text-sky-200/80">Ride queue</p>
           <h2 className="mt-2 text-2xl font-black text-white">Current trip opportunities</h2>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {[
-              ["Airport pickup", "2 min away", "$23"],
-              ["Downtown delivery", "7 min away", "$18"],
-              ["School run", "12 min away", "$27"],
-            ].map(([title, timing, rate]) => (
-              <article key={title} className="rounded-2xl border border-sky-500/20 bg-[#091a2c] p-4">
-                <p className="text-lg font-black text-sky-50">{title}</p>
-                <p className="mt-2 text-sm text-sky-100/70">{timing}</p>
-                <div className="mt-5 flex items-center justify-between">
-                  <span className="text-sm font-semibold text-emerald-300">{rate}</span>
-                  <button type="button" className="rounded-full bg-sky-300 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#081827]">
-                    Accept
-                  </button>
-                </div>
-              </article>
-            ))}
+          <div className="mt-6 rounded-2xl border border-dashed border-sky-500/30 bg-[#091a2c] p-8 text-center">
+            <p className="text-xl font-black text-sky-50">No rides in queue yet</p>
+            <p className="mt-3 text-sm text-sky-100/70">When a genuine customer requests a ride, it will appear here automatically.</p>
           </div>
         </section>
       </div>
