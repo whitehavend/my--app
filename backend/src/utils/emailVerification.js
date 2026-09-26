@@ -26,21 +26,24 @@ const getTransporter = async () => {
   }
 
   try {
-    const smtpPort = Number(process.env.SMTP_PORT || 587);
-    const useSecureConnection = smtpPort === 465 || String(process.env.SMTP_SECURE || 'false') === 'true';
+    const smtpPort = parseInt(process.env.SMTP_PORT, 10) || 587;
+    const secure = process.env.SMTP_SECURE === 'true';
 
     const transporter = nodemailer.createTransport({
       host: smtpHost,
       port: smtpPort,
-      secure: useSecureConnection,
+      secure,
       tls: { rejectUnauthorized: false },
       connectionTimeout: 15000,
       greetingTimeout: 15000,
       socketTimeout: 20000,
-      auth: { user: smtpUser, pass: smtpPassword },
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASSWORD,
+      },
     });
 
-    console.log('[emailVerification] SMTP transporter created successfully for host:', smtpHost, 'port:', smtpPort, 'secure:', useSecureConnection);
+    console.log('[emailVerification] SMTP transporter created successfully for host:', smtpHost, 'port:', smtpPort, 'secure:', secure);
     return transporter;
   } catch (error) {
     console.error('[emailVerification] Failed while creating SMTP transporter:', {
