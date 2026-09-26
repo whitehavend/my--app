@@ -64,9 +64,10 @@ const LoginPage = () => {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm({
-    defaultValues: { role: "", vendorType: "" },
+    defaultValues: { role: "customer", vendorType: "" },
   });
   const selectedRole = watch("role", "customer");
   const selectedVendorType = watch("vendorType", "");
@@ -492,7 +493,12 @@ const LoginPage = () => {
 
               <button
                 type="button"
-                onClick={() => setIsLogin(!isLogin)}
+                onClick={() => {
+                  if (isLogin) {
+                    setValue("role", "customer");
+                  }
+                  setIsLogin(!isLogin);
+                }}
                 className="mt-5 w-full rounded-2xl border border-slate-200 bg-white p-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
               >
                 {isLogin ? "Create Account" : "Log in"}
