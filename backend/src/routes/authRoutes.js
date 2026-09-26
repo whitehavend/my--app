@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 const { cert, getApps, initializeApp } = require('firebase-admin/app');
 const { getAuth } = require('firebase-admin/auth');
 const authMiddleware = require('../middleware/authMiddleware');
@@ -207,6 +208,76 @@ router.post('/signup/request-code', async (req, res) => {
     return res.status(500).json({ error: 'Unable to send verification code' });
   }
 });
+
+const handleTestEmailRoute = async (req, res) => {
+  try {
+    const targetEmail = String(req.body?.email || req.query?.email || process.env.SMTP_USER || '').trim();
+    const smtpHost = process.env.SMTP_HOST?.trim();
+    const smtpUser = process.env.SMTP_USER?.trim();
+    const smtpPassword = process.env.SMTP_PASSWORD?.trim();
+
+    console.log('[authRoutes] /api/auth/test-email hit', {
+      targetEmail,
+      smtpHost: !!smtpHost,
+      smtpUser: !!smtpUser,
+      smtpPassword: !!smtpPassword,
+      smtpPort: process.env.SMTP_PORT,
+      smtpSecure: process.env.SMTP_SECURE,
+    });
+
+    if (!smtpHost || !smtpUser || !smtpPassword) {
+      const error = new Error('SMTP configuration is missing');
+      error.code = 'EMAIL_DELIVERY_NOT_CONFIGURED';
+      throw error;
+    }
+
+    if (!targetEmail) {
+      const error = new Error('No email target provided. Please send { email: "you@example.com" } or set SMTP_USER.');
+      error.code = 'MISSING_TEST_EMAIL';
+      throw error;
+    }
+
+    const transporter = nodemailer.createTransport({
+      host: smtpHost,
+      port: parseInt(process.env.SMTP_PORT || '465', 10),
+      secure: String(process.env.SMTP_SECURE || 'true').toLowerCase() === 'true',
+      tls: { rejectUnauthorized: false },
+      connectionTimeout: 15000,
+      greetingTimeout: 15000,
+      socketTimeout: 20000,
+      auth: {
+        user: smtpUser,
+        pass: smtpPassword,
+      },
+    });
+
+    const info = await transporter.sendMail({
+      from: process.env.SMTP_FROM || smtpUser,
+      to: targetEmail,
+      subject: 'Nova Unicorn SMTP test email',
+      text: 'This is a test email from the Nova Unicorn backend SMTP diagnostic route.',
+      html: '<p>This is a test email from the Nova Unicorn backend SMTP diagnostic route.</p>',
+    });
+
+    return res.status(200).json({
+      success: true,
+      messageId: info?.messageId,
+      accepted: info?.accepted,
+      rejected: info?.rejected,
+      targetEmail,
+    });
+  } catch (error) {
+    console.error('[authRoutes] /api/auth/test-email failed with raw SMTP error:', error);
+    return res.status(500).json({
+      success: false,
+      rawError: error,
+      stack: error?.stack,
+    });
+  }
+};
+
+router.get('/test-email', handleTestEmailRoute);
+router.post('/test-email', handleTestEmailRoute);
 
 router.post('/vendor-pre-registrations', async (req, res) => {
   const shopName = String(req.body.shopName || '').trim();
