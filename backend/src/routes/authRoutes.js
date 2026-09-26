@@ -116,17 +116,41 @@ const serializeUser = (user) => ({
 });
 
 router.post('/signup/request-code', async (req, res) => {
-  const { email, role = 'customer' } = req.body;
+  const incoming = req.body || {};
+  const { email, role = 'customer' } = incoming;
   const normalizedEmail = normalizeEmail(email);
   const normalizedRole = String(role || 'customer').trim().toLowerCase();
 
-  if (!normalizedEmail || !isValidEmail(normalizedEmail)) return res.status(400).json({ error: 'Please enter a valid email address' });
-  if (!publicRoles.includes(normalizedRole)) return res.status(400).json({ error: 'This account type requires administrator creation' });
+  console.log('[authRoutes] /signup/request-code received', {
+    incomingRole: role,
+    normalizedRole,
+    incomingEmail: email,
+    normalizedEmail,
+    hasPassword: Boolean(incoming.password),
+  });
+
+  if (!normalizedEmail || !isValidEmail(normalizedEmail)) {
+    console.warn('[authRoutes] /signup/request-code rejected: invalid email', { email, normalizedEmail });
+    return res.status(400).json({ error: 'Please enter a valid email address' });
+  }
+
+  if (!publicRoles.includes(normalizedRole)) {
+    console.warn('[authRoutes] /signup/request-code rejected: restricted role', { normalizedRole, allowedRoles: publicRoles });
+    return res.status(400).json({ error: 'This account type requires administrator creation' });
+  }
 
   try {
-    if (await getUserByEmail(normalizedEmail)) return res.status(409).json({ error: 'User already exists' });
+    console.log('[authRoutes] Checking if account already exists for email:', normalizedEmail);
+    const existingUser = await getUserByEmail(normalizedEmail);
+    if (existingUser) {
+      console.warn('[authRoutes] /signup/request-code rejected: user already exists', { email: normalizedEmail });
+      return res.status(409).json({ error: 'User already exists' });
+    }
+
     const code = String(crypto.randomInt(100000, 1000000));
-    await PendingSignup.findOneAndUpdate(
+    console.log('[authRoutes] Generated verification code for email:', { email: normalizedEmail, codeLength: code.length });
+
+    const pendingSignup = await PendingSignup.findOneAndUpdate(
       { email: normalizedEmail },
       {
         email: normalizedEmail,
@@ -136,13 +160,50 @@ router.post('/signup/request-code', async (req, res) => {
       },
       { upsert: true, new: true, setDefaultsOnInsert: true },
     );
-    await sendRegistrationCode(normalizedEmail, code);
-    return res.status(200).json({ message: 'Verification code sent to your email' });
+
+    console.log('[authRoutes] Pending signup record saved', {
+      email: normalizedEmail,
+      pendingSignupId: pendingSignup?._id,
+      expiresAt: pendingSignup?.expiresAt,
+    });
+
+    try {
+      console.log('[authRoutes] Calling sendRegistrationCode for email:', normalizedEmail);
+      await sendRegistrationCode(normalizedEmail, code);
+      console.log('[authRoutes] sendRegistrationCode completed successfully for email:', normalizedEmail);
+      return res.status(200).json({ message: 'Verification code sent to your email' });
+    } catch (mailError) {
+      console.error('[authRoutes] sendRegistrationCode threw inside route catch block:', {
+        email: normalizedEmail,
+        code: code,
+        name: mailError?.name,
+        codeValue: mailError?.code,
+        message: mailError?.message,
+        response: mailError?.response,
+        stack: mailError?.stack,
+      });
+
+      if (mailError?.message === 'EMAIL_DELIVERY_NOT_CONFIGURED' || mailError?.code === 'EMAIL_DELIVERY_NOT_CONFIGURED') {
+        return res.status(503).json({ error: 'Email delivery is not configured' });
+      }
+
+      return res.status(500).json({ error: 'Unable to send verification code' });
+    }
   } catch (error) {
+    console.error('[authRoutes] Unhandled error in /signup/request-code:', {
+      email: normalizedEmail,
+      role: normalizedRole,
+      name: error?.name,
+      code: error?.code,
+      message: error?.message,
+      response: error?.response,
+      stack: error?.stack,
+    });
+
     if (error?.message === 'EMAIL_DELIVERY_NOT_CONFIGURED' || error?.code === 'EMAIL_DELIVERY_NOT_CONFIGURED') {
       return res.status(503).json({ error: 'Email delivery is not configured' });
     }
-    console.error('Send registration code error:', error);
+
     return res.status(500).json({ error: 'Unable to send verification code' });
   }
 });
