@@ -70,6 +70,7 @@ const LoginPage = () => {
   });
   const selectedRole = watch("role", "customer");
   const selectedVendorType = watch("vendorType", "");
+  const watchedEmail = watch("email", "");
   const selectedPlatforms = watch("advertSocials", {});
   const advertPlatforms = ["Instagram", "TikTok", "YouTube", "Facebook", "X"];
   useEffect(() => {
@@ -121,8 +122,11 @@ const LoginPage = () => {
       vendorType: normalizedRole === "uberdriver" ? "uberdriver" : data.vendorType || selectedVendorType || "",
     };
 
-    const normalizedEmail = normalizeEmailValue(data?.email || "");
-    if (!normalizedEmail) {
+    const normalizedEmail = normalizeEmailValue(
+      (data?.email ?? watchedEmail ?? "") || ""
+    );
+
+    if (!normalizedEmail || !/^\S+@\S+$/i.test(normalizedEmail)) {
       setVerificationNotice("");
       setVerificationError("Email is required before sending the verification code");
       return;
