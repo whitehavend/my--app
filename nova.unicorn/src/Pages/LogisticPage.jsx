@@ -121,12 +121,12 @@ const LogisticPage = () => {
           <h2 className="mt-2 text-3xl font-bold text-slate-900">Logistic contact details</h2>
           <dl className="mt-6 space-y-4">
             <div className="rounded-2xl bg-slate-50 p-4">
-              <dt className="text-sm text-gray-500">Full name</dt>
-              <dd className="mt-1 font-medium text-slate-900">{user?.displayName || "Delivery driver"}</dd>
+              <dt className="text-sm font-medium text-black">Full name</dt>
+              <dd className="mt-1 font-medium text-black">{user?.displayName || "Delivery driver"}</dd>
             </div>
             <div className="rounded-2xl bg-slate-50 p-4">
-              <dt className="text-sm text-gray-500">Phone number</dt>
-              <dd className="mt-1 font-medium text-slate-900">
+              <dt className="text-sm font-medium text-black">Phone number</dt>
+              <dd className="mt-1 font-medium text-black">
                 {user?.countryCode || "+000"} {user?.phoneNumber || "0000000000"}
               </dd>
             </div>

@@ -59,8 +59,8 @@ const Account = () => {
       <section className="mx-auto max-w-3xl rounded-md bg-white p-6 shadow-sm">
         <div className="flex items-center justify-between border-b border-gray-200 pb-5">
           <div>
-            <p className="text-sm text-gray-500">My account</p>
-            <h1 className="text-2xl font-semibold text-gray-900">Account details</h1>
+            <p className="text-sm font-medium text-black">My account</p>
+            <h1 className="text-2xl font-semibold text-black">Account details</h1>
           </div>
           <Link to="/orders" className="rounded-md bg-primary px-4 py-2 text-sm text-white hover:bg-primary100">
             View orders
@@ -68,61 +68,61 @@ const Account = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="mt-6 grid gap-4 sm:grid-cols-2">
-          <div><label className="text-sm text-gray-500">First name</label><input name="firstName" value={formData.firstName} onChange={handleChange} className="mt-1 w-full rounded-md border p-3" /></div>
-          <div><label className="text-sm text-gray-500">Second name</label><input name="secondName" value={formData.secondName} onChange={handleChange} className="mt-1 w-full rounded-md border p-3" /></div>
-          <div><label className="text-sm text-gray-500">Username</label><input name="username" value={formData.username} onChange={handleChange} className="mt-1 w-full rounded-md border p-3" /></div>
-          <div><label className="text-sm text-gray-500">Phone number</label><input name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} className="mt-1 w-full rounded-md border p-3" /></div>
-          <div><label className="text-sm text-gray-500">Country code</label><input name="countryCode" value={formData.countryCode} onChange={handleChange} className="mt-1 w-full rounded-md border p-3" /></div>
-          <div><label className="text-sm text-gray-500">New password</label><input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Leave blank to keep current" className="mt-1 w-full rounded-md border p-3" /></div>
-          {(user.role === "customer") && <div className="sm:col-span-2"><label className="text-sm text-gray-500">Delivery address</label><input name="deliveryAddress" value={formData.deliveryAddress} onChange={handleChange} className="mt-1 w-full rounded-md border p-3" /></div>}
+          <div><label className="text-sm font-medium text-black">First name</label><input name="firstName" value={formData.firstName} onChange={handleChange} className="mt-1 w-full rounded-md border p-3 text-black" /></div>
+          <div><label className="text-sm font-medium text-black">Second name</label><input name="secondName" value={formData.secondName} onChange={handleChange} className="mt-1 w-full rounded-md border p-3 text-black" /></div>
+          <div><label className="text-sm font-medium text-black">Username</label><input name="username" value={formData.username} onChange={handleChange} className="mt-1 w-full rounded-md border p-3 text-black" /></div>
+          <div><label className="text-sm font-medium text-black">Phone number</label><input name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} className="mt-1 w-full rounded-md border p-3 text-black" /></div>
+          <div><label className="text-sm font-medium text-black">Country code</label><input name="countryCode" value={formData.countryCode} onChange={handleChange} className="mt-1 w-full rounded-md border p-3 text-black" /></div>
+          <div><label className="text-sm font-medium text-black">New password</label><input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Leave blank to keep current" className="mt-1 w-full rounded-md border p-3 text-black" /></div>
+          {(user.role === "customer") && <div className="sm:col-span-2"><label className="text-sm font-medium text-black">Delivery address</label><input name="deliveryAddress" value={formData.deliveryAddress} onChange={handleChange} className="mt-1 w-full rounded-md border p-3 text-black" /></div>}
           {(user.role === "vendor" || user.role === "blackmarket") && <>
-            <div><label className="text-sm text-gray-500">Shop name</label><input name="shopName" value={formData.shopName} onChange={handleChange} className="mt-1 w-full rounded-md border p-3" /></div>
-            <div><label className="text-sm text-gray-500">Business name</label><input name="businessName" value={formData.businessName} onChange={handleChange} className="mt-1 w-full rounded-md border p-3" /></div>
-            <div className="sm:col-span-2"><label className="text-sm text-gray-500">Shop address</label><input name="shopAddress" value={formData.shopAddress} onChange={handleChange} className="mt-1 w-full rounded-md border p-3" /></div>
+            <div><label className="text-sm font-medium text-black">Shop name</label><input name="shopName" value={formData.shopName} onChange={handleChange} className="mt-1 w-full rounded-md border p-3 text-black" /></div>
+            <div><label className="text-sm font-medium text-black">Business name</label><input name="businessName" value={formData.businessName} onChange={handleChange} className="mt-1 w-full rounded-md border p-3 text-black" /></div>
+            <div className="sm:col-span-2"><label className="text-sm font-medium text-black">Shop address</label><input name="shopAddress" value={formData.shopAddress} onChange={handleChange} className="mt-1 w-full rounded-md border p-3 text-black" /></div>
           </>}
           <button type="submit" className="w-fit rounded-md bg-primary px-5 py-3 text-sm font-medium text-white hover:bg-primary100">Save settings</button>
         </form>
         <dl className="mt-8 grid gap-5 border-t border-gray-200 pt-6 sm:grid-cols-2">
           <div>
-            <dt className="text-sm text-gray-500">Full name</dt>
-            <dd className="mt-1 font-medium text-gray-900">{user.displayName || "Not provided"}</dd>
+            <dt className="text-sm font-medium text-black">Full name</dt>
+            <dd className="mt-1 font-medium text-black">{user.displayName || "Not provided"}</dd>
           </div>
           <div>
-            <dt className="text-sm text-gray-500">Email</dt>
-            <dd className="mt-1 font-medium text-gray-900">{user.email || "Not provided"}</dd>
+            <dt className="text-sm font-medium text-black">Email</dt>
+            <dd className="mt-1 font-medium text-black">{user.email || "Not provided"}</dd>
           </div>
           <div>
-            <dt className="text-sm text-gray-500">Username</dt>
-            <dd className="mt-1 font-medium text-gray-900">{user.username || "Not provided"}</dd>
+            <dt className="text-sm font-medium text-black">Username</dt>
+            <dd className="mt-1 font-medium text-black">{user.username || "Not provided"}</dd>
           </div>
           <div>
-            <dt className="text-sm text-gray-500">Phone number</dt>
-            <dd className="mt-1 font-medium text-gray-900">{user.countryCode} {user.phoneNumber || "Not provided"}</dd>
+            <dt className="text-sm font-medium text-black">Phone number</dt>
+            <dd className="mt-1 font-medium text-black">{user.countryCode} {user.phoneNumber || "Not provided"}</dd>
           </div>
           <div>
-            <dt className="text-sm text-gray-500">Account type</dt>
-            <dd className="mt-1 font-medium capitalize text-gray-900">{user.role || "customer"}</dd>
+            <dt className="text-sm font-medium text-black">Account type</dt>
+            <dd className="mt-1 font-medium capitalize text-black">{user.role || "customer"}</dd>
           </div>
           {(user.role === "vendor" || user.role === "blackmarket") && (
             <>
               <div>
-                <dt className="text-sm text-gray-500">Shop name</dt>
-                <dd className="mt-1 font-medium text-gray-900">{user.shopName || "Not provided"}</dd>
+                <dt className="text-sm font-medium text-black">Shop name</dt>
+                <dd className="mt-1 font-medium text-black">{user.shopName || "Not provided"}</dd>
               </div>
               <div>
-                <dt className="text-sm text-gray-500">Vendor approval</dt>
-                <dd className="mt-1 font-medium text-gray-900">{user.isApproved ? "Approved" : "Pending approval"}</dd>
+                <dt className="text-sm font-medium text-black">Vendor approval</dt>
+                <dd className="mt-1 font-medium text-black">{user.isApproved ? "Approved" : "Pending approval"}</dd>
               </div>
               <div className="sm:col-span-2">
-                <dt className="text-sm text-gray-500">Shop address</dt>
-                <dd className="mt-1 font-medium text-gray-900">{user.shopAddress || "Not provided"}</dd>
+                <dt className="text-sm font-medium text-black">Shop address</dt>
+                <dd className="mt-1 font-medium text-black">{user.shopAddress || "Not provided"}</dd>
               </div>
             </>
           )}
           {user.role === "customer" && (
             <div className="sm:col-span-2">
-              <dt className="text-sm text-gray-500">Delivery address</dt>
-              <dd className="mt-1 font-medium text-gray-900">{user.deliveryAddress || "Not provided"}</dd>
+              <dt className="text-sm font-medium text-black">Delivery address</dt>
+              <dd className="mt-1 font-medium text-black">{user.deliveryAddress || "Not provided"}</dd>
             </div>
           )}
         </dl>

@@ -83,17 +83,17 @@ const AdvertPage = () => {
         <section className="mx-auto max-w-3xl rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
           <p className="text-sm font-medium uppercase tracking-[0.2em] text-primary">Advert dashboard</p>
           <h2 className="mt-2 text-3xl font-bold text-slate-900">Your advertising platforms</h2>
-          <p className="mt-2 text-gray-600">
+          <p className="mt-2 text-black">
             Signed in as {user?.displayName || "Advertiser"} · {user?.email || "your@email.com"}
           </p>
           <div className="mt-6 space-y-3">
             {socials.map(([platform, username]) => (
               <div key={platform} className="flex items-center justify-between rounded-2xl border border-gray-200 bg-slate-50 p-4">
-                <span className="capitalize text-slate-700">{platform}</span>
-                <span className="font-medium text-primary">@{username}</span>
+                <span className="capitalize font-medium text-black">{platform}</span>
+                <span className="font-medium text-black">@{username}</span>
               </div>
             ))}
-            {!socials.length && <p className="text-gray-600">No advertising platforms selected yet.</p>}
+            {!socials.length && <p className="text-black">No advertising platforms selected yet.</p>}
           </div>
         </section>
       </div>
