@@ -4,7 +4,15 @@ import { useNavigate } from "react-router-dom";
 import { useAppDispatch } from "../Store/hooks";
 import { handleLogin } from "../Store/thunk";
 
-const apiBaseUrl = (process.env.REACT_APP_BASEURL || "http://localhost:5001/api").replace(/\/$/, "");
+const getApiBaseUrl = () => {
+  const configuredBaseUrl = process.env.REACT_APP_BASEURL;
+  if (configuredBaseUrl) return configuredBaseUrl.replace(/\/$/, "");
+  return typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+    ? "http://localhost:5001/api"
+    : "https://my-app-1-ggdw.onrender.com/api";
+};
+
+const apiBaseUrl = getApiBaseUrl();
 
 const VendorPreRegistrationPage = () => {
   const dispatch = useAppDispatch();
