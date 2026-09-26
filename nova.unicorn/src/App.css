@@ -1,11 +1,11 @@
 body {
-  background: #040d19;
-  color: #e2e8f0;
+  background: #02070d;
+  color: #f3f5f7;
 }
 
 #root {
   min-height: 100vh;
-  background: #040d19;
+  background: #02070d;
 }
 
 .App {
@@ -47,7 +47,7 @@ body {
   justify-content: center;
   gap: 0.35rem;
   padding: 0.65rem 0.35rem;
-  color: #dff2a8;
+  color: #c4c8cc;
   font-size: 0.68rem;
   font-weight: 900;
   text-transform: uppercase;
@@ -59,15 +59,16 @@ body {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 2.2rem;
-  height: 2.2rem;
+  width: 3.25rem;
+  height: 3.25rem;
   transform: translate(-50%, -50%);
   border-radius: 999px;
-  background: radial-gradient(circle, rgba(147, 197, 253, 0.5) 0%, rgba(59, 130, 246, 0.28) 35%, rgba(37, 99, 235, 0.1) 60%, transparent 80%);
-  box-shadow: 0 0 10px rgba(96, 165, 250, 0.45), 0 0 20px rgba(59, 130, 246, 0.35);
-  filter: blur(6px);
+  background: radial-gradient(circle, rgba(243, 244, 245, 0.34) 0%, rgba(196, 200, 204, 0.22) 28%, rgba(150, 157, 163, 0.1) 56%, transparent 82%);
+  box-shadow: 0 0 14px rgba(243, 244, 245, 0.28), 0 0 30px rgba(196, 200, 204, 0.18);
+  filter: blur(10px);
   z-index: 0;
-  opacity: 1;
+  opacity: 0.95;
+  transition: width 180ms ease, height 180ms ease, opacity 180ms ease, filter 180ms ease;
 }
 
 .store-nav-item svg {
@@ -78,24 +79,31 @@ body {
   height: 1.5rem;
   border-radius: 999px;
   padding: 0.22rem;
-  color: #eff6ff;
-  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 45%, #2563eb 100%);
-  box-shadow: 0 0 0.4rem rgba(147, 197, 253, 0.7), 0 0 0.9rem rgba(59, 130, 246, 0.8), inset 0 0 0.35rem rgba(255, 255, 255, 0.8);
-  filter: drop-shadow(0 0 0.4rem rgba(96, 165, 250, 0.6));
+  color: #202225;
+  background: linear-gradient(135deg, #f3f4f5 0%, #c4c8cc 45%, #969da3 100%);
+  box-shadow: 0 0 0.4rem rgba(196, 200, 204, 0.45), 0 0 0.9rem rgba(196, 200, 204, 0.25), inset 0 0 0.35rem rgba(255, 255, 255, 0.7);
+  filter: drop-shadow(0 0 0.4rem rgba(196, 200, 204, 0.5));
   font-size: 1.35rem;
   transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
 }
 
 .store-nav-item:hover {
-  background: rgba(47, 93, 80, 0.35);
-  color: #f5ffd9;
+  background: rgba(196, 200, 204, 0.08);
+  color: #f3f5f7;
   transform: translateY(-2px) scale(1.04);
+}
+
+.store-nav-item:hover::before {
+  width: 3.8rem;
+  height: 3.8rem;
+  opacity: 1;
+  filter: blur(12px);
 }
 
 .store-nav-item:hover svg {
   transform: scale(1.12);
-  box-shadow: 0 0 1rem rgba(191, 219, 254, 1), 0 0 1.8rem rgba(59, 130, 246, 1), 0 0 3rem rgba(37, 99, 235, 0.95), inset 0 0 0.75rem rgba(255, 255, 255, 1);
-  filter: drop-shadow(0 0 1rem rgba(147, 197, 253, 1));
+  box-shadow: 0 0 1rem rgba(243, 244, 245, 0.9), 0 0 1.8rem rgba(196, 200, 204, 0.7), 0 0 3rem rgba(150, 157, 163, 0.55), inset 0 0 0.75rem rgba(255, 255, 255, 1);
+  filter: drop-shadow(0 0 1rem rgba(196, 200, 204, 0.8));
 }
 
 .assistance-nav-item {
@@ -109,8 +117,8 @@ body {
   padding: 0;
   border: 0;
   border-radius: 999px;
-  background: rgba(8, 24, 39, 0.7);
-  box-shadow: 0 0 8px rgba(59, 130, 246, 0.28), inset 0 0 0 1px rgba(147, 197, 253, 0.12);
+  background: rgba(24, 26, 29, 0.7);
+  box-shadow: 0 0 8px rgba(196, 200, 204, 0.2), inset 0 0 0 1px rgba(196, 200, 204, 0.12);
   cursor: pointer;
   font: inherit;
 }
@@ -118,12 +126,13 @@ body {
 .assistance-nav-item::before {
   content: "";
   position: absolute;
-  inset: -0.2rem;
+  inset: -0.45rem;
   border-radius: 999px;
-  background: radial-gradient(circle, rgba(191, 219, 254, 0.35) 0%, rgba(96, 165, 250, 0.2) 30%, rgba(59, 130, 246, 0.1) 56%, transparent 80%);
-  filter: blur(8px);
+  background: radial-gradient(circle, rgba(243, 244, 245, 0.38) 0%, rgba(196, 200, 204, 0.24) 30%, rgba(150, 157, 163, 0.12) 58%, transparent 82%);
+  box-shadow: 0 0 16px rgba(243, 244, 245, 0.18), 0 0 32px rgba(196, 200, 204, 0.14);
+  filter: blur(10px);
   z-index: 0;
-  opacity: 0.9;
+  opacity: 1;
 }
 
 .assistance-nav-item svg {
@@ -135,9 +144,9 @@ body {
   margin: 0;
   border-radius: 999px;
   padding: 0.2rem;
-  color: #eff6ff;
-  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 45%, #2563eb 100%);
-  box-shadow: 0 0 0.25rem rgba(147, 197, 253, 0.65), 0 0 0.7rem rgba(59, 130, 246, 0.7), inset 0 0 0.25rem rgba(255, 255, 255, 0.75);
+  color: #202225;
+  background: linear-gradient(135deg, #f3f4f5 0%, #c4c8cc 45%, #969da3 100%);
+  box-shadow: 0 0 0.25rem rgba(243, 244, 245, 0.55), 0 0 0.7rem rgba(196, 200, 204, 0.45), inset 0 0 0.25rem rgba(255, 255, 255, 0.75);
   transform: translateY(-1px);
 }
 
@@ -159,7 +168,7 @@ body {
 }
 
 .promo-tile span {
-  color: rgba(255, 255, 255, 0.72);
+  color: #c4c8cc;
   font-size: 0.7rem;
   letter-spacing: 0.14em;
 }
@@ -170,15 +179,34 @@ body {
 
 .store-product-card {
   overflow: hidden;
-  border: 1px solid #dedbd1;
-  background: white;
-  box-shadow: 0 8px 20px rgba(23, 23, 23, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #111315;
+  color: #f3f5f7;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
   transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.store-product-card > div:first-child {
+  background: #c4c8cc;
+}
+
+.store-product-card button:not([aria-label]) {
+  border-color: #c4c8cc;
+  background-color: #c4c8cc;
+  color: #202225;
+}
+
+.store-product-card button[aria-label] {
+  color: #c4c8cc;
+}
+
+.store-product-card > div:last-child > p:nth-of-type(-n + 2) {
+  color: #c4c8cc;
 }
 
 .store-product-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 16px 30px rgba(23, 23, 23, 0.12);
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.35);
 }
 
 @media (max-width: 640px) {

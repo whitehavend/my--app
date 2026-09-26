@@ -457,24 +457,26 @@ const LoginPage = () => {
                   </>
                 )}
 
-                {!(isLogin && selectedRole === "adminGateway") && verificationSent && <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Password"
-                    {...register("password", { required: "Password is required", minLength: { value: 6, message: "Password must be at least 6 characters" } })}
-                    className={`w-full rounded-2xl border bg-white p-4 pr-12 text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/20 ${errors.password ? "border-red-300" : "border-slate-200"}`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((visible) => !visible)}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                    title={showPassword ? "Hide password" : "Show password"}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-primary"
-                  >
-                    {showPassword ? <HiEyeOff className="h-5 w-5" /> : <HiEye className="h-5 w-5" />}
-                  </button>
-                </div>}
-                {!(isLogin && selectedRole === "adminGateway") && verificationSent && errors.password && <p className="text-xs text-red-500">{errors.password.message}</p>}
+                {!(isLogin && selectedRole === "adminGateway") && (isLogin || verificationSent) && (
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Password"
+                      {...register("password", { required: "Password is required", minLength: { value: 6, message: "Password must be at least 6 characters" } })}
+                      className={`w-full rounded-2xl border bg-white p-4 pr-12 text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/20 ${errors.password ? "border-red-300" : "border-slate-200"}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((visible) => !visible)}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      title={showPassword ? "Hide password" : "Show password"}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-primary"
+                    >
+                      {showPassword ? <HiEyeOff className="h-5 w-5" /> : <HiEye className="h-5 w-5" />}
+                    </button>
+                  </div>
+                )}
+                {!(isLogin && selectedRole === "adminGateway") && errors.password && <p className="text-xs text-red-500">{errors.password.message}</p>}
 
                 <button
                   type="submit"

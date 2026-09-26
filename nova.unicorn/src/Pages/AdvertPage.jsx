@@ -16,17 +16,17 @@ const AdvertPage = () => {
   const socials = Object.entries(user?.advertSocials || {});
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-amber-50 px-4 py-6 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-[#02070d] px-4 py-6 text-[#f3f5f7] sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
-        <header className="mb-6 overflow-hidden rounded-3xl border border-slate-200 bg-slate-950 text-white shadow-2xl">
+        <header className="mb-6 overflow-hidden rounded-3xl border border-white/10 bg-[#0b0c0d] text-white shadow-2xl">
           <div className="flex flex-col gap-4 border-b border-white/10 bg-white/5 p-4 backdrop-blur-sm sm:p-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-amber-300 to-orange-500 text-sm font-black text-slate-900">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#c4c8cc] text-sm font-black text-[#202225]">
                 N
               </div>
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.32em] text-amber-200">Nova Unicorn</p>
-                <p className="text-xs text-slate-300">Advertise with us</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.32em] text-[#c4c8cc]">Nova Unicorn</p>
+                <p className="text-xs text-[#a8b0bb]">Advertise with us</p>
               </div>
             </div>
 
@@ -40,8 +40,8 @@ const AdvertPage = () => {
                     to={to}
                     className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold transition-all sm:text-sm ${
                       isActive
-                        ? "border-amber-300 bg-amber-300 text-slate-900 shadow-md"
-                        : "border-white/15 bg-white/5 text-white hover:border-amber-200 hover:bg-white/10"
+                        ? "border-[#c4c8cc] bg-[#c4c8cc] text-[#202225] shadow-md"
+                        : "border-white/15 bg-white/5 text-white hover:border-[#c4c8cc] hover:bg-white/10"
                     }`}
                   >
                     <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -52,11 +52,11 @@ const AdvertPage = () => {
             </nav>
           </div>
 
-          <section className="relative overflow-hidden bg-gradient-to-r from-[#0f172a] via-[#1d4ed8] to-[#7c3aed] p-6 sm:p-8 lg:p-12">
-            <div className="absolute -right-16 -top-16 h-52 w-52 rounded-full bg-amber-300/20 blur-3xl" aria-hidden="true" />
-            <div className="absolute -bottom-12 left-10 h-40 w-40 rounded-full bg-cyan-300/15 blur-3xl" aria-hidden="true" />
+          <section className="relative overflow-hidden bg-gradient-to-r from-[#02070d] via-[#17191c] to-[#24272a] p-6 sm:p-8 lg:p-12">
+            <div className="absolute -right-16 -top-16 h-52 w-52 rounded-full bg-[#c4c8cc]/10 blur-3xl" aria-hidden="true" />
+            <div className="absolute -bottom-12 left-10 h-40 w-40 rounded-full bg-[#a8b0bb]/10 blur-3xl" aria-hidden="true" />
             <div className="relative">
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.3em] text-amber-100">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.3em] text-[#c4c8cc]">
                 <BsMegaphone className="h-3.5 w-3.5" />
                 Growth partner
               </div>
@@ -64,12 +64,12 @@ const AdvertPage = () => {
               <h1 className="max-w-3xl text-3xl font-black leading-tight tracking-tight text-white sm:text-5xl">
                 Promote Nova Unicorn and turn attention into sales.
               </h1>
-              <p className="mt-4 max-w-2xl text-base leading-7 text-slate-200 sm:text-lg">
+              <p className="mt-4 max-w-2xl text-base leading-7 text-[#d1d3d5] sm:text-lg">
                 Reach thousands of shoppers, showcase your brand, and grow faster with ads built for discovery, trust, and repeat purchases.
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
-                <Link to="/vendor/help" className="rounded-full bg-amber-300 px-5 py-3 text-sm font-bold text-slate-900 transition hover:bg-amber-200">
+                <Link to="/vendor/help" className="rounded-full bg-[#c4c8cc] px-5 py-3 text-sm font-bold text-[#202225] transition hover:bg-[#e3e5e7]">
                   Start advertising
                 </Link>
                 <Link to="/vendor/help#assistance" className="rounded-full border border-white/20 bg-white/5 px-5 py-3 text-sm font-bold text-white transition hover:bg-white/10">

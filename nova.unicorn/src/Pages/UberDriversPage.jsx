@@ -101,29 +101,29 @@ const UberDriversPage = () => {
     : "https://www.google.com/maps";
 
   return (
-    <main className="min-h-screen bg-[#040d19] text-slate-100">
-      <header className="border-b border-sky-500/20 bg-[#081827]">
+    <main className="min-h-screen bg-[#02070d] text-[#f3f5f7]">
+      <header className="border-b border-white/10 bg-[#0b1118]">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-5 sm:px-6 lg:px-8">
-          <Link to="/customer" className="flex items-center gap-3 text-sky-100">
-            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-300 text-xl text-[#081827]">
+          <Link to="/customer" className="flex items-center gap-3 text-[#f3f5f7]">
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#7ce6d4] text-xl text-[#071118]">
               <FaUber />
             </span>
             <span className="text-xl font-black uppercase leading-[0.8] tracking-[-0.06em]">Nova Uber</span>
           </Link>
-          <Link to="/customer" className="rounded-full border border-sky-400/40 bg-sky-500/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-sky-200">
+          <Link to="/customer" className="rounded-full border border-white/10 bg-[#101822] px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-[#dfe7ee]">
             Back to store
           </Link>
         </div>
       </header>
 
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-        <section className="rounded-3xl border border-sky-500/20 bg-gradient-to-r from-[#081827] via-[#122948] to-[#153b72] p-6 shadow-[0_20px_60px_rgba(14,165,233,0.18)] sm:p-8">
+        <section className="rounded-3xl border border-white/10 bg-gradient-to-r from-[#02070d] via-[#101822] to-[#111b26] p-6 shadow-[0_20px_60px_rgba(124,230,212,0.08)] sm:p-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.28em] text-sky-200/80">Ride nearby</p>
+              <p className="text-xs font-black uppercase tracking-[0.28em] text-[#dfe7ee]">Ride nearby</p>
               <h1 className="mt-2 text-3xl font-black uppercase text-white sm:text-5xl">Find an Uber near you</h1>
             </div>
-            <div className="rounded-2xl border border-sky-300/20 bg-sky-400/10 px-4 py-3 text-sm text-sky-100">
+            <div className="rounded-2xl border border-white/10 bg-[#101822] px-4 py-3 text-sm text-[#dfe7ee]">
               {driverStatus.available ? "Driver status: Available" : "Driver status: Not available"}
             </div>
           </div>
