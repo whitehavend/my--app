@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const dns = require('dns');
 
 const getTransporter = async () => {
   const smtpHost = process.env.SMTP_HOST?.trim();
@@ -32,19 +33,29 @@ const getTransporter = async () => {
     const transporter = nodemailer.createTransport({
       host: smtpHost,
       port: smtpPort,
-      secure,
+      secure: smtpPort === 465 ? true : secure,
+      requireTLS: smtpPort === 587,
       family: 4,
       tls: { rejectUnauthorized: false },
       connectionTimeout: 15000,
       greetingTimeout: 15000,
       socketTimeout: 20000,
+      lookup: (hostname, options, callback) => {
+        dns.lookup(hostname, { family: 4, all: false }, (lookupError, address) => {
+          if (lookupError) {
+            callback(lookupError, null, null);
+            return;
+          }
+          callback(null, address, 4);
+        });
+      },
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASSWORD,
       },
     });
 
-    console.log('[emailVerification] SMTP transporter created successfully for host:', smtpHost, 'port:', smtpPort, 'secure:', secure);
+    console.log('[emailVerification] SMTP transporter created successfully for host:', smtpHost, 'port:', smtpPort, 'secure:', smtpPort === 465 ? true : secure, 'familyForced: 4');
     return transporter;
   } catch (error) {
     console.error('[emailVerification] Failed while creating SMTP transporter:', {
