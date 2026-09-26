@@ -23,7 +23,7 @@ const CountryPhoneField = ({ register, errors, label = "Phone number" }) => {
             aria-required="true"
             required
             {...register("countryCode", { required: "Country code is required" })}
-            className="w-full rounded-md border border-gray-400 bg-white p-3 outline-none focus:border-primary"
+            className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-base font-medium text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
           >
             <option value="">Select country code</option>
             {availableCountries.map(({ country, name, code }) => (
@@ -35,7 +35,7 @@ const CountryPhoneField = ({ register, errors, label = "Phone number" }) => {
           type="tel"
           placeholder="Phone number"
           {...register("phoneNumber", { required: "Phone number is required" })}
-          className="w-full rounded-md border border-gray-400 p-3 outline-none focus:border-primary"
+          className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-base font-medium text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
         />
       </div>
       {errors.countryCode && <p className="mt-1 text-xs text-red-500">{errors.countryCode.message}</p>}
