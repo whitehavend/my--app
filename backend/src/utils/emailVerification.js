@@ -33,6 +33,7 @@ const getTransporter = async () => {
       host: smtpHost,
       port: smtpPort,
       secure,
+      family: 4,
       tls: { rejectUnauthorized: false },
       connectionTimeout: 15000,
       greetingTimeout: 15000,
