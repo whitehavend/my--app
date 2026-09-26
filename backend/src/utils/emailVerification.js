@@ -1,132 +1,59 @@
-const nodemailer = require('nodemailer');
-const dns = require('dns');
+const { Resend } = require('resend');
 
-const getTransporter = async () => {
-  const smtpHost = process.env.SMTP_HOST?.trim();
-  const smtpUser = process.env.SMTP_USER?.trim();
-  const smtpPassword = process.env.SMTP_PASSWORD?.trim();
+const getResendClient = () => {
+  const apiKey = process.env.RESEND_API_KEY?.trim();
 
-  console.log('[emailVerification] SMTP config check', {
-    smtpHost: Boolean(smtpHost),
-    smtpUser: Boolean(smtpUser),
-    smtpPassword: Boolean(smtpPassword),
-    smtpPort: process.env.SMTP_PORT || '587',
-    smtpSecure: process.env.SMTP_SECURE || 'false',
-    smtpFrom: process.env.SMTP_FROM || 'not set',
+  console.log('[emailVerification] Resend config check', {
+    apiKeyPresent: Boolean(apiKey),
+    sender: process.env.SMTP_FROM || 'onboarding@resend.dev',
   });
 
-  if (!smtpHost || !smtpUser || !smtpPassword) {
-    console.error('[emailVerification] Missing SMTP config. Required values not found:', {
-      smtpHost: !!smtpHost,
-      smtpUser: !!smtpUser,
-      smtpPassword: !!smtpPassword,
-    });
-    const error = new Error('EMAIL_DELIVERY_NOT_CONFIGURED');
+  if (!apiKey) {
+    const error = new Error('RESEND_API_KEY is not configured');
     error.code = 'EMAIL_DELIVERY_NOT_CONFIGURED';
     throw error;
   }
 
-  try {
-    const smtpPort = parseInt(process.env.SMTP_PORT, 10) || 587;
-    const secure = process.env.SMTP_SECURE === 'true';
-
-    const transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: smtpPort,
-      secure: smtpPort === 465 ? true : secure,
-      requireTLS: smtpPort === 587,
-      family: 4,
-      tls: { rejectUnauthorized: false },
-      connectionTimeout: 15000,
-      greetingTimeout: 15000,
-      socketTimeout: 20000,
-      lookup: (hostname, options, callback) => {
-        dns.lookup(hostname, { family: 4, all: false }, (lookupError, address) => {
-          if (lookupError) {
-            callback(lookupError, null, null);
-            return;
-          }
-          callback(null, address, 4);
-        });
-      },
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASSWORD,
-      },
-    });
-
-    console.log('[emailVerification] SMTP transporter created successfully for host:', smtpHost, 'port:', smtpPort, 'secure:', smtpPort === 465 ? true : secure, 'familyForced: 4');
-    return transporter;
-  } catch (error) {
-    console.error('[emailVerification] Failed while creating SMTP transporter:', {
-      message: error.message,
-      stack: error.stack,
-    });
-    throw error;
-  }
+  return new Resend(apiKey);
 };
 
 const sendRegistrationCode = async (email, code) => {
   console.log('[emailVerification] sendRegistrationCode called', {
     email,
     codeLength: String(code || '').length,
-    smtpHost: Boolean(process.env.SMTP_HOST),
-    smtpUser: Boolean(process.env.SMTP_USER),
-    smtpPassword: Boolean(process.env.SMTP_PASSWORD),
-  });
-
-  let transporter;
-  try {
-    transporter = await getTransporter();
-  } catch (error) {
-    console.error('[emailVerification] getTransporter failed before sending:', {
-      code: error.code,
-      message: error.message,
-      stack: error.stack,
-    });
-    throw error;
-  }
-
-  const mailOptions = {
-    from: process.env.SMTP_FROM || process.env.SMTP_USER || 'Nova Unicorn <noreply@ethereal.email>',
-    to: email,
-    subject: 'Nova Unicorn email verification code',
-    text: `Your Nova Unicorn registration verification code is ${code}. It expires in 10 minutes.`,
-    html: `<p>Your Nova Unicorn registration verification code is:</p><p style="font-size:24px;font-weight:700;letter-spacing:4px">${code}</p><p>This code expires in 10 minutes.</p>`,
-  };
-
-  console.log('[emailVerification] Attempting to send verification email with options:', {
-    from: mailOptions.from,
-    to: mailOptions.to,
-    subject: mailOptions.subject,
-    codeLength: String(code || '').length,
+    sender: process.env.SMTP_FROM || 'onboarding@resend.dev',
   });
 
   try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log('[emailVerification] Email sendMail resolved successfully', {
-      messageId: info?.messageId,
-      accepted: info?.accepted,
-      rejected: info?.rejected,
+    const resend = getResendClient();
+    const senderAddress = process.env.SMTP_FROM || 'onboarding@resend.dev';
+
+    const response = await resend.emails.send({
+      from: senderAddress,
+      to: [email],
+      subject: 'Nova Unicorn email verification code',
+      text: `Your Nova Unicorn registration verification code is ${code}. It expires in 10 minutes.`,
+      html: `
+        <p>Your Nova Unicorn registration verification code is:</p>
+        <p style="font-size:24px;font-weight:700;letter-spacing:4px">${code}</p>
+        <p>This code expires in 10 minutes.</p>
+      `,
     });
 
-    if (nodemailer.getTestMessageUrl) {
-      const previewUrl = nodemailer.getTestMessageUrl(info);
-      if (previewUrl) {
-        console.log('[emailVerification] Email preview URL:', previewUrl);
-      }
-    }
+    console.log('[emailVerification] Resend send succeeded', {
+      id: response?.id,
+      status: response?.status,
+      rejectReason: response?.rejectReason,
+    });
 
-    return info;
+    return response;
   } catch (error) {
-    console.error('[emailVerification] SMTP connection/send failed. Exact error details:', {
-      name: error.name,
-      code: error.code,
-      command: error.command,
-      response: error.response,
-      responseCode: error.responseCode,
-      message: error.message,
-      stack: error.stack,
+    console.error('[emailVerification] Resend email send failed. Exact error details:', {
+      name: error?.name,
+      message: error?.message,
+      statusCode: error?.statusCode,
+      raw: error,
+      stack: error?.stack,
     });
     throw error;
   }
