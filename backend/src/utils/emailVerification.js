@@ -1,29 +1,23 @@
 const nodemailer = require('nodemailer');
 
 const getTransporter = async () => {
-  if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
-    return nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT || 587),
-      secure: String(process.env.SMTP_SECURE || 'false') === 'true',
-      tls: { rejectUnauthorized: false },
-      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD },
-    });
+  const smtpHost = process.env.SMTP_HOST?.trim();
+  const smtpUser = process.env.SMTP_USER?.trim();
+  const smtpPassword = process.env.SMTP_PASSWORD?.trim();
+
+  if (!smtpHost || !smtpUser || !smtpPassword) {
+    const error = new Error('EMAIL_DELIVERY_NOT_CONFIGURED');
+    error.code = 'EMAIL_DELIVERY_NOT_CONFIGURED';
+    throw error;
   }
 
-  const testAccount = await nodemailer.createTestAccount();
-  const transporter = nodemailer.createTransport({
-    host: 'smtp.ethereal.email',
-    port: 587,
-    secure: false,
+  return nodemailer.createTransport({
+    host: smtpHost,
+    port: Number(process.env.SMTP_PORT || 587),
+    secure: String(process.env.SMTP_SECURE || 'false') === 'true',
     tls: { rejectUnauthorized: false },
-    auth: {
-      user: testAccount.user,
-      pass: testAccount.pass,
-    },
+    auth: { user: smtpUser, pass: smtpPassword },
   });
-
-  return transporter;
 };
 
 const sendRegistrationCode = async (email, code) => {

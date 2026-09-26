@@ -134,12 +134,16 @@ const LoginPage = () => {
     }
 
     if (!verificationSent) {
+      setVerificationError("");
+      setVerificationNotice("");
+
       const response = await dispatch(requestSignupVerificationCode({ data: { ...submissionData, email: normalizedEmail } }));
       if (requestSignupVerificationCode.fulfilled.match(response)) {
         setVerificationSent(true);
         setVerificationError("");
         setVerificationNotice("Verification code sent. Check your email and then complete the form.");
       } else {
+        setVerificationSent(false);
         setVerificationNotice("");
         setVerificationError(response.payload || "Unable to send verification code");
       }

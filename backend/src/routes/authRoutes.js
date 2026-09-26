@@ -139,7 +139,9 @@ router.post('/signup/request-code', async (req, res) => {
     await sendRegistrationCode(normalizedEmail, code);
     return res.status(200).json({ message: 'Verification code sent to your email' });
   } catch (error) {
-    if (error.message === 'EMAIL_DELIVERY_NOT_CONFIGURED') return res.status(503).json({ error: 'Email delivery is not configured' });
+    if (error?.message === 'EMAIL_DELIVERY_NOT_CONFIGURED' || error?.code === 'EMAIL_DELIVERY_NOT_CONFIGURED') {
+      return res.status(503).json({ error: 'Email delivery is not configured' });
+    }
     console.error('Send registration code error:', error);
     return res.status(500).json({ error: 'Unable to send verification code' });
   }
