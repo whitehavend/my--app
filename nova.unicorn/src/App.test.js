@@ -19,6 +19,6 @@ test('renders the app shell', async () => {
   );
 
   await waitFor(() => {
-    expect(screen.getByText(/how to shop on unicorn\?/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /a market filled with unlimited opportunities/i })).toBeInTheDocument();
   });
 });

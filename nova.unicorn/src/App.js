@@ -42,8 +42,9 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<VendorPreRegistrationPage />} />
+        <Route path="/" element={<CustomerPage />} />
         <Route path="/customer" element={<CustomerPage />} />
+        <Route path="/vendor-pre-registration" element={<VendorPreRegistrationPage />} />
         <Route path="/uber" element={<UberDriversPage />} />
         <Route path="/uber-driver" element={<ProtectedRoleRoute role="uberdriver"><UberDriverDashboardPage /></ProtectedRoleRoute>} />
         <Route path="/vendor/uberdriver" element={<ProtectedRoleRoute role="uberdriver"><UberDriverDashboardPage /></ProtectedRoleRoute>} />
