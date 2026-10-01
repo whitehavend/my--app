@@ -261,27 +261,27 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
         <form onSubmit={handleSubmit} className="grid gap-6 md:grid-cols-2">
           {!isPropertyOrVehicleVendor && (
           <div className="md:col-span-2">
-            <label className="mb-2 block text-sm font-medium text-gray-700">Product title</label>
-            <input name="title" value={formData.title} onChange={handleChange} required className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder={titlePlaceholder} />
+            <label className="mb-2 block text-sm font-medium text-black">Product title</label>
+            <input name="title" value={formData.title} onChange={handleChange} required className="w-full rounded-md border border-gray-300 bg-white p-3 text-black placeholder:text-gray-500 outline-none focus:border-primary" placeholder={titlePlaceholder} />
           </div>
           )}
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">Brand</label>
-            <input name="brand" value={formData.brand} onChange={handleChange} required className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder={brandPlaceholder} />
+            <label className="mb-2 block text-sm font-medium text-black">Brand</label>
+            <input name="brand" value={formData.brand} onChange={handleChange} required className="w-full rounded-md border border-gray-300 bg-white p-3 text-black placeholder:text-gray-500 outline-none focus:border-primary" placeholder={brandPlaceholder} />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">Category</label>
-            <select name="category" value={formData.category} onChange={handleChange} required className="w-full rounded-md border border-gray-300 bg-white p-3 outline-none focus:border-primary">
+            <label className="mb-2 block text-sm font-medium text-black">Category</label>
+            <select name="category" value={formData.category} onChange={handleChange} required className="w-full rounded-md border border-gray-300 bg-white p-3 text-black outline-none focus:border-primary">
               {[...categoryOptions, { value: "other", label: "Other" }].map((option) => (
                 <option key={option.value} value={option.value}>{option.label}</option>
               ))}
             </select>
             {subcategoryOptions[formData.category]?.length > 0 && (
               <div className="mt-4">
-                <label className="mb-2 block text-sm font-medium text-gray-700">Subcategory</label>
-                <select name="subcategory" value={formData.subcategory} onChange={handleChange} required className="w-full rounded-md border border-gray-300 bg-white p-3 outline-none focus:border-primary">
+                <label className="mb-2 block text-sm font-medium text-black">Subcategory</label>
+                <select name="subcategory" value={formData.subcategory} onChange={handleChange} required className="w-full rounded-md border border-gray-300 bg-white p-3 text-black outline-none focus:border-primary">
                   <option value="">Select subcategory</option>
                   {[...new Set([...subcategoryOptions[formData.category], "Other"])].map((subcategory) => <option key={subcategory} value={subcategory}>{subcategory}</option>)}
                 </select>
@@ -291,8 +291,8 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
 
           {vendorType === "pharmacy" || vendorType === "agrovet" ? (
             <div className="md:col-span-2">
-              <label className="mb-2 block text-sm font-medium text-gray-700">Prescription</label>
-              <select name="prescription" value={formData.prescription} onChange={handleChange} className="w-full rounded-md border border-gray-300 bg-white p-3 outline-none focus:border-primary">
+              <label className="mb-2 block text-sm font-medium text-black">Prescription</label>
+              <select name="prescription" value={formData.prescription} onChange={handleChange} className="w-full rounded-md border border-gray-300 bg-white p-3 text-black outline-none focus:border-primary">
                 <option value="">Select prescription requirement</option>
                 <option value="required">Required</option>
                 <option value="not-required">Not required</option>
@@ -302,33 +302,33 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
 
           {vendorType === "pharmacy" || vendorType === "agrovet" ? (
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Mass/Volume</label>
-              <input name="massVolume" value={formData.massVolume} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="250ml / 500g" />
+              <label className="mb-2 block text-sm font-medium text-black">Mass/Volume</label>
+              <input name="massVolume" value={formData.massVolume} onChange={handleChange} className="w-full rounded-md border border-gray-300 bg-white p-3 text-black placeholder:text-gray-500 outline-none focus:border-primary" placeholder="250ml / 500g" />
             </div>
           ) : null}
 
           {vendorType === "realestate" ? (
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Location</label>
-              <input name="location" value={formData.location} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="Lekki Phase 1" />
+              <label className="mb-2 block text-sm font-medium text-black">Location</label>
+              <input name="location" value={formData.location} onChange={handleChange} className="w-full rounded-md border border-gray-300 bg-white p-3 text-black placeholder:text-gray-500 outline-none focus:border-primary" placeholder="Lekki Phase 1" />
             </div>
           ) : null}
 
           {vendorType === "cardealer" ? (
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Location</label>
-              <input name="location" value={formData.location} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="Lagos showroom" />
+              <label className="mb-2 block text-sm font-medium text-black">Location</label>
+              <input name="location" value={formData.location} onChange={handleChange} className="w-full rounded-md border border-gray-300 bg-white p-3 text-black placeholder:text-gray-500 outline-none focus:border-primary" placeholder="Lagos showroom" />
             </div>
           ) : null}
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">Base price</label>
-            <input type="number" min="0" step="0.01" name="basePrice" value={formData.basePrice} onChange={handleChange} required className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="499.99" />
+            <label className="mb-2 block text-sm font-medium text-black">Base price</label>
+            <input type="number" min="0" step="0.01" name="basePrice" value={formData.basePrice} onChange={handleChange} required className="w-full rounded-md border border-gray-300 bg-white p-3 text-black placeholder:text-gray-500 outline-none focus:border-primary" placeholder="499.99" />
           </div>
 
           {!isPropertyOrVehicleVendor && <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">Selling option</label>
-            <select name="sellingMode" value={formData.sellingMode} onChange={handleChange} className="w-full rounded-md border border-gray-300 bg-white p-3 outline-none focus:border-primary">
+            <label className="mb-2 block text-sm font-medium text-black">Selling option</label>
+            <select name="sellingMode" value={formData.sellingMode} onChange={handleChange} className="w-full rounded-md border border-gray-300 bg-white p-3 text-black outline-none focus:border-primary">
               <option value="retail">Retail only</option>
               <option value="wholesale">Wholesale only</option>
               <option value="both">Retail and wholesale</option>
@@ -337,8 +337,8 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
 
           {!isHealthOrAgrovet && !isPropertyOrVehicleVendor && (
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Item type</label>
-              <select name="itemCondition" value={formData.itemCondition} onChange={handleChange} className="w-full rounded-md border border-gray-300 bg-white p-3 outline-none focus:border-primary">
+              <label className="mb-2 block text-sm font-medium text-black">Item type</label>
+              <select name="itemCondition" value={formData.itemCondition} onChange={handleChange} className="w-full rounded-md border border-gray-300 bg-white p-3 text-black outline-none focus:border-primary">
                 <option value="generic">Generic</option>
                 <option value="original">Original</option>
               </select>
@@ -351,26 +351,26 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
           )}
 
           {!isPropertyOrVehicleVendor && <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">Retail stock</label>
-            <input type="number" min="0" name="stock" value={formData.stock} onChange={handleChange} required className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="100" />
+            <label className="mb-2 block text-sm font-medium text-black">Retail stock</label>
+            <input type="number" min="0" name="stock" value={formData.stock} onChange={handleChange} required className="w-full rounded-md border border-gray-300 bg-white p-3 text-black placeholder:text-gray-500 outline-none focus:border-primary" placeholder="100" />
           </div>}
 
           {vendorType === "retailshopvendor" && (
             <div className="md:col-span-2 rounded-md border border-red-100 bg-red-50 p-4">
-              <label className="mb-2 block text-sm font-medium text-gray-700">Retail pricing</label>
-              <select name="retailPricingType" value={formData.retailPricingType} onChange={handleChange} className="w-full rounded-md border border-gray-300 bg-white p-3 outline-none focus:border-primary">
+              <label className="mb-2 block text-sm font-medium text-black">Retail pricing</label>
+              <select name="retailPricingType" value={formData.retailPricingType} onChange={handleChange} className="w-full rounded-md border border-gray-300 bg-white p-3 text-black outline-none focus:border-primary">
                 <option value="regular">Regular pricing</option>
                 <option value="flash_sale">Flash sale</option>
               </select>
               {formData.retailPricingType === "flash_sale" && (
                 <div className="mt-3 grid gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-gray-700">Flash sale price</label>
-                    <input type="number" min="0" step="0.01" name="flashSalePrice" value={formData.flashSalePrice} onChange={handleChange} required className="w-full rounded-md border border-gray-300 bg-white p-3 outline-none focus:border-primary" placeholder="399.99" />
+                    <label className="mb-2 block text-sm font-medium text-black">Flash sale price</label>
+                    <input type="number" min="0" step="0.01" name="flashSalePrice" value={formData.flashSalePrice} onChange={handleChange} required className="w-full rounded-md border border-gray-300 bg-white p-3 text-black placeholder:text-gray-500 outline-none focus:border-primary" placeholder="399.99" />
                   </div>
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-gray-700">Flash sale duration (hours)</label>
-                    <input type="number" min="1" step="1" name="flashSaleDuration" value={formData.flashSaleDuration} onChange={handleChange} required className="w-full rounded-md border border-gray-300 bg-white p-3 outline-none focus:border-primary" placeholder="24" />
+                    <label className="mb-2 block text-sm font-medium text-black">Flash sale duration (hours)</label>
+                    <input type="number" min="1" step="1" name="flashSaleDuration" value={formData.flashSaleDuration} onChange={handleChange} required className="w-full rounded-md border border-gray-300 bg-white p-3 text-black placeholder:text-gray-500 outline-none focus:border-primary" placeholder="24" />
                   </div>
                 </div>
               )}
@@ -379,21 +379,21 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
 
           {(formData.sellingMode === "wholesale" || formData.sellingMode === "both") && (
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Wholesale price</label>
-              <input type="number" min="0" step="0.01" name="wholeSalePrice" value={formData.wholeSalePrice} onChange={handleChange} required className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="349.99" />
+              <label className="mb-2 block text-sm font-medium text-black">Wholesale price</label>
+              <input type="number" min="0" step="0.01" name="wholeSalePrice" value={formData.wholeSalePrice} onChange={handleChange} required className="w-full rounded-md border border-gray-300 bg-white p-3 text-black placeholder:text-gray-500 outline-none focus:border-primary" placeholder="349.99" />
             </div>
           )}
 
           {(formData.sellingMode === "wholesale" || formData.sellingMode === "both") && (
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Whole sale volume</label>
-              <input type="number" min="0" name="wholeSaleVolume" value={formData.wholeSaleVolume} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="100" />
+              <label className="mb-2 block text-sm font-medium text-black">Whole sale volume</label>
+              <input type="number" min="0" name="wholeSaleVolume" value={formData.wholeSaleVolume} onChange={handleChange} className="w-full rounded-md border border-gray-300 bg-white p-3 text-black placeholder:text-gray-500 outline-none focus:border-primary" placeholder="100" />
             </div>
           )}
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">Country</label>
-            <select name="country" value={formData.country} onChange={handleChange} required className="w-full rounded-md border border-gray-300 bg-white p-3 outline-none focus:border-primary">
+            <label className="mb-2 block text-sm font-medium text-black">Country</label>
+            <select name="country" value={formData.country} onChange={handleChange} required className="w-full rounded-md border border-gray-300 bg-white p-3 text-black outline-none focus:border-primary">
               <option value="">Select country</option>
               {countryOptions.map(({ code, name }) => <option key={code} value={code}>{name}</option>)}
             </select>
@@ -402,41 +402,41 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
 
           {vendorType === "realestate" && (
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Contact info</label>
-              <input name="contactInfo" value={formData.contactInfo} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="+234 800 000 0000" />
+              <label className="mb-2 block text-sm font-medium text-black">Contact info</label>
+              <input name="contactInfo" value={formData.contactInfo} onChange={handleChange} className="w-full rounded-md border border-gray-300 bg-white p-3 text-black placeholder:text-gray-500 outline-none focus:border-primary" placeholder="+234 800 000 0000" />
             </div>
           )}
 
           {vendorType === "cardealer" && (
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Contact info</label>
-              <input name="contactInfo" value={formData.contactInfo} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="+234 800 000 0000" />
+              <label className="mb-2 block text-sm font-medium text-black">Contact info</label>
+              <input name="contactInfo" value={formData.contactInfo} onChange={handleChange} className="w-full rounded-md border border-gray-300 bg-white p-3 text-black placeholder:text-gray-500 outline-none focus:border-primary" placeholder="+234 800 000 0000" />
             </div>
           )}
 
           {vendorType === "pharmacy" || vendorType === "agrovet" ? (
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Contact info</label>
-              <input name="contactInfo" value={formData.contactInfo} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="+234 800 000 0000" />
+              <label className="mb-2 block text-sm font-medium text-black">Contact info</label>
+              <input name="contactInfo" value={formData.contactInfo} onChange={handleChange} className="w-full rounded-md border border-gray-300 bg-white p-3 text-black placeholder:text-gray-500 outline-none focus:border-primary" placeholder="+234 800 000 0000" />
             </div>
           ) : null}
 
           {vendorType === "blackmarket" && (
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Contact info</label>
-              <input name="contactInfo" value={formData.contactInfo} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="+234 800 000 0000" />
+              <label className="mb-2 block text-sm font-medium text-black">Contact info</label>
+              <input name="contactInfo" value={formData.contactInfo} onChange={handleChange} className="w-full rounded-md border border-gray-300 bg-white p-3 text-black placeholder:text-gray-500 outline-none focus:border-primary" placeholder="+234 800 000 0000" />
             </div>
           )}
 
           <div className="md:col-span-2">
-            <label className="mb-2 block text-sm font-medium text-gray-700">Upload product images</label>
-            <input type="file" accept="image/*" multiple onChange={handleImageFiles} className="w-full rounded-md border border-gray-300 bg-white p-3 file:mr-4 file:rounded file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-medium file:text-white" />
-            <textarea name="images" value={formData.images} onChange={handleChange} rows="3" className="mt-3 w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder="Paste image URLs or use the file picker above. Example: https://example.com/1.png, https://example.com/2.png" />
+            <label className="mb-2 block text-sm font-medium text-black">Upload product images</label>
+            <input type="file" accept="image/*" multiple onChange={handleImageFiles} className="w-full rounded-md border border-gray-300 bg-white p-3 text-black file:mr-4 file:rounded file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-medium file:text-white" />
+            <textarea name="images" value={formData.images} onChange={handleChange} rows="3" className="mt-3 w-full rounded-md border border-gray-300 bg-white p-3 text-black placeholder:text-gray-500 outline-none focus:border-primary" placeholder="Paste image URLs or use the file picker above. Example: https://example.com/1.png, https://example.com/2.png" />
           </div>
 
           <div className="md:col-span-2">
-            <label className="mb-2 block text-sm font-medium text-gray-700">Price details</label>
-            <input name="priceDetails" value={formData.priceDetails} onChange={handleChange} className="w-full rounded-md border border-gray-300 p-3 outline-none focus:border-primary" placeholder={isPropertyOrVehicleVendor ? "Negotiable or non-negotiable" : "Inclusive of VAT or free shipping over $50"} />
+            <label className="mb-2 block text-sm font-medium text-black">Price details</label>
+            <input name="priceDetails" value={formData.priceDetails} onChange={handleChange} className="w-full rounded-md border border-gray-300 bg-white p-3 text-black placeholder:text-gray-500 outline-none focus:border-primary" placeholder={isPropertyOrVehicleVendor ? "Negotiable or non-negotiable" : "Inclusive of VAT or free shipping over $50"} />
           </div>
 
           {(productError || localValidationError) && (
