@@ -13,6 +13,8 @@ const defaultAllowedOrigins = [
   'http://localhost:3001',
   'https://novaunicorn.vercel.app',
   'https://www.novaunicorn.vercel.app',
+  'https://novaunicon.ink',
+  'https://www.novaunicon.ink',
   'https://my-app-1-ggdw.onrender.com',
   'https://my--app.onrender.com',
   'https://my--app-git-main.whitehavend.vercel.app',
