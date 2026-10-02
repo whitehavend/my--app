@@ -39,7 +39,7 @@ const SavedItems = () => {
   };
 
   return (
-    <main className="min-h-screen bg-gray-100 px-4 py-8">
+    <main className="min-h-screen bg-gray-100 px-4 py-8 text-gray-900">
       <section className="mx-auto max-w-6xl">
         <div className="mb-6 flex items-center justify-between">
           <div><p className="text-sm font-medium uppercase tracking-[0.2em] text-primary">Customer account</p><h1 className="mt-2 text-3xl font-bold">Saved items &amp; cart</h1></div>
@@ -47,7 +47,7 @@ const SavedItems = () => {
         </div>
         <section className="mb-8" aria-labelledby="saved-vendors-heading">
           <h2 id="saved-vendors-heading" className="mb-4 text-xl font-bold">Saved vendors ({savedVendors.length})</h2>
-          {!savedVendors.length && <p className="rounded-md bg-white p-6 text-gray-600">You have no saved vendors yet.</p>}
+          {!savedVendors.length && <p className="rounded-md bg-white p-6 text-gray-800">You have no saved vendors yet.</p>}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {savedVendors.map((savedVendor) => {
               const vendorId = typeof savedVendor === "string" ? savedVendor : savedVendor.vendorId;
@@ -55,7 +55,7 @@ const SavedItems = () => {
               const vendorName = (typeof savedVendor === "string" ? "" : savedVendor.vendorName) || vendorProduct?.vendorName || "Vendor shop";
               const vendorType = (typeof savedVendor === "string" ? "" : savedVendor.vendorType) || vendorProduct?.vendorType || "";
               const visitLabel = vendorType === "blackmarket" ? "Visit black market" : "Visit vendor shop";
-              return <article key={vendorId} className="flex items-center justify-between gap-3 rounded-md bg-white p-4 shadow-sm"><div><h3 className="font-semibold">{vendorName}</h3><p className="mt-1 text-xs uppercase text-gray-500">{vendorType === "blackmarket" ? "Black market" : "Vendor"}</p></div><div className="flex shrink-0 gap-2"><Link to={`/shop/${encodeURIComponent(vendorId)}`} state={{ vendor: savedVendor }} className="rounded-md bg-primary px-3 py-2 text-sm text-white">{visitLabel}</Link><button type="button" onClick={() => removeSavedVendor(vendorId)} aria-label={`Remove ${vendorName} from saved vendors`} className="rounded-md border border-gray-300 px-3 py-2 text-sm">Remove</button></div></article>;
+              return <article key={vendorId} className="flex items-center justify-between gap-3 rounded-md bg-white p-4 text-gray-900 shadow-sm"><div><h3 className="font-semibold">{vendorName}</h3><p className="mt-1 text-xs uppercase text-gray-700">{vendorType === "blackmarket" ? "Black market" : "Vendor"}</p></div><div className="flex shrink-0 gap-2"><Link to={`/shop/${encodeURIComponent(vendorId)}`} state={{ vendor: savedVendor }} className="rounded-md bg-primary px-3 py-2 text-sm text-white">{visitLabel}</Link><button type="button" onClick={() => removeSavedVendor(vendorId)} aria-label={`Remove ${vendorName} from saved vendors`} className="rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900">Remove</button></div></article>;
             })}
           </div>
         </section>
@@ -63,17 +63,17 @@ const SavedItems = () => {
           <section aria-labelledby="saved-items-heading">
             <div className="mb-4 flex items-baseline justify-between"><h2 id="saved-items-heading" className="text-xl font-bold">Saved items ({savedProducts.length})</h2></div>
             {status === "loading" && <p>Loading saved items...</p>}
-            {!savedProducts.length && status !== "loading" && <p className="rounded-md bg-white p-6 text-gray-600">You have no saved items yet.</p>}
+            {!savedProducts.length && status !== "loading" && <p className="rounded-md bg-white p-6 text-gray-800">You have no saved items yet.</p>}
             <div className="grid gap-5 sm:grid-cols-2">
               {savedProducts.map((product) => {
                 const productId = product._id || product.id;
-                return <article key={productId} className="rounded-md bg-white p-4 shadow-sm"><img src={product.images?.[0]} alt={product.title} className="h-44 w-full rounded-md object-cover" /><h3 className="mt-3 font-semibold capitalize">{product.title}</h3><p className="mt-1 font-medium">{formatCurrency(product.price, product.currency)}</p><div className="mt-3 flex gap-2"><button onClick={() => dispatch(addToCart({ product: { ...product, id: productId, price: product.price, priceType: "retail" }, quantity: 1 }))} className="flex-1 rounded-md bg-primary px-3 py-2 text-sm text-white">Add to cart</button><button onClick={() => removeSaved(productId)} className="rounded-md border border-gray-300 px-3 py-2 text-sm">Remove</button></div></article>;
+                return <article key={productId} className="rounded-md bg-white p-4 text-gray-900 shadow-sm"><img src={product.images?.[0]} alt={product.title} className="h-44 w-full rounded-md object-cover" /><h3 className="mt-3 font-semibold capitalize">{product.title}</h3><p className="mt-1 font-medium text-gray-900">{formatCurrency(product.price, product.currency)}</p><div className="mt-3 flex gap-2"><button onClick={() => dispatch(addToCart({ product: { ...product, id: productId, price: product.price, priceType: "retail" }, quantity: 1 }))} className="flex-1 rounded-md bg-primary px-3 py-2 text-sm text-white">Add to cart</button><button onClick={() => removeSaved(productId)} className="rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900">Remove</button></div></article>;
               })}
             </div>
           </section>
           <section aria-labelledby="cart-heading">
             <h2 id="cart-heading" className="mb-4 text-xl font-bold">Your cart ({carts.length})</h2>
-            {carts.length ? <><CartCard /><CartSummary /></> : <div className="rounded-md bg-white p-6 text-gray-600"><p>Your cart is empty.</p><Link to="/customer" className="mt-3 inline-block font-semibold text-primary underline">Browse products</Link></div>}
+            {carts.length ? <><CartCard /><CartSummary /></> : <div className="rounded-md bg-white p-6 text-gray-800"><p>Your cart is empty.</p><Link to="/customer" className="mt-3 inline-block font-semibold text-primary underline">Browse products</Link></div>}
           </section>
         </div>
       </section>

@@ -67,20 +67,20 @@ const CartSummary = () => {
   };
 
   return (
-    <div className="flex flex-col items-start text-sm bg-white shadow-md rounded-md w-full mt-6 lg:mt-0">
+    <div className="flex flex-col items-start text-sm text-gray-900 bg-white shadow-md rounded-md w-full mt-6 lg:mt-0">
       <h1 className="font-semibold uppercase border-b w-full p-3 text-base hidden lg:block">
         Cart summary
       </h1>
       <div className="w-full">
         <div className="flex items-center justify-between border-b py-3">
-          <p className="text-sm text-gray-500 px-3">Subtotal</p>
-          <h2 className="text-lg font-semibold px-3">
+          <p className="text-sm text-gray-800 px-3">Subtotal</p>
+          <h2 className="text-lg font-semibold text-gray-900 px-3">
             {formatCurrency(calculateTotalPrice, summaryCurrency)}
           </h2>
         </div>
         <div className="border-b p-3">
-          <p className="text-sm font-semibold text-gray-700">Delivery location</p>
-          <input value={deliveryAddress} onChange={(event) => setDeliveryAddress(event.target.value)} placeholder="Delivery address or landmark" className="mt-2 w-full rounded-md border border-gray-300 p-2 text-sm" />
+          <p className="text-sm font-semibold text-gray-900">Delivery location</p>
+          <input value={deliveryAddress} onChange={(event) => setDeliveryAddress(event.target.value)} placeholder="Delivery address or landmark" className="mt-2 w-full rounded-md border border-gray-300 p-2 text-sm text-gray-900 placeholder:text-gray-600" />
           <button type="button" onClick={() => { setLocationError(""); if (!navigator.geolocation) { setLocationError("Location services are not available in this browser."); return; } navigator.geolocation.getCurrentPosition((position) => setDeliveryLocation({ latitude: position.coords.latitude, longitude: position.coords.longitude }), () => setLocationError("Allow location access so we can pin the delivery point.")); }} className="mt-2 w-full rounded-md border border-primary px-3 py-2 text-sm font-semibold text-primary">{deliveryLocation ? "Delivery location pinned" : "Pin delivery location on Google Maps"}</button>
           {deliveryLocation && <a href={`https://www.google.com/maps/search/?api=1&query=${deliveryLocation.latitude},${deliveryLocation.longitude}`} target="_blank" rel="noreferrer" className="mt-2 block text-xs font-medium text-primary underline">Open pinned location in Google Maps</a>}
           {locationError && <p className="mt-2 text-xs text-red-600">{locationError}</p>}

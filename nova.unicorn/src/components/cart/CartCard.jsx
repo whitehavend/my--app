@@ -56,30 +56,30 @@ const CartCard = () => {
                 className="w-20 h-20 rounded-md shadow mr-4"
               />
               <div>
-                <h1 className="font-medium text-base lg:text-lg block lg:hidden text-gray-600 leading-5">
+                <h1 className="font-medium text-base lg:text-lg block lg:hidden text-gray-900 leading-5">
                   {`${cart?.title.slice(0, 20)}${cart?.title.slice(0, 20) ? "..." : ""}`}
                 </h1>
-                <h1 className="font-medium text-base lg:text-lg hidden lg:block text-gray-600 leading-5">
+                <h1 className="font-medium text-base lg:text-lg hidden lg:block text-gray-900 leading-5">
                   {`${cart?.title}`}
                 </h1>
-                <p className="text-primary text-xs">
-                  Price type: <span className="capitalize text-gray-700">{cart?.priceType || "retail"}</span>
+                <p className="text-gray-800 text-xs">
+                  Price type: <span className="capitalize text-gray-900">{cart?.priceType || "retail"}</span>
                 </p>
-                <p className="text-primary text-xs">
+                <p className="text-gray-800 text-xs">
                   Stock:{" "}
-                  <span className="text-gray-700">
+                  <span className="text-gray-900">
                     {cart?.availabilityStatus}
                   </span>
                 </p>
               </div>
             </div>
-            <h1 className="font-semibold text-lg">
+            <h1 className="font-semibold text-lg text-gray-900">
                 {formatCurrency(cart?.price, cart?.currency)}
             </h1>
           </div>
           <div className="pt-2 flex items-center justify-between w-full">
             <h1
-              className="text-primary uppercase text-sm lg:text-base flex items-center cursor-pointer"
+              className="text-gray-900 uppercase text-sm lg:text-base flex items-center cursor-pointer"
               onClick={() => openModal(cart.id)}
             >
               <MdDeleteOutline className="mr-3 w-6 h-6" /> Remove
@@ -91,7 +91,7 @@ const CartCard = () => {
               >
                 -
               </button>
-              <h1 className="px-3 py-1 mr-2 text-sm lg:text-base">{cart.quantity}</h1>
+              <h1 className="px-3 py-1 mr-2 text-sm lg:text-base text-gray-900">{cart.quantity}</h1>
               <button
                 onClick={() => handleIncrement(cart)}
                 className="bg-primary cursor-pointer hover:bg-primary100 rounded-sm px-2.5 py-0.5 lg:px-3 lg:py-1 text-white"
