@@ -5,22 +5,14 @@ import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { getAllProducts } from "../Store/thunk";
 import { addToCart } from "../Store/cart/CartSlice";
 import { formatCurrency } from "../utils/currency";
+import { categoryTaxonomy, toCategorySlug } from "../data/categoryTaxonomy";
 
 const categoryConfig = {
   shopvendor: {
     label: "Shop Vendor",
     title: "Shop Vendor marketplace",
     description: "Browse a curated mix of everyday essentials, lifestyle finds, and must-have gadgets.",
-    subcategories: [
-      { title: "Electronics and Gadgets", items: ["Smartphones", "Laptops", "Audio devices", "Accessories", "Smart home gear"] },
-      { title: "Home and Lifestyle", items: ["Kitchen essentials", "Home décor", "Storage solutions", "Cleaning tools", "Wellness items"] },
-      { title: "Fashion", items: ["Men's wear", "Women's wear", "Footwear", "Accessories", "Caps and hats"] },
-      { title: "Groceries", items: ["Staples", "Snacks", "Beverages", "Healthy foods", "Household grocery"] },
-      { title: "Beauty", items: ["Skincare", "Haircare", "Makeup", "Personal care", "Fragrances"] },
-      { title: "Automobile Parts", items: ["Engine parts", "Accessories", "Tires", "Lighting", "Maintenance tools"] },
-      { title: "Books and Games", items: ["Novels", "Children's books", "Board games", "Puzzles", "Educational games"] },
-      { title: "Baby Products", items: ["Diapers", "Feeding essentials", "Skin care", "Nursery items", "Travel gear"] },
-    ],
+    subcategories: categoryTaxonomy.shopvendor,
     products: [
       { title: "Premium Wireless Earbuds", price: "₦45,000", tag: "Electronics and Gadgets", image: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=900&q=80" },
       { title: "Modern Smart Speaker", price: "₦68,000", tag: "Home and Lifestyle", image: "https://images.unsplash.com/photo-1518444065439-e933c06ce9cd?auto=format&fit=crop&w=900&q=80" },
@@ -32,10 +24,7 @@ const categoryConfig = {
     label: "Car Dealer",
     title: "Car Dealer marketplace",
     description: "Find vehicles built for everyday use, business operations, and heavy-duty work.",
-    subcategories: [
-      { title: "Passenger and Light Vehicles", items: ["Sedans", "SUVs", "Hatchbacks", "Crossovers", "Luxury cars"] },
-      { title: "Heavy Vehicles", items: ["Trucks", "Buses", "Trailers", "Commercial vans", "Utility vehicles"] },
-    ],
+    subcategories: categoryTaxonomy.cardealer,
     products: [
       { title: "2024 Toyota Corolla", price: "₦19,500,000", tag: "Passenger and Light Vehicles", image: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=900&q=80" },
       { title: "Mercedes GLE SUV", price: "₦34,000,000", tag: "Passenger and Light Vehicles", image: "https://images.unsplash.com/photo-1553440569-bcc63803a83d?auto=format&fit=crop&w=900&q=80" },
@@ -46,12 +35,7 @@ const categoryConfig = {
     label: "Real Estate",
     title: "Real Estate marketplace",
     description: "Explore property opportunities across land, homes, commercial spaces, and industrial facilities.",
-    subcategories: [
-      { title: "Land", items: ["Plots", "Rural land", "Urban lots", "Agricultural land", "Development sites"] },
-      { title: "Residential", items: ["Apartments", "Townhouses", "Family homes", "Luxury homes", "Studio units"] },
-      { title: "Commercial", items: ["Office spaces", "Shops", "Retail outlets", "Business centers", "Mixed-use buildings"] },
-      { title: "Industry", items: ["Warehouses", "Factories", "Industrial plots", "Logistics hubs", "Production facilities"] },
-    ],
+    subcategories: categoryTaxonomy.realestate,
     products: [
       { title: "Prime City Plot", price: "₦16,500,000", tag: "Land", image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=900&q=80" },
       { title: "Luxury 3-Bedroom Home", price: "₦42,000,000", tag: "Residential", image: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=900&q=80" },
@@ -62,11 +46,7 @@ const categoryConfig = {
     label: "Pharmacy",
     title: "Pharmacy marketplace",
     description: "Shop essential health and wellness products that support everyday care and treatment.",
-    subcategories: [
-      { title: "POM", items: ["Prescription medicines", "Doctor-prescribed treatments", "Specialized care products", "Therapy packs"] },
-      { title: "OTC", items: ["Pain relievers", "Cold medicine", "Antacids", "Vitamins", "Daily wellness essentials"] },
-      { title: "Therapeutic", items: ["Antibiotics", "Antihistamines", "Anti-inflammatory medication", "Care support", "Recovery products"] },
-    ],
+    subcategories: categoryTaxonomy.pharmacy,
     products: [
       { title: "Daily Wellness Pack", price: "₦18,500", tag: "OTC", image: "https://images.unsplash.com/photo-1584515933487-779824d29309?auto=format&fit=crop&w=900&q=80" },
       { title: "Prescription Care Kit", price: "₦27,000", tag: "POM", image: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=900&q=80" },
@@ -77,10 +57,7 @@ const categoryConfig = {
     label: "Agrovet",
     title: "Agrovet marketplace",
     description: "Protect animals, improve crop performance, and strengthen agricultural productivity.",
-    subcategories: [
-      { title: "Animals", items: ["De-wormers", "Antibiotics", "Ectoparasite control", "Vaccines", "Nutritional supplements", "Animal feeds"] },
-      { title: "Crops", items: ["Pesticides", "Fungicides", "Herbicides", "Plant nutrition", "Seeds", "Farm tools"] },
-    ],
+    subcategories: categoryTaxonomy.agrovet,
     products: [
       { title: "Animal Feed Pro Mix", price: "₦16,000", tag: "Animals", image: "https://images.unsplash.com/photo-1545243424-0ce743321e11?auto=format&fit=crop&w=900&q=80" },
       { title: "Crop Protection Bundle", price: "₦25,800", tag: "Crops", image: "https://images.unsplash.com/photo-1464226184884-fa52acb6a66a?auto=format&fit=crop&w=900&q=80" },
@@ -91,10 +68,7 @@ const categoryConfig = {
     label: "Black Market",
     title: "Black market marketplace",
     description: "Discover exclusive finds, hidden bargains, and rare collections in our curated marketplace.",
-    subcategories: [
-      { title: "Featured finds", items: ["Limited edition goods", "Rare collectibles", "Luxury items", "Hidden deals", "Exclusive drops"] },
-      { title: "Special access", items: ["Members-only picks", "One-off listings", "Premium collections", "Curated deals", "Private sales"] },
-    ],
+    subcategories: categoryTaxonomy.blackmarket,
     products: [
       { title: "Rare Collector Watch", price: "₦120,000", tag: "Featured finds", image: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&w=900&q=80" },
       { title: "Luxury Leather Set", price: "₦90,500", tag: "Special access", image: "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?auto=format&fit=crop&w=900&q=80" },
@@ -102,12 +76,6 @@ const categoryConfig = {
     ],
   },
 };
-
-const toCategorySlug = (value) => String(value || "")
-  .toLowerCase()
-  .replace(/&/g, "and")
-  .replace(/[^a-z0-9]+/g, "-")
-  .replace(/^-|-$/g, "");
 
 const CategoryShowcasePage = () => {
   const { category = "shopvendor", subcategory: routeSubcategory = "" } = useParams();

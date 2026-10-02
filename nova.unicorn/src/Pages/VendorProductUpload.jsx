@@ -4,83 +4,29 @@ import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { createProduct } from "../Store/thunk";
 import { getCountries } from "libphonenumber-js";
 import { getCurrencyForCountry } from "../utils/currency";
+import { categoryTaxonomy, toCategorySlug } from "../data/categoryTaxonomy";
 
 const countryNameDisplay = new Intl.DisplayNames(["en"], { type: "region" });
 const countryOptions = getCountries()
   .map((code) => ({ code, name: countryNameDisplay.of(code) || code }))
   .sort((first, second) => first.name.localeCompare(second.name));
 
-const vendorCategoryOptions = {
-  shopvendor: [
-    { value: "electronics-and-gadgets", label: "Electronics and gadgets" },
-    { value: "home-and-lifestyle", label: "Home and lifestyle" },
-    { value: "fashion", label: "Fashion" },
-    { value: "groceries", label: "Groceries" },
-    { value: "beauty", label: "Beauty" },
-    { value: "automobile-parts", label: "Automobile parts" },
-    { value: "books-and-games", label: "Books and games" },
-    { value: "baby-products", label: "Baby products" },
-  ],
-  cardealer: [
-    { value: "passenger-and-light-vehicles", label: "Passenger and light vehicles" },
-    { value: "heavy-vehicles", label: "Heavy vehicles" },
-  ],
-  realestate: [
-    { value: "land", label: "Land" },
-    { value: "residential", label: "Residential" },
-    { value: "commercial", label: "Commercial" },
-    { value: "industry", label: "Industry" },
-  ],
-  pharmacy: [
-    { value: "pom", label: "POM" },
-    { value: "otc", label: "OTC" },
-    { value: "therapeutic", label: "Therapeutic" },
-  ],
-  agrovet: [
-    { value: "animals", label: "Animals" },
-    { value: "crops", label: "Crops" },
-  ],
-  blackmarket: [
-    { value: "featured-finds", label: "Featured finds" },
-    { value: "special-access", label: "Special access" },
-    { value: "exclusive-drops", label: "Exclusive drops" },
-  ],
-};
+const vendorCategoryOptions = Object.fromEntries(
+  Object.entries(categoryTaxonomy).map(([vendorType, groups]) => [
+    vendorType,
+    groups.map(({ title }) => ({ value: toCategorySlug(title), label: title })),
+  ]),
+);
+vendorCategoryOptions.retailshopvendor = vendorCategoryOptions.shopvendor;
 
-const subcategoryOptions = {
-  smartphones: ["Android phones", "iPhones", "Feature phones", "Refurbished phones"],
-  laptops: ["Business laptops", "Gaming laptops", "MacBooks", "Chromebooks"],
-  gaming: ["Consoles", "Gaming PCs", "Games", "Gaming accessories"],
-  accessories: ["Phone accessories", "Computer accessories", "Audio devices", "Smart home gear"],
-  "electronics-and-gadgets": ["Smartphones", "Laptops", "Audio devices", "Accessories", "Smart home gear"],
-  "home-and-lifestyle": ["Kitchen essentials", "Home decor", "Storage solutions", "Cleaning tools", "Wellness items"],
-  fashion: ["Men's wear", "Women's wear", "Footwear", "Fashion accessories", "Caps and hats"],
-  groceries: ["Staples", "Snacks", "Beverages", "Healthy foods", "Household grocery"],
-  beauty: ["Skincare", "Haircare", "Makeup", "Personal care", "Fragrances"],
-  "automobile-parts": ["Engine parts", "Tires", "Lighting", "Maintenance tools", "Car accessories"],
-  "books-and-games": ["Novels", "Children's books", "Board games", "Puzzles", "Educational games"],
-  "baby-products": ["Diapers", "Feeding essentials", "Skin care", "Nursery items", "Travel gear"],
-  "passenger-and-light-vehicles": ["Sedans", "SUVs", "Hatchbacks", "Crossovers", "Luxury cars"],
-  "heavy-vehicles": ["Trucks", "Buses", "Trailers", "Commercial vans", "Utility vehicles"],
-  land: ["Plots", "Rural land", "Urban lots", "Agricultural land", "Development sites"],
-  residential: ["Apartments", "Townhouses", "Family homes", "Luxury homes", "Studio units"],
-  commercial: ["Office spaces", "Shops", "Retail outlets", "Business centers", "Mixed-use buildings"],
-  industry: ["Warehouses", "Factories", "Industrial plots", "Logistics hubs", "Production facilities"],
-  pom: ["Prescription medicines", "Doctor-prescribed treatments", "Specialized care products", "Therapy packs"],
-  otc: ["Pain relievers", "Cold medicine", "Antacids", "Vitamins", "Daily wellness essentials"],
-  therapeutic: ["Antibiotics", "Antihistamines", "Anti-inflammatory medication", "Care support", "Recovery products"],
-  animals: ["De-wormers", "Antibiotics", "Ectoparasite control", "Vaccines", "Animal feeds"],
-  crops: ["Pesticides", "Fungicides", "Herbicides", "Plant nutrition", "Seeds", "Farm tools"],
-  "featured-finds": ["Limited edition goods", "Rare collectibles", "Luxury items", "Hidden deals", "Exclusive drops"],
-  "special-access": ["Members-only picks", "One-off listings", "Premium collections", "Curated deals", "Private sales"],
-  "exclusive-drops": ["Limited releases", "Rare products", "Collector items", "Premium drops"],
-  other: ["Other"],
-};
+const subcategoryOptions = Object.fromEntries(
+  Object.values(categoryTaxonomy).flatMap((groups) => groups.map(({ title, items }) => [toCategorySlug(title), items])),
+);
 
 const getDefaultForm = (selectedVendorType = "retailshopvendor") => ({
   title: "",
   brand: "",
-  category: vendorCategoryOptions[selectedVendorType]?.[0]?.value || "smartphones",
+  category: vendorCategoryOptions[selectedVendorType]?.[0]?.value || vendorCategoryOptions.shopvendor[0].value,
   subcategory: "",
   description: "",
   price: "",
@@ -299,7 +245,7 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
                 <label className="mb-2 block text-sm font-medium text-black">Subcategory</label>
                 <select name="subcategory" value={formData.subcategory} onChange={handleChange} required className="w-full rounded-md border border-gray-300 bg-white p-3 text-black outline-none focus:border-primary">
                   <option value="">Select subcategory</option>
-                  {[...new Set([...subcategoryOptions[formData.category], "Other"])].map((subcategory) => <option key={subcategory} value={subcategory}>{subcategory}</option>)}
+                  {subcategoryOptions[formData.category].map((subcategory) => <option key={subcategory} value={subcategory}>{subcategory}</option>)}
                 </select>
               </div>
             )}

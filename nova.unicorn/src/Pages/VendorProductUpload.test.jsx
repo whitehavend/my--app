@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
 import { configureStore } from '@reduxjs/toolkit';
@@ -14,6 +14,7 @@ jest.mock('axios', () => ({
 }));
 
 import VendorProductUpload from './VendorProductUpload';
+import { categoryTaxonomy, toCategorySlug } from '../data/categoryTaxonomy';
 
 const createTestStore = () => configureStore({
   reducer: {
@@ -41,4 +42,22 @@ test('renders the product description field for vendor uploads', () => {
   );
 
   expect(screen.getByLabelText(/description/i)).toBeInTheDocument();
+});
+
+test.each(Object.entries(categoryTaxonomy))('vendor subcategories for %s match the customer categories', (taxonomyVendorType, groups) => {
+  const vendorType = taxonomyVendorType === 'shopvendor' ? 'retailshopvendor' : taxonomyVendorType;
+  const { container } = render(
+    <Provider store={createTestStore()}>
+      <MemoryRouter>
+        <VendorProductUpload vendorType={vendorType} />
+      </MemoryRouter>
+    </Provider>
+  );
+  const categorySelect = container.querySelector('select[name="category"]');
+  const firstGroup = groups[0];
+
+  fireEvent.change(categorySelect, { target: { value: toCategorySlug(firstGroup.title) } });
+
+  const subcategorySelect = container.querySelector('select[name="subcategory"]');
+  expect([...subcategorySelect.options].slice(1).map((option) => option.value)).toEqual(firstGroup.items);
 });
