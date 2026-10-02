@@ -17,8 +17,8 @@ const {
   validateVendorPreAccountRequirements,
 } = require('../utils/vendorCompliance');
 const { sendRegistrationCode } = require('../utils/emailVerification');
-const { ensureAdvertPromoIndexes, generatePromoCode, isValidPromoCode, normalizePromoCode } = require('../services/advertPromoService');
-const { recordAdvertCommission } = require('../services/advertCommissionService');
+const { ensureAdvertPromoIndexes, generatePromoCode, isValidPromoCode, normalizePromoCode } = require('../../services/advertPromoService');
+const { recordAdvertCommission } = require('../../services/advertCommissionService');
 
 const router = express.Router();
 const vendorTypes = ['retailshopvendor', 'cardealer', 'realestate', 'pharmacy', 'agrovet', 'uberdriver'];
