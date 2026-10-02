@@ -81,7 +81,7 @@ const getDefaultForm = (selectedVendorType = "retailshopvendor") => ({
   title: "",
   brand: "",
   category: vendorCategoryOptions[selectedVendorType]?.[0]?.value || "smartphones",
-    subcategory: "",
+  subcategory: "",
   description: "",
   price: "",
   sellingMode: "retail",
@@ -170,12 +170,23 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
     event.preventDefault();
     setLocalValidationError("");
 
+    const title = (formData.title || "").trim();
+    const brand = (formData.brand || "").trim();
+    const category = (formData.category || "").trim();
+    const description = (formData.description || "").trim();
+    const basePriceValue = Number(formData.basePrice || formData.price || 0);
+    const stockValue = Number(formData.stock || 0);
+
+    if (!title || !brand || !category || !description || !Number.isFinite(basePriceValue) || basePriceValue < 0 || !Number.isFinite(stockValue) || stockValue < 0) {
+      setLocalValidationError("Title, brand, category, description, price, and stock are required.");
+      return;
+    }
+
     const normalizedImages = (formData.images || "")
       .split(",")
       .map((image) => image.trim())
       .filter(Boolean);
 
-    const basePriceValue = Number(formData.basePrice || formData.price || 0);
     const wholeSalePriceValue = formData.wholeSalePrice !== "" ? formData.wholeSalePrice : formData.wholesalePrice;
     const wholeSaleVolumeValue = formData.wholeSaleVolume !== "" ? formData.wholeSaleVolume : formData.stockVolume;
     const flashSaleEndsAt = formData.flashSaleDuration ? new Date(Date.now() + Number(formData.flashSaleDuration) * 60 * 60 * 1000).toISOString() : "";
@@ -269,6 +280,11 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
           <div>
             <label className="mb-2 block text-sm font-medium text-black">Brand</label>
             <input name="brand" value={formData.brand} onChange={handleChange} required className="w-full rounded-md border border-gray-300 bg-white p-3 text-black placeholder:text-gray-500 outline-none focus:border-primary" placeholder={brandPlaceholder} />
+          </div>
+
+          <div className="md:col-span-2">
+            <label htmlFor="product-description" className="mb-2 block text-sm font-medium text-black">Description</label>
+            <textarea id="product-description" name="description" value={formData.description} onChange={handleChange} required rows="4" className="w-full rounded-md border border-gray-300 bg-white p-3 text-black placeholder:text-gray-500 outline-none focus:border-primary" placeholder="Describe the product, features, condition, and any important details for buyers." />
           </div>
 
           <div>
