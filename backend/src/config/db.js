@@ -1,10 +1,11 @@
 const mongoose = require('mongoose');
+const getMongoUri = require('./mongoUri');
 
 const connectDB = async () => {
-  const mongoURI = process.env.MONGO_URI;
+  const mongoURI = getMongoUri();
 
   if (!mongoURI) {
-    console.warn('No MONGO_URI configured. Running in demo mode without MongoDB.');
+    console.warn('No Mongo URI configured. Running in demo mode without MongoDB.');
     return false;
   }
 

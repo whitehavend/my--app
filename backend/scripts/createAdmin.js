@@ -2,6 +2,7 @@ require('dotenv').config();
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 const User = require('../src/models/User');
+const getMongoUri = require('../src/config/mongoUri');
 
 const [email, password, username = 'admin', fullName = 'Platform Administrator'] = process.argv.slice(2);
 
@@ -10,13 +11,14 @@ if (!email || !password) {
   process.exit(1);
 }
 
-if (!process.env.MONGO_URI) {
-  console.error('MONGO_URI must be configured before creating an admin account.');
+const mongoUri = getMongoUri();
+if (!mongoUri) {
+  console.error('MONGO_URI or MONGODB_URI must be configured before creating an admin account.');
   process.exit(1);
 }
 
 const createAdmin = async () => {
-  await mongoose.connect(process.env.MONGO_URI, { serverSelectionTimeoutMS: 5000 });
+  await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 5000 });
 
   const normalizedEmail = email.trim().toLowerCase();
   const existingUser = await User.findOne({ email: normalizedEmail });

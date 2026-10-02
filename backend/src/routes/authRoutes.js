@@ -10,6 +10,7 @@ const User = require('../models/User');
 const PendingSignup = require('../models/PendingSignup');
 const VendorPreRegistration = require('../models/VendorPreRegistration');
 const SettlementInfo = require('../models/SettlementInfo');
+const getMongoUri = require('../config/mongoUri');
 const { isValidPhoneForCountry } = require('../utils/phoneValidation');
 const { normalizeEmail, isValidEmail } = require('../utils/emailValidation');
 const {
@@ -48,7 +49,7 @@ const getFirebaseAuth = () => {
 };
 
 const ensureSharedAccountStore = () => {
-  if (!process.env.MONGO_URI) {
+  if (!getMongoUri()) {
     throw new Error('SHARED_ACCOUNT_STORE_MISSING');
   }
 

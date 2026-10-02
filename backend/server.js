@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const app = require('./src/app');
 const vendorRoutes = require('./src/routes/vendorRoutes');
 const { backfillAdvertPromoCodes } = require('./services/advertPromoService');
+const getMongoUri = require('./src/config/mongoUri');
 
 app.use(cors());
 app.use(express.json());
@@ -18,7 +19,10 @@ app.get('/health', (req, res) => {
 
 const startServer = async () => {
   try {
-    const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
+    const mongoUri = getMongoUri();
+    if (process.env.MONGO_URI && process.env.MONGODB_URI && process.env.MONGO_URI !== process.env.MONGODB_URI) {
+      console.warn('Both Mongo URI variables are set; using MONGO_URI.');
+    }
     if (mongoUri) {
       await mongoose.connect(mongoUri);
       console.log('MongoDB connected successfully');

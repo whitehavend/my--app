@@ -5,6 +5,7 @@ const Product = require('../models/Product');
 const User = require('../models/User');
 const authMiddleware = require('../middleware/authMiddleware');
 const { cloudinaryStorage } = require('../../config/cloudinary');
+const getMongoUri = require('../config/mongoUri');
 const router = express.Router();
 
 const upload = multer({
@@ -52,7 +53,7 @@ const normalizeImages = (images) => {
   return [...new Set(validImageUrls)];
 };
 
-const shouldUseDemoData = () => !process.env.MONGO_URI || mongoose.connection.readyState !== 1;
+const shouldUseDemoData = () => !getMongoUri() || mongoose.connection.readyState !== 1;
 
 router.get('/products', async (req, res) => {
   try {
