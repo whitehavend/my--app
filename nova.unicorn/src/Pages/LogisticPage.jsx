@@ -39,8 +39,10 @@ const LogisticPage = () => {
 
   const promptCustomerPayment = async (request) => {
     if (!request.orderId) return;
-    const result = await dispatch(initiateOrderPayment({ orderId: request.orderId, initiatedBy: "rider" }));
-    if (initiateOrderPayment.fulfilled.match(result)) window.alert("M-Pesa prompt sent to the customer registered phone.");
+    const phoneNumber = window.prompt("Enter the customer's Kenyan M-Pesa phone number (07XXXXXXXX):");
+    if (!phoneNumber?.trim()) return;
+    const result = await dispatch(initiateOrderPayment({ orderId: request.orderId, amount: request.totalAmount, initiatedBy: "rider", phoneNumber: phoneNumber.trim() }));
+    if (initiateOrderPayment.fulfilled.match(result)) window.alert("M-Pesa prompt sent to the entered phone number.");
   };
 
   const updateRequest = async (requestId, requestStatus) => {
@@ -164,7 +166,7 @@ const LogisticPage = () => {
                       {request.orderId && <button type="button" onClick={() => promptCustomerPayment(request)} className="rounded-md border border-primary px-3 py-2 font-semibold text-primary hover:bg-white">Item delivered - prompt payment</button>}
                     </div>
                   )}
-                  {request.status === "picked_up" && request.orderId && request.orderStatus === "delivering" && <div className="mt-3 flex flex-wrap gap-2"><button type="button" onClick={() => promptCustomerPayment(request)} className="rounded-md bg-primary px-3 py-2 font-semibold text-white hover:bg-primary100">Item delivered - prompt payment</button><button type="button" onClick={() => updateRequest(request._id, "delivered")} className="rounded-md border border-emerald-700 px-3 py-2 font-semibold text-emerald-700 hover:bg-emerald-50">Mark delivered</button></div>}
+                  {request.status === "picked_up" && request.orderId && ["delivering", "picked_up"].includes(request.orderStatus) && <div className="mt-3 flex flex-wrap gap-2"><button type="button" onClick={() => promptCustomerPayment(request)} className="rounded-md bg-primary px-3 py-2 font-semibold text-white hover:bg-primary100">Item delivered - prompt payment</button></div>}
                 </article>
               ))}
             </div>

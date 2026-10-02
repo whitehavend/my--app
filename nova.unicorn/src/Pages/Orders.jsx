@@ -15,9 +15,11 @@ const Orders = () => {
   };
 
   const handleConfirmArrived = async (order) => {
-    const result = await dispatch(confirmOrderArrived({ orderId: order._id || order.id, amount: order.totalAmount }));
+    const phoneNumber = window.prompt("Enter the Kenyan M-Pesa phone number for this payment (07XXXXXXXX):");
+    if (!phoneNumber?.trim()) return;
+    const result = await dispatch(confirmOrderArrived({ orderId: order._id || order.id, amount: order.totalAmount, phoneNumber: phoneNumber.trim() }));
     if (confirmOrderArrived.fulfilled.match(result) && result.payload?.paymentPending) {
-      window.alert("An M-Pesa payment prompt has been sent to your registered phone. Complete it to confirm delivery.");
+      window.alert("An M-Pesa payment prompt has been sent. Complete it to confirm delivery.");
     }
   };
 
@@ -27,7 +29,10 @@ const Orders = () => {
       return;
     }
 
-    dispatch(getUserOrders());
+    const refreshOrders = () => dispatch(getUserOrders());
+    refreshOrders();
+    const refreshTimer = setInterval(refreshOrders, 5000);
+    return () => clearInterval(refreshTimer);
   }, [dispatch, navigate, user]);
 
   return (
@@ -39,7 +44,7 @@ const Orders = () => {
       <div className="w-full lg:w-[80%] 2xl:w-[75%] py-8 px-4 lg:px-0">
         <h1 className="text-2xl font-semibold mb-6">My Orders</h1>
 
-        {status === "loading" && <p>Loading your orders...</p>}
+        {status === "loading" && !orders.length && <p>Loading your orders...</p>}
         {error && <p className="text-red-500">{error}</p>}
 
         {!orders.length && status !== "loading" && (
@@ -81,9 +86,9 @@ const Orders = () => {
                   Cancel order
                 </button>
               )}
-              {order.status === "picked_up" && (
-                <button type="button" onClick={() => handleConfirmArrived(order)} className="mt-4 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary100">
-                  {order.paymentStatus === "pending" ? "Payment prompt sent" : "Confirm delivery and pay"}
+              {["delivering", "picked_up"].includes(order.status) && order.paymentStatus !== "paid" && (
+                <button type="button" onClick={() => handleConfirmArrived(order)} disabled={order.paymentStatus === "pending"} className="mt-4 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary100 disabled:cursor-not-allowed disabled:opacity-60">
+                  {order.paymentStatus === "pending" ? "Payment prompt sent" : "Pay to confirm delivery"}
                 </button>
               )}
             </div>

@@ -11,7 +11,10 @@ const LogisticDropOffPage = () => {
   const [locationError, setLocationError] = useState("");
 
   useEffect(() => {
-    dispatch(getLogisticRequests());
+    const refreshRequests = () => dispatch(getLogisticRequests());
+    refreshRequests();
+    const refreshTimer = setInterval(refreshRequests, 5000);
+    return () => clearInterval(refreshTimer);
   }, [dispatch]);
 
   const activeRequests = useMemo(() => requests.filter((request) => (

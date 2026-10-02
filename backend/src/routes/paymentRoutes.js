@@ -2,19 +2,19 @@ const express = require('express');
 const authMiddleware = require('../middleware/authMiddleware');
 const Order = require('../models/Order');
 const User = require('../models/User');
-const { initiateMpesaStkPush } = require('../../services/verificationService');
+const { formatKenyanPhoneNumber, initiateMpesaStkPush } = require('../../services/verificationService');
 const { recordAdvertCommission } = require('../../services/advertCommissionService');
 
 const router = express.Router();
 const allowedInitiators = new Set(['customer', 'rider']);
 
-const normalizePhone = (value) => String(value || '').replace(/\s+/g, '');
-
 const canInitiateForOrder = async (user, order) => {
-  if (user.role === 'customer') return String(order.userId) === String(user.id);
+  if (user.role === 'customer') {
+    return String(order.userId) === String(user.id) && ['delivering', 'picked_up'].includes(order.status);
+  }
 
   if (user.role === 'logistic') {
-    if (order.status !== 'delivering') return false;
+    if (!['delivering', 'picked_up'].includes(order.status)) return false;
     const logistic = await User.findOne({
       _id: user.id,
       role: 'logistic',
@@ -61,15 +61,17 @@ router.post('/stkpush', authMiddleware, async (req, res) => {
       return res.status(403).json({ error: 'You are not authorized to initiate payment for this order' });
     }
 
-    const customer = await User.findById(order.userId).select('phoneNumber countryCode');
-    const registeredPhone = normalizePhone(`${customer?.countryCode || ''}${customer?.phoneNumber || ''}`);
-    const requestedPhone = normalizePhone(phoneNumber);
-    if (!registeredPhone) return res.status(400).json({ error: 'The customer has no registered phone number' });
-    if (requestedPhone && requestedPhone !== registeredPhone) return res.status(400).json({ error: 'The payment phone must match the customer registered phone' });
+    if (!phoneNumber) return res.status(400).json({ error: 'A phone number is required for the M-Pesa prompt' });
+    let promptedPhone;
+    try {
+      promptedPhone = formatKenyanPhoneNumber(phoneNumber);
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
+    }
 
     const callbackBase = String(process.env.CALLBACK_URL_BASE || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
     const stkResponse = await initiateMpesaStkPush({
-      phoneNumber: registeredPhone,
+      phoneNumber: promptedPhone,
       amount: storedAmount,
       accountReference: String(order._id),
       transactionDesc: `Order payment initiated by ${initiatedBy}`,
@@ -83,10 +85,10 @@ router.post('/stkpush', authMiddleware, async (req, res) => {
     order.paymentReference = checkoutRequestId;
     order.paymentInitiatedBy = initiatedBy;
     order.paymentError = '';
-    order.paymentAttempts.push({ initiatedBy, checkoutRequestId, amount: storedAmount, phoneNumber: registeredPhone, status: 'pending', createdAt: new Date() });
+    order.paymentAttempts.push({ initiatedBy, checkoutRequestId, amount: storedAmount, phoneNumber: promptedPhone, status: 'pending', createdAt: new Date() });
     await order.save();
 
-    return res.status(200).json({ message: 'M-Pesa prompt sent to the customer registered phone', paymentPending: true, order, checkoutRequestId });
+    return res.status(200).json({ message: 'M-Pesa prompt sent to the entered phone number', paymentPending: true, order, checkoutRequestId });
   } catch (error) {
     console.error('STK push error:', error);
     return res.status(502).json({ error: error.message || 'Unable to initiate M-Pesa payment' });
@@ -118,7 +120,14 @@ router.post('/mpesa-callback', async (req, res) => {
       }
     }
     await order.save();
-    if (resultCode === 0) await recordAdvertCommission(order);
+    if (resultCode === 0) {
+      await User.updateMany(
+        { 'logisticRequests.orderId': String(order._id) },
+        { $set: { 'logisticRequests.$[request].status': 'delivered' } },
+        { arrayFilters: [{ 'request.orderId': String(order._id) }] },
+      );
+      await recordAdvertCommission(order);
+    }
     return res.status(200).json({ success: true });
   } catch (error) {
     console.error('STK callback error:', error);

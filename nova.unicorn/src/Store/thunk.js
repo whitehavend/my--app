@@ -409,10 +409,10 @@ export const cancelOrder = createAsyncThunk(
 
 export const confirmOrderArrived = createAsyncThunk(
   "confirmOrderArrived",
-  async ({ orderId, amount }, thunkAPI) => {
+  async ({ orderId, amount, phoneNumber }, thunkAPI) => {
     const token = localStorage.getItem("unicorn_token");
     try {
-      const response = await axios.post(`${apiBaseUrl}/payments/stkpush`, { orderId, amount, initiatedBy: "customer" }, { headers: { Authorization: `Bearer ${token}` } });
+      const response = await axios.post(`${apiBaseUrl}/payments/stkpush`, { orderId, amount, initiatedBy: "customer", phoneNumber }, { headers: { Authorization: `Bearer ${token}` } });
       return response.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response?.data?.error || error.message || "Unable to confirm delivery");

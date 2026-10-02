@@ -19,7 +19,6 @@ const {
 } = require('../utils/vendorCompliance');
 const { sendRegistrationCode } = require('../utils/emailVerification');
 const { ensureAdvertPromoIndexes, generatePromoCode, isValidPromoCode, normalizePromoCode } = require('../../services/advertPromoService');
-const { recordAdvertCommission } = require('../../services/advertCommissionService');
 
 const router = express.Router();
 const vendorTypes = ['retailshopvendor', 'cardealer', 'realestate', 'pharmacy', 'agrovet', 'uberdriver'];
@@ -1017,7 +1016,7 @@ router.get('/logistics/requests', authMiddleware, async (req, res) => {
     const user = await User.findById(req.user.id).select('logisticRequests');
     const Order = require('../models/Order');
     const requests = (user?.logisticRequests || []).filter((request) => !['rejected', 'delivered'].includes(request.status));
-    const orders = await Order.find({ _id: { $in: requests.map((request) => request.orderId).filter(Boolean) } }).select('_id status paymentStatus');
+    const orders = await Order.find({ _id: { $in: requests.map((request) => request.orderId).filter(Boolean) } }).select('_id status paymentStatus totalAmount');
     const ordersById = new Map(orders.map((order) => [String(order._id), order]));
     const activeRequests = requests.filter((request) => ordersById.get(String(request.orderId))?.status !== 'delivered');
     return res.status(200).json({
@@ -1025,6 +1024,7 @@ router.get('/logistics/requests', authMiddleware, async (req, res) => {
         ...request.toObject(),
         orderStatus: ordersById.get(String(request.orderId))?.status || '',
         paymentStatus: ordersById.get(String(request.orderId))?.paymentStatus || 'not_required',
+        totalAmount: ordersById.get(String(request.orderId))?.totalAmount,
       })),
     });
   } catch (error) {
@@ -1109,6 +1109,7 @@ router.patch('/logistics/requests/:requestId/status', authMiddleware, async (req
     if (status === 'accepted' && request.status !== 'pending') return res.status(400).json({ error: 'Only pending requests can be accepted' });
     if (status === 'picked_up' && request.status !== 'accepted') return res.status(400).json({ error: 'Accept the request before marking goods picked up' });
     if (status === 'delivered' && request.status !== 'picked_up') return res.status(400).json({ error: 'Only picked up orders can be marked delivered' });
+    if (status === 'delivered' && request.orderId) return res.status(409).json({ error: 'Order delivery is confirmed only after M-Pesa payment succeeds' });
 
     if (['picked_up', 'delivered'].includes(status) && request.orderId) {
       const Order = require('../models/Order');
@@ -1123,15 +1124,6 @@ router.patch('/logistics/requests/:requestId/status', authMiddleware, async (req
         const Order = require('../models/Order');
         await Order.findOneAndUpdate({ _id: request.orderId, userId: request.customerId }, { status: 'picked_up' });
       }
-    }
-    if (status === 'delivered' && request.orderId) {
-      const Order = require('../models/Order');
-      const deliveredOrder = await Order.findOneAndUpdate(
-        { _id: request.orderId, userId: request.customerId },
-        { paymentStatus: 'paid', paymentError: '', status: 'delivered' },
-        { new: true },
-      );
-      if (deliveredOrder) await recordAdvertCommission(deliveredOrder);
     }
     await user.save();
     return res.status(200).json({ request });
