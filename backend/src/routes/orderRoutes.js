@@ -191,7 +191,7 @@ router.get('/collection-officer', authMiddleware, requireCollectionOfficer, asyn
   try {
     const [orders, logistics] = await Promise.all([
       Order.find({
-        status: { $ne: 'delivered' },
+        status: { $nin: ['delivered', 'cancelled'] },
         $or: [
           { historyExpiresAt: { $gt: new Date() } },
           { historyExpiresAt: { $exists: false } },
