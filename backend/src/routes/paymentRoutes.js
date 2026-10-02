@@ -1,24 +1,17 @@
 const express = require('express');
 const authMiddleware = require('../middleware/authMiddleware');
 const Order = require('../models/Order');
-const Product = require('../models/Product');
 const User = require('../models/User');
 const { initiateMpesaStkPush } = require('../../services/verificationService');
 const { recordAdvertCommission } = require('../../services/advertCommissionService');
 
 const router = express.Router();
-const allowedInitiators = new Set(['customer', 'rider', 'vendor']);
+const allowedInitiators = new Set(['customer', 'rider']);
 
 const normalizePhone = (value) => String(value || '').replace(/\s+/g, '');
 
 const canInitiateForOrder = async (user, order) => {
   if (user.role === 'customer') return String(order.userId) === String(user.id);
-
-  if (user.role === 'vendor') {
-    const products = await Product.find({ vendorId: String(user.id) }).select('_id');
-    const productIds = new Set(products.map((product) => String(product._id)));
-    return order.items.some((item) => productIds.has(String(item.productId)));
-  }
 
   if (user.role === 'logistic') {
     if (order.status !== 'delivering') return false;
@@ -42,7 +35,7 @@ router.post('/stkpush', authMiddleware, async (req, res) => {
     const { orderId, phoneNumber, amount, initiatedBy } = req.body || {};
 
     if (!orderId || !allowedInitiators.has(initiatedBy)) {
-      return res.status(400).json({ error: 'orderId and initiatedBy (customer, rider, or vendor) are required' });
+      return res.status(400).json({ error: 'orderId and initiatedBy (customer or rider) are required' });
     }
 
     const expectedRole = initiatedBy === 'rider' ? 'logistic' : initiatedBy;

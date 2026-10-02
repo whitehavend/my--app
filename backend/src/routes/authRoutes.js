@@ -1016,11 +1016,12 @@ router.get('/logistics/requests', authMiddleware, async (req, res) => {
 
     const user = await User.findById(req.user.id).select('logisticRequests');
     const Order = require('../models/Order');
-    const requests = (user?.logisticRequests || []).filter((request) => request.status !== 'rejected');
+    const requests = (user?.logisticRequests || []).filter((request) => !['rejected', 'delivered'].includes(request.status));
     const orders = await Order.find({ _id: { $in: requests.map((request) => request.orderId).filter(Boolean) } }).select('_id status paymentStatus');
     const ordersById = new Map(orders.map((order) => [String(order._id), order]));
+    const activeRequests = requests.filter((request) => ordersById.get(String(request.orderId))?.status !== 'delivered');
     return res.status(200).json({
-      requests: requests.map((request) => ({
+      requests: activeRequests.map((request) => ({
         ...request.toObject(),
         orderStatus: ordersById.get(String(request.orderId))?.status || '',
         paymentStatus: ordersById.get(String(request.orderId))?.paymentStatus || 'not_required',

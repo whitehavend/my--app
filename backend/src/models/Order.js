@@ -53,6 +53,14 @@ const orderSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+    collectionOfficerAcceptedAt: {
+      type: Date,
+      default: null,
+    },
+    collectionOfficerAcceptedBy: {
+      type: String,
+      default: '',
+    },
     shippingAddress: {
       type: Object,
       default: {},

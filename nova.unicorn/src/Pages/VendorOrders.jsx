@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
-import { fulfillOrder, getVendorOrders, initiateOrderPayment } from "../Store/thunk";
+import { fulfillOrder, getVendorOrders } from "../Store/thunk";
 import { formatCurrency } from "../utils/currency";
 
 const VendorOrders = () => {
@@ -10,11 +10,6 @@ const VendorOrders = () => {
 
   const handleFulfill = (orderId) => {
     dispatch(fulfillOrder(orderId));
-  };
-
-  const handlePaymentPrompt = async (order) => {
-    const result = await dispatch(initiateOrderPayment({ orderId: order._id || order.id, amount: order.totalAmount, initiatedBy: "vendor" }));
-    if (initiateOrderPayment.fulfilled.match(result)) window.alert("M-Pesa prompt sent to the customer registered phone.");
   };
 
   useEffect(() => {
@@ -29,8 +24,9 @@ const VendorOrders = () => {
     };
   }, [dispatch]);
 
-  const canFulfill = (order) => now - new Date(order.createdAt).getTime() >= 30 * 60 * 1000;
+  const canFulfill = (order) => Boolean(order.collectionOfficerAcceptedAt) && now - new Date(order.createdAt).getTime() >= 30 * 60 * 1000;
   const getFulfillmentCountdown = (order) => {
+    if (!order.collectionOfficerAcceptedAt) return "Waiting for collection officer acceptance";
     const remainingMs = (30 * 60 * 1000) - (now - new Date(order.createdAt).getTime());
     if (remainingMs <= 0) return "Fulfill order";
 
@@ -70,12 +66,12 @@ const VendorOrders = () => {
             </div>
             <div className="mt-4 border-t border-gray-100 pt-3 text-right font-semibold text-gray-900">Total: {formatCurrency(order.totalAmount, order.currency || order.items?.[0]?.currency)}</div>
             {order.status === "pending" && (
+              <>
+                {!order.collectionOfficerAcceptedAt && <p className="mt-4 rounded-md bg-amber-50 p-3 text-sm font-medium text-amber-800">The collection officer must accept this order before fulfillment.</p>}
               <button type="button" disabled={!canFulfill(order)} onClick={() => handleFulfill(order._id || order.id)} className="mt-4 w-full rounded-md bg-primary px-4 py-3 text-sm font-semibold text-white hover:bg-primary100 disabled:cursor-not-allowed disabled:opacity-50">
                 {getFulfillmentCountdown(order)}
               </button>
-            )}
-            {['delivering', 'picked_up'].includes(order.status) && order.paymentStatus !== "paid" && (
-              <button type="button" onClick={() => handlePaymentPrompt(order)} className="mt-3 w-full rounded-md border border-primary px-4 py-3 text-sm font-semibold text-primary hover:bg-gray-50">Item delivered - prompt customer to pay</button>
+              </>
             )}
           </article>
         ))}

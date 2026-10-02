@@ -7,6 +7,7 @@ const { initiateMpesaStkPush } = require('../../services/verificationService');
 const { getUsdExchangeRates } = require('../../services/exchangeRateService');
 const { calculateAdvertCommissionUsd, isWithinReferralWindow } = require('../../services/advertPromoService');
 const { getAdvertCommissionWallet, recordAdvertCommission } = require('../../services/advertCommissionService');
+const { FULFILLMENT_DELAY_MS, canVendorFulfillOrder } = require('../../services/orderFulfillmentService');
 
 const router = express.Router();
 
@@ -190,6 +191,7 @@ router.get('/collection-officer', authMiddleware, requireCollectionOfficer, asyn
   try {
     const [orders, logistics] = await Promise.all([
       Order.find({
+        status: { $ne: 'delivered' },
         $or: [
           { historyExpiresAt: { $gt: new Date() } },
           { historyExpiresAt: { $exists: false } },
@@ -225,6 +227,7 @@ router.post('/collection-officer/:orderId/assign-logistic', authMiddleware, requ
 
     if (!order) return res.status(404).json({ error: 'Order not found' });
     if (!logistic) return res.status(404).json({ error: 'Available logistic not found' });
+    if (!order.collectionOfficerAcceptedAt) return res.status(409).json({ error: 'Accept this order before assigning logistics' });
     if (!['pending', 'delivering'].includes(order.status)) {
       return res.status(400).json({ error: 'Only pending or delivering orders can be assigned' });
     }
@@ -251,6 +254,25 @@ router.post('/collection-officer/:orderId/assign-logistic', authMiddleware, requ
   } catch (error) {
     console.error('Assign collection order error:', error);
     return res.status(500).json({ error: 'Unable to assign order to logistic' });
+  }
+});
+
+router.patch('/collection-officer/:orderId/accept', authMiddleware, requireCollectionOfficer, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.orderId);
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+    if (order.status !== 'pending') return res.status(400).json({ error: 'Only pending orders can be accepted' });
+
+    if (!order.collectionOfficerAcceptedAt) {
+      order.collectionOfficerAcceptedAt = new Date();
+      order.collectionOfficerAcceptedBy = String(req.user.id);
+      await order.save();
+    }
+
+    return res.status(200).json({ message: 'Order accepted successfully', order });
+  } catch (error) {
+    console.error('Accept collection order error:', error);
+    return res.status(500).json({ error: 'Unable to accept order' });
   }
 });
 
@@ -302,10 +324,13 @@ router.patch('/:id/fulfill', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'Only pending orders can be fulfilled' });
     }
 
-    const fulfillmentDelayMs = 30 * 60 * 1000;
+    if (!order.collectionOfficerAcceptedAt) {
+      return res.status(409).json({ error: 'The collection officer must accept this order before fulfillment' });
+    }
+
     const elapsedMs = Date.now() - new Date(order.createdAt).getTime();
-    if (elapsedMs < fulfillmentDelayMs) {
-      const minutesRemaining = Math.ceil((fulfillmentDelayMs - elapsedMs) / 60000);
+    if (!canVendorFulfillOrder(order)) {
+      const minutesRemaining = Math.ceil((FULFILLMENT_DELAY_MS - elapsedMs) / 60000);
       return res.status(400).json({ error: `This order can be fulfilled in approximately ${minutesRemaining} minute(s)` });
     }
 
