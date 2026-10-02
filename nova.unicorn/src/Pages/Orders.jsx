@@ -31,7 +31,7 @@ const Orders = () => {
   }, [dispatch, navigate, user]);
 
   return (
-    <div className="flex flex-col items-center bg-gray-100 min-h-screen">
+    <div className="flex flex-col items-center bg-gray-100 min-h-screen text-gray-900">
       <div className="flex h-14 w-full items-center justify-center bg-primary px-4 text-center text-white">
         <span className="text-lg font-black uppercase tracking-[0.22em]">Nova Unicorn</span>
       </div>
@@ -43,7 +43,7 @@ const Orders = () => {
         {error && <p className="text-red-500">{error}</p>}
 
         {!orders.length && status !== "loading" && (
-          <div className="bg-white rounded-md shadow-sm p-6 text-gray-600">
+          <div className="bg-white rounded-md shadow-sm p-6 text-gray-800">
             You have no orders yet.
           </div>
         )}
@@ -53,24 +53,24 @@ const Orders = () => {
             <div key={order._id || order.id} className="bg-white rounded-md shadow-sm p-4">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between border-b pb-3 mb-3">
                 <div>
-                  <p className="text-xs uppercase text-gray-500">Order ID</p>
+                  <p className="text-xs uppercase text-gray-700">Order ID</p>
                   <h2 className="font-semibold">{order._id || order.id}</h2>
                 </div>
                 {order.paymentStatus === "pending" && <p className="mt-2 text-xs font-medium text-amber-700">M-Pesa payment is awaiting confirmation on your phone.</p>}
                 {order.paymentStatus === "insufficient_funds" && <p className="mt-2 text-xs font-medium text-red-700">Payment was not completed. Top up your M-Pesa account and try again.</p>}
                 <div>
-                  <p className="text-xs uppercase text-gray-500">Status</p>
+                  <p className="text-xs uppercase text-gray-700">Status</p>
                   <h2 className={`font-semibold ${["delivering", "picked_up", "delivered"].includes(order.status) ? "text-green-600" : ""}`}>{order.status === "delivering" ? "Your product is being delivered" : order.status === "picked_up" ? "Picked up and on the way" : order.status}</h2>
                 </div>
                 <div>
-                  <p className="text-xs uppercase text-gray-500">Total</p>
+                  <p className="text-xs uppercase text-gray-700">Total</p>
                   <h2 className="font-semibold">{formatCurrency(order.totalAmount, order.currency || order.items?.[0]?.currency)}</h2>
                 </div>
               </div>
 
               <div className="space-y-2">
                 {order.items.map((item) => (
-                  <div key={`${order._id || order.id}-${item._id || item.id}`} className="flex justify-between text-sm text-gray-700">
+                  <div key={`${order._id || order.id}-${item._id || item.id}`} className="flex justify-between text-sm text-gray-900">
                     <span>{item.title} x {item.quantity}</span>
                     <span>{formatCurrency(item.price * item.quantity, item.currency || order.currency)}</span>
                   </div>
