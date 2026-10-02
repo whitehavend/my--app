@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useEffect } from "react";
-import { BsBox2, BsQuestionCircle, BsUpload } from "react-icons/bs";
+import { BsArchive, BsBox2, BsQuestionCircle, BsUpload } from "react-icons/bs";
 import { HiOutlineUser } from "react-icons/hi";
 import { FiHeadphones } from "react-icons/fi";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
@@ -9,6 +9,7 @@ import { getVendorOrders } from "../Store/thunk";
 const links = [
   { label: "Settings", to: "/account", icon: HiOutlineUser },
   { label: "Orders", to: "/vendor/orders", icon: BsBox2 },
+  { label: "Fulfilled history", to: "/vendor/orders/history", icon: BsArchive },
   { label: "Assistance", to: "/vendor/help#assistance", icon: FiHeadphones },
   { label: "Help", to: "/vendor/help", icon: BsQuestionCircle },
   { label: "Uploaded Products", to: "/vendor/products", icon: BsUpload },

@@ -15,6 +15,7 @@ import ProtectedRoleRoute from "./components/ProtectedRoleRoute";
 import CustomerPage from "./Pages/CustomerPage";
 import VendorPage from "./Pages/VendorPage";
 import VendorOrders from "./Pages/VendorOrders";
+import VendorFulfilledOrders from "./Pages/VendorFulfilledOrders";
 import VendorProducts from "./Pages/VendorProducts";
 import VendorHelp from "./Pages/VendorHelp";
 import VendorTypePage from "./Pages/VendorTypePage";
@@ -62,6 +63,7 @@ function App() {
         <Route path="/vendor/pharmacy" element={<ProtectedRoleRoute role="vendor" vendorType="pharmacy"><VendorTypePage vendorType="pharmacy" /></ProtectedRoleRoute>} />
         <Route path="/vendor/agrovet" element={<ProtectedRoleRoute role="vendor" vendorType="agrovet"><VendorTypePage vendorType="agrovet" /></ProtectedRoleRoute>} />
         <Route path="/vendor/orders" element={<ProtectedRoleRoute role="vendor"><VendorPage><VendorOrders /></VendorPage></ProtectedRoleRoute>} />
+        <Route path="/vendor/orders/history" element={<ProtectedRoleRoute role="vendor"><VendorPage><VendorFulfilledOrders /></VendorPage></ProtectedRoleRoute>} />
         <Route path="/vendor/products" element={<ProtectedRoleRoute role="vendor"><VendorPage><VendorProducts /></VendorPage></ProtectedRoleRoute>} />
         <Route path="/vendor/products/new" element={<ProtectedRoleRoute role="vendor"><VendorPage><VendorProductUpload /></VendorPage></ProtectedRoleRoute>} />
         <Route path="/vendor/status" element={<VendorVerificationStatus />} />

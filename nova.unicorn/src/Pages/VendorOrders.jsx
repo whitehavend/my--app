@@ -7,6 +7,7 @@ const VendorOrders = () => {
   const dispatch = useAppDispatch();
   const { orders, status, error } = useAppSelector((state) => state.orders);
   const [now, setNow] = useState(Date.now());
+  const activeOrders = orders.filter((order) => order.status === "pending");
 
   const handleFulfill = (orderId) => {
     dispatch(fulfillOrder(orderId));
@@ -43,11 +44,11 @@ const VendorOrders = () => {
         <p className="mt-2 text-sm text-gray-600">Review orders containing your products and prepare them for delivery.</p>
       </div>
       {error && <p className="rounded-md bg-red-50 p-3 text-sm text-red-700">{error}</p>}
-      {status !== "loading" && !orders.length && !error && (
+      {status !== "loading" && !activeOrders.length && !error && (
         <div className="rounded-md border border-dashed border-gray-300 bg-white p-8 text-center text-gray-600">There are no orders to fulfill yet.</div>
       )}
       <div className="space-y-4">
-        {orders.map((order) => (
+        {activeOrders.map((order) => (
           <article key={order._id || order.id} className="rounded-md border border-gray-200 bg-white p-5 shadow-sm">
             <div className="flex flex-col gap-2 border-b border-gray-100 pb-3 sm:flex-row sm:items-center sm:justify-between">
               <div>

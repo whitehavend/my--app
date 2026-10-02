@@ -177,7 +177,14 @@ router.get('/vendor', authMiddleware, async (req, res) => {
     const products = await Product.find({ vendorId: String(req.user.id) }).select('_id');
     const productIds = products.map((product) => String(product._id));
     const orders = productIds.length
-      ? await Order.find({ status: { $in: ['pending', 'delivering'] }, 'items.productId': { $in: productIds } }).sort({ createdAt: -1 })
+      ? await Order.find({
+        status: { $in: ['pending', 'delivering', 'delivered'] },
+        'items.productId': { $in: productIds },
+        $or: [
+          { historyExpiresAt: { $gt: new Date() } },
+          { historyExpiresAt: { $exists: false } },
+        ],
+      }).sort({ createdAt: -1 })
       : [];
 
     return res.status(200).json({ orders });

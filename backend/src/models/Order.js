@@ -104,7 +104,7 @@ const orderSchema = new mongoose.Schema(
     },
     historyExpiresAt: {
       type: Date,
-      default: () => new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+      default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       expires: 0,
     },
   },
