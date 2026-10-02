@@ -83,4 +83,5 @@ test("customers can save a black market vendor and item, and add the item to car
   );
 
   expect(await screen.findByRole("link", { name: "Visit black market" })).toHaveAttribute("href", "/shop/seller-1");
+  expect(screen.getByRole("link", { name: /my orders/i })).toHaveAttribute("href", "/orders");
 });
