@@ -424,6 +424,16 @@ const LoginPage = () => {
                       className={`w-full rounded-2xl border bg-white p-4 text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/20 ${errors.deliveryAddress ? "border-red-300" : "border-slate-200"}`}
                     />
                     {errors.deliveryAddress && <p className="text-xs text-red-500">{errors.deliveryAddress.message}</p>}
+                    <div>
+                      <label htmlFor="signup-promo-code" className="mb-2 block text-sm font-medium text-slate-700">Promo code (optional)</label>
+                      <input
+                        id="signup-promo-code"
+                        type="text"
+                        placeholder="Enter promo code"
+                        {...register("promoCode")}
+                        className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                      />
+                    </div>
                   </>
                 )}
 

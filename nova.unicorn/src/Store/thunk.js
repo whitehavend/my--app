@@ -112,6 +112,7 @@ export const handleSignup = createAsyncThunk(
       countryCode,
       advertSocials,
       advertUsernames,
+      promoCode,
     } = payload || {};
     const normalizedEmail = normalizeEmailForRequest(email);
 
@@ -125,7 +126,7 @@ export const handleSignup = createAsyncThunk(
     try {
       const response = await axios.post(
         `${apiBaseUrl}/auth/signup`,
-        { firstName, secondName, username, email: normalizedEmail, password, role, vendorType, shopName, phoneNumber, businessName, countryCode, advertSocials: selectedAdvertSocials, deliveryAddress, shopAddress, verificationCode: payload.verificationCode }
+        { firstName, secondName, username, email: normalizedEmail, password, role, vendorType, shopName, phoneNumber, businessName, countryCode, advertSocials: selectedAdvertSocials, deliveryAddress, shopAddress, promoCode: role === "customer" ? String(promoCode || "").trim() : "", verificationCode: payload.verificationCode }
       );
 
       if (response.data?.token) {

@@ -21,4 +21,5 @@ test('renders the app shell', async () => {
   await waitFor(() => {
     expect(screen.getByRole('heading', { name: /a market filled with unlimited opportunities/i })).toBeInTheDocument();
   });
+  expect(screen.getByRole('link', { name: /saved items and cart/i })).toHaveAttribute('href', '/saved-items');
 });

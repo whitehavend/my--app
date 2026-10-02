@@ -75,6 +75,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    promoCode: {
+      type: String,
+      default: '',
+      trim: true,
+    },
     shopAddress: {
       type: String,
       default: '',
