@@ -17,6 +17,8 @@ const {
   validateVendorPreAccountRequirements,
 } = require('../utils/vendorCompliance');
 const { sendRegistrationCode } = require('../utils/emailVerification');
+const { ensureAdvertPromoIndexes, generatePromoCode, isValidPromoCode, normalizePromoCode } = require('../services/advertPromoService');
+const { recordAdvertCommission } = require('../services/advertCommissionService');
 
 const router = express.Router();
 const vendorTypes = ['retailshopvendor', 'cardealer', 'realestate', 'pharmacy', 'agrovet', 'uberdriver'];
@@ -88,6 +90,30 @@ const generateToken = (user) => jwt.sign(
   { expiresIn: '7d' }
 );
 
+const resolveAdvertPromoCode = async (mode, submittedCode) => {
+  await ensureAdvertPromoIndexes();
+
+  if (mode === 'custom') {
+    const code = normalizePromoCode(submittedCode);
+    if (!isValidPromoCode(code)) {
+      return { error: 'Promo codes must be 4 to 20 letters, numbers, or hyphens', status: 400 };
+    }
+    if (await User.exists({ role: 'advert', promoCode: code })) {
+      return { error: 'Code already taken', status: 409 };
+    }
+    return { code };
+  }
+
+  if (mode !== 'generate') return { error: 'Choose whether to generate or create a promo code', status: 400 };
+
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const code = generatePromoCode();
+    if (!await User.exists({ role: 'advert', promoCode: code })) return { code };
+  }
+
+  return { error: 'Unable to generate a unique promo code. Please try again.', status: 503 };
+};
+
 const serializeUser = (user) => ({
   id: user.id || user._id,
   firstName: user.firstName || '',
@@ -106,6 +132,8 @@ const serializeUser = (user) => ({
   logisticRequests: user.logisticRequests || [],
   deliveryAddress: user.deliveryAddress || '',
   promoCode: user.promoCode || '',
+  referredByAdvertId: user.referredByAdvertId || '',
+  promoCodeUsedAt: user.promoCodeUsedAt || null,
   shopAddress: user.shopAddress || '',
   verificationRequired: user.verificationRequired || [],
   verificationStatus: user.verificationStatus || {},
@@ -309,6 +337,7 @@ router.post('/signup', async (req, res) => {
     businessName,
     deliveryAddress,
     promoCode = '',
+    promoCodeMode = 'generate',
     shopAddress,
     countryCode,
     advertSocials = {},
@@ -401,6 +430,20 @@ router.post('/signup', async (req, res) => {
       return res.status(400).json({ error: 'The email verification code is invalid or expired' });
     }
 
+    let advertPromoCode = '';
+    let referredAdvert = null;
+    if (normalizedRole === 'advert') {
+      const promoCodeResult = await resolveAdvertPromoCode(promoCodeMode, promoCode);
+      if (promoCodeResult.error) return res.status(promoCodeResult.status).json({ error: promoCodeResult.error });
+      advertPromoCode = promoCodeResult.code;
+    }
+
+    const customerPromoCode = normalizedRole === 'customer' ? normalizePromoCode(promoCode) : '';
+    if (customerPromoCode) {
+      referredAdvert = await User.findOne({ role: 'advert', promoCode: customerPromoCode }).select('_id');
+      if (!referredAdvert) return res.status(400).json({ error: 'Promo code not found' });
+    }
+
     const verificationVendorType = normalizedRole === 'vendor' ? vendorType : '';
     const vendorVerificationRequired = normalizedRole === 'vendor' ? getRequiredVerificationChecks(verificationVendorType) : [];
     const settlementRecord = normalizedRole === 'vendor' && settlementInfo ? await SettlementInfo.create({
@@ -439,7 +482,9 @@ router.post('/signup', async (req, res) => {
       phoneNumber: normalizedPhone,
       businessName: normalizedRole === 'vendor' || normalizedRole === 'uberdriver' ? String(businessName || '').trim() : '',
       deliveryAddress: ['customer', 'blackmarket'].includes(normalizedRole) ? String(deliveryAddress || '').trim() : '',
-      promoCode: normalizedRole === 'customer' ? String(promoCode || '').trim() : '',
+      promoCode: normalizedRole === 'advert' ? advertPromoCode : customerPromoCode,
+      referredByAdvertId: referredAdvert ? String(referredAdvert._id) : '',
+      promoCodeUsedAt: referredAdvert ? new Date() : null,
       shopAddress: normalizedRole === 'vendor' || normalizedRole === 'uberdriver' ? String(shopAddress || '').trim() : '',
       countryCode: normalizedCountryCode,
       advertSocials: normalizedRole === 'advert' ? normalizedAdvertSocials : {},
@@ -455,6 +500,9 @@ router.post('/signup', async (req, res) => {
     });
   } catch (error) {
     if (error && error.code === 11000) {
+      if (error.keyPattern?.promoCode || error.keyValue?.promoCode) {
+        return res.status(409).json({ error: 'Code already taken' });
+      }
       return res.status(409).json({ error: 'User already exists' });
     }
 
@@ -627,7 +675,7 @@ router.get('/debug-users', async (req, res) => {
 });
 
 router.post('/google', async (req, res) => {
-  const { idToken, role = 'customer', vendorType = '' } = req.body;
+  const { idToken, role = 'customer', vendorType = '', promoCodeMode = 'generate', promoCode = '' } = req.body;
 
   console.log('Google token received:', {
     type: typeof idToken,
@@ -670,6 +718,17 @@ router.post('/google', async (req, res) => {
 
     if (!user) {
       const fullName = firebaseUser.name || email.split('@')[0];
+      let assignedPromoCode = '';
+      let referredAdvert = null;
+      if (role === 'advert') {
+        const promoCodeResult = await resolveAdvertPromoCode(promoCodeMode, promoCode);
+        if (promoCodeResult.error) return res.status(promoCodeResult.status).json({ error: promoCodeResult.error });
+        assignedPromoCode = promoCodeResult.code;
+      } else if (role === 'customer' && normalizePromoCode(promoCode)) {
+        referredAdvert = await User.findOne({ role: 'advert', promoCode: normalizePromoCode(promoCode) }).select('_id');
+        if (!referredAdvert) return res.status(400).json({ error: 'Promo code not found' });
+      }
+
       try {
         user = await createUserRecord({
           fullName,
@@ -683,6 +742,9 @@ router.post('/google', async (req, res) => {
           phoneNumber: '',
           businessName: '',
           deliveryAddress: '',
+          promoCode: role === 'advert' ? assignedPromoCode : role === 'customer' ? normalizePromoCode(promoCode) : '',
+          referredByAdvertId: referredAdvert ? String(referredAdvert._id) : '',
+          promoCodeUsedAt: referredAdvert ? new Date() : null,
           shopAddress: '',
           countryCode: '',
           advertSocials: {},
@@ -702,6 +764,9 @@ router.post('/google', async (req, res) => {
     });
   } catch (error) {
     console.error('Google login error:', error);
+    if (error.code === 11000 && (error.keyPattern?.promoCode || error.keyValue?.promoCode)) {
+      return res.status(409).json({ error: 'Code already taken' });
+    }
     if (error.message === 'FIREBASE_SERVICE_ACCOUNT_JSON is not configured') {
       return res.status(503).json({ error: 'Google login is not configured on the server' });
     }
@@ -1059,10 +1124,12 @@ router.patch('/logistics/requests/:requestId/status', authMiddleware, async (req
     }
     if (status === 'delivered' && request.orderId) {
       const Order = require('../models/Order');
-      await Order.findOneAndUpdate(
+      const deliveredOrder = await Order.findOneAndUpdate(
         { _id: request.orderId, userId: request.customerId },
         { paymentStatus: 'paid', paymentError: '', status: 'delivered' },
+        { new: true },
       );
+      if (deliveredOrder) await recordAdvertCommission(deliveredOrder);
     }
     await user.save();
     return res.status(200).json({ request });

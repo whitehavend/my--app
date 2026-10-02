@@ -1,8 +1,11 @@
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { FiHeadphones } from "react-icons/fi";
 import { HiOutlineUser } from "react-icons/hi";
 import { BsMegaphone, BsQuestionCircle } from "react-icons/bs";
-import { useAppSelector } from "../Store/hooks";
+import { useAppDispatch, useAppSelector } from "../Store/hooks";
+import { getAdvertWallet } from "../Store/thunk";
+import { formatCurrency } from "../utils/currency";
 
 const pageLinks = [
   { label: "Settings", to: "/account", icon: HiOutlineUser },
@@ -12,8 +15,31 @@ const pageLinks = [
 
 const AdvertPage = () => {
   const { pathname } = useLocation();
+  const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
+  const [wallet, setWallet] = useState({ balance: 0, currency: "USD", promoCode: "" });
+  const [walletLoading, setWalletLoading] = useState(true);
+  const [walletError, setWalletError] = useState("");
   const socials = Object.entries(user?.advertSocials || {});
+
+  useEffect(() => {
+    let active = true;
+    dispatch(getAdvertWallet())
+      .unwrap()
+      .then((result) => {
+        if (active) setWallet(result);
+      })
+      .catch((error) => {
+        if (active) setWalletError(String(error));
+      })
+      .finally(() => {
+        if (active) setWalletLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [dispatch]);
 
   return (
     <main className="min-h-screen bg-[#02070d] px-4 py-6 text-[#f3f5f7] sm:px-6 lg:px-8">
@@ -94,6 +120,18 @@ const AdvertPage = () => {
               </div>
             ))}
             {!socials.length && <p className="text-black">No advertising platforms selected yet.</p>}
+          </div>
+        </section>
+        <section className="mx-auto mt-6 grid max-w-3xl gap-4 sm:grid-cols-2" aria-label="Advert referral wallet">
+          <div className="border border-slate-200 bg-white p-6 shadow-sm">
+            <p className="text-sm font-medium uppercase tracking-[0.16em] text-slate-500">Your promo code</p>
+            <p className="mt-2 break-all text-2xl font-black tracking-[0.08em] text-slate-900">{wallet.promoCode || user?.promoCode || "Not assigned"}</p>
+          </div>
+          <div className="border border-emerald-200 bg-emerald-50 p-6 shadow-sm">
+            <p className="text-sm font-medium uppercase tracking-[0.16em] text-emerald-800">Referral wallet</p>
+            <p className="mt-2 text-3xl font-black text-emerald-950">{formatCurrency(wallet.balance, wallet.currency)}</p>
+            <p className="mt-2 text-xs text-emerald-800">{walletLoading ? "Loading completed-order earnings..." : "3% of referred orders after delivery is confirmed."}</p>
+            {walletError && <p role="alert" className="mt-2 text-xs text-red-700">{walletError}</p>}
           </div>
         </section>
       </div>

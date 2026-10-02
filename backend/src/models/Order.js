@@ -43,6 +43,16 @@ const orderSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    advertiserId: {
+      type: String,
+      default: '',
+      index: true,
+    },
+    advertCommissionUsd: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     shippingAddress: {
       type: Object,
       default: {},

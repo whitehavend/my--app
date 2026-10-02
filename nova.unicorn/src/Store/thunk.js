@@ -113,6 +113,7 @@ export const handleSignup = createAsyncThunk(
       advertSocials,
       advertUsernames,
       promoCode,
+      promoCodeMode = "generate",
     } = payload || {};
     const normalizedEmail = normalizeEmailForRequest(email);
 
@@ -126,7 +127,7 @@ export const handleSignup = createAsyncThunk(
     try {
       const response = await axios.post(
         `${apiBaseUrl}/auth/signup`,
-        { firstName, secondName, username, email: normalizedEmail, password, role, vendorType, shopName, phoneNumber, businessName, countryCode, advertSocials: selectedAdvertSocials, deliveryAddress, shopAddress, promoCode: role === "customer" ? String(promoCode || "").trim() : "", verificationCode: payload.verificationCode }
+        { firstName, secondName, username, email: normalizedEmail, password, role, vendorType, shopName, phoneNumber, businessName, countryCode, advertSocials: selectedAdvertSocials, deliveryAddress, shopAddress, promoCode: ["customer", "advert"].includes(role) ? String(promoCode || "").trim() : "", promoCodeMode, verificationCode: payload.verificationCode }
       );
 
       if (response.data?.token) {
@@ -157,9 +158,9 @@ export const requestSignupVerificationCode = createAsyncThunk(
 
 export const handleGoogleLogin = createAsyncThunk(
   "handleGoogleLogin",
-  async ({ idToken, role = "customer", vendorType = "" }, thunkAPI) => {
+  async ({ idToken, role = "customer", vendorType = "", promoCodeMode = "generate", promoCode = "" }, thunkAPI) => {
     try {
-      const response = await axios.post(`${apiBaseUrl}/auth/google`, { idToken, role, vendorType });
+      const response = await axios.post(`${apiBaseUrl}/auth/google`, { idToken, role, vendorType, promoCodeMode, promoCode: String(promoCode || "").trim() });
 
       if (response.data?.token) {
         localStorage.setItem("unicorn_token", response.data.token);
@@ -168,6 +169,21 @@ export const handleGoogleLogin = createAsyncThunk(
       return response.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response?.data?.error || error.message || "Google login failed");
+    }
+  }
+);
+
+export const getAdvertWallet = createAsyncThunk(
+  "getAdvertWallet",
+  async (_, thunkAPI) => {
+    const token = localStorage.getItem("unicorn_token");
+    try {
+      const response = await axios.get(`${apiBaseUrl}/orders/advert/wallet`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.error || error.message || "Unable to load advert wallet");
     }
   }
 );

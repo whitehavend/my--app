@@ -4,6 +4,7 @@ const Order = require('../models/Order');
 const Product = require('../models/Product');
 const User = require('../models/User');
 const { initiateMpesaStkPush } = require('../../services/verificationService');
+const { recordAdvertCommission } = require('../../services/advertCommissionService');
 
 const router = express.Router();
 const allowedInitiators = new Set(['customer', 'rider', 'vendor']);
@@ -124,6 +125,7 @@ router.post('/mpesa-callback', async (req, res) => {
       }
     }
     await order.save();
+    if (resultCode === 0) await recordAdvertCommission(order);
     return res.status(200).json({ success: true });
   } catch (error) {
     console.error('STK callback error:', error);

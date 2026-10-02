@@ -67,10 +67,11 @@ const LoginPage = () => {
     setValue,
     formState: { errors },
   } = useForm({
-    defaultValues: { role: "customer", vendorType: "" },
+    defaultValues: { role: "customer", vendorType: "", promoCodeMode: "generate" },
   });
   const selectedRole = watch("role", "customer");
   const selectedVendorType = watch("vendorType", "");
+  const selectedPromoCodeMode = watch("promoCodeMode", "generate");
   const watchedEmail = watch("email", "");
   const selectedPlatforms = watch("advertSocials", {});
   const advertPlatforms = ["Instagram", "TikTok", "YouTube", "Facebook", "X"];
@@ -176,7 +177,7 @@ const LoginPage = () => {
     signInPromise
       .then(async ({ user: firebaseUser }) => {
         const idToken = await firebaseUser.getIdToken();
-        const response = await dispatch(handleGoogleLogin({ idToken, role: selectedRole, vendorType: selectedVendorType }));
+        const response = await dispatch(handleGoogleLogin({ idToken, role: selectedRole, vendorType: selectedVendorType, promoCodeMode: selectedPromoCodeMode, promoCode: watch("promoCode", "") }));
         if (handleGoogleLogin.rejected.match(response)) {
           setGoogleError(response.payload || "Unable to log in with Google");
         }
@@ -323,6 +324,36 @@ const LoginPage = () => {
                   </div>
                 )}
 
+                {!isLogin && selectedRole === "advert" && (
+                  <fieldset className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <legend className="mb-3 text-sm font-medium text-slate-700">Choose your promo code</legend>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <label className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-3 text-sm text-slate-700">
+                        <input type="radio" value="generate" {...register("promoCodeMode", { required: true })} />
+                        Generate one for me
+                      </label>
+                      <label className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-3 text-sm text-slate-700">
+                        <input type="radio" value="custom" {...register("promoCodeMode", { required: true })} />
+                        Create my own
+                      </label>
+                    </div>
+                    {selectedPromoCodeMode === "custom" && (
+                      <div className="mt-3">
+                        <label htmlFor="advert-promo-code" className="mb-2 block text-sm font-medium text-slate-700">Your promo code</label>
+                        <input
+                          id="advert-promo-code"
+                          type="text"
+                          maxLength={20}
+                          placeholder="Example: NOVA2026"
+                          {...register("promoCode", { required: "Enter a promo code", minLength: { value: 4, message: "Use at least 4 characters" }, maxLength: { value: 20, message: "Use no more than 20 characters" }, pattern: { value: /^[A-Za-z0-9-]+$/, message: "Use only letters, numbers, or hyphens" } })}
+                          className={`w-full rounded-2xl border bg-white p-4 uppercase text-slate-800 shadow-sm outline-none transition placeholder:normal-case placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/20 ${errors.promoCode ? "border-red-300" : "border-slate-200"}`}
+                        />
+                        {errors.promoCode && <p className="mt-1 text-xs text-red-500">{errors.promoCode.message}</p>}
+                      </div>
+                    )}
+                  </fieldset>
+                )}
+
                 {!isLogin && verificationSent && (
                   <div>
                     <input type="text" inputMode="numeric" maxLength="6" placeholder="Email verification code" {...register("verificationCode", { required: "Verification code is required", minLength: { value: 6, message: "Enter the 6-digit code" }, maxLength: { value: 6, message: "Enter the 6-digit code" } })} className={`w-full rounded-2xl border bg-white p-4 text-slate-800 shadow-sm outline-none ${errors.verificationCode ? "border-red-300" : "border-slate-200"}`} />
@@ -424,17 +455,20 @@ const LoginPage = () => {
                       className={`w-full rounded-2xl border bg-white p-4 text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/20 ${errors.deliveryAddress ? "border-red-300" : "border-slate-200"}`}
                     />
                     {errors.deliveryAddress && <p className="text-xs text-red-500">{errors.deliveryAddress.message}</p>}
-                    <div>
-                      <label htmlFor="signup-promo-code" className="mb-2 block text-sm font-medium text-slate-700">Promo code (optional)</label>
-                      <input
-                        id="signup-promo-code"
-                        type="text"
-                        placeholder="Enter promo code"
-                        {...register("promoCode")}
-                        className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/20"
-                      />
-                    </div>
                   </>
+                )}
+
+                {!isLogin && selectedRole === "customer" && (
+                  <div>
+                    <label htmlFor="signup-promo-code" className="mb-2 block text-sm font-medium text-slate-700">Promo code (optional)</label>
+                    <input
+                      id="signup-promo-code"
+                      type="text"
+                      placeholder="Enter promo code"
+                      {...register("promoCode")}
+                      className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    />
+                  </div>
                 )}
 
                 {!isLogin && verificationSent && selectedRole === "advert" && (

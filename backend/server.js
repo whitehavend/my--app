@@ -5,6 +5,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const app = require('./src/app');
 const vendorRoutes = require('./src/routes/vendorRoutes');
+const { backfillAdvertPromoCodes } = require('./services/advertPromoService');
 
 app.use(cors());
 app.use(express.json());
@@ -21,6 +22,8 @@ const startServer = async () => {
     if (mongoUri) {
       await mongoose.connect(mongoUri);
       console.log('MongoDB connected successfully');
+      const assignedPromoCodes = await backfillAdvertPromoCodes();
+      if (assignedPromoCodes) console.log(`Assigned promo codes to ${assignedPromoCodes} existing advertiser(s)`);
     } else {
       console.warn('MONGODB_URI is not configured. Starting without a database connection.');
     }

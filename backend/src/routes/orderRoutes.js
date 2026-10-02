@@ -4,6 +4,9 @@ const Order = require('../models/Order');
 const Product = require('../models/Product');
 const User = require('../models/User');
 const { initiateMpesaStkPush } = require('../../services/verificationService');
+const { getUsdExchangeRates } = require('../../services/exchangeRateService');
+const { calculateAdvertCommissionUsd, isWithinReferralWindow } = require('../../services/advertPromoService');
+const { getAdvertCommissionWallet, recordAdvertCommission } = require('../../services/advertCommissionService');
 
 const router = express.Router();
 
@@ -28,7 +31,6 @@ router.post('/', authMiddleware, async (req, res) => {
       { $inc: { wholesaleVolume: quantity } },
     )));
   };
-
   try {
     const requestedQuantities = new Map();
     items.forEach((item) => {
@@ -44,6 +46,50 @@ router.post('/', authMiddleware, async (req, res) => {
     const productIds = [...new Set(requestedItems.map(({ productId }) => productId))];
     const products = productIds.length ? await Product.find({ _id: { $in: productIds } }) : [];
     const productsById = new Map(products.map((product) => [String(product._id), product]));
+    const orderItems = items.map((item) => {
+      const productId = String(item.id || item.productId || item._id || '');
+      const product = productsById.get(productId);
+      return {
+        productId: item.id || item.productId || item._id,
+        title: item.title || 'Product',
+        brand: item.brand || '',
+        image: item.images?.[0] || item.image || '',
+        currency: item.currency || product?.currency || 'NGN',
+        price: Number(item.price || 0),
+        priceType: item.priceType || 'retail',
+        quantity: Number(item.quantity || 1),
+      };
+    });
+    const commissionItems = orderItems.map((item) => {
+      const product = productsById.get(String(item.productId));
+      if (!product) return { ...item, price: 0, currency: 'USD' };
+
+      const flashSaleEndsAt = product.flashSaleEndsAt ? new Date(product.flashSaleEndsAt).getTime() : 0;
+      const flashSaleActive = product.retailPricingType === 'flash_sale' && flashSaleEndsAt > Date.now();
+      const price = item.priceType === 'wholesale'
+        ? Number(product.wholesalePrice ?? product.price)
+        : Number(flashSaleActive ? product.flashSalePrice : product.price);
+
+      return { ...item, price, currency: product.currency || item.currency };
+    });
+
+    let advertiserId = '';
+    let advertCommissionUsd = 0;
+    if (req.user.role === 'customer') {
+      const customer = await User.findById(req.user.id).select('referredByAdvertId promoCodeUsedAt');
+      if (customer?.referredByAdvertId && isWithinReferralWindow(customer.promoCodeUsedAt)) {
+        advertiserId = customer.referredByAdvertId;
+        try {
+          const needsLiveRates = commissionItems.some((item) => String(item.currency).toUpperCase() !== 'USD');
+          const rates = needsLiveRates ? await getUsdExchangeRates() : { USD: 1 };
+          advertCommissionUsd = calculateAdvertCommissionUsd(commissionItems, rates);
+        } catch (error) {
+          return res.status(503).json({ error: error.message || 'Unable to calculate the referral commission. Please retry the order.' });
+        }
+
+      }
+    }
+
     for (const { productId, priceType, quantity } of requestedItems) {
       const product = productsById.get(productId);
       if (priceType !== 'wholesale') continue;
@@ -73,17 +119,10 @@ router.post('/', authMiddleware, async (req, res) => {
 
     const newOrder = await Order.create({
       userId: req.user.id,
-      items: items.map((item) => ({
-        productId: item.id || item.productId || item._id,
-        title: item.title || 'Product',
-        brand: item.brand || '',
-        image: item.images?.[0] || item.image || '',
-        currency: item.currency || 'NGN',
-        price: Number(item.price || 0),
-        priceType: item.priceType || 'retail',
-        quantity: Number(item.quantity || 1),
-      })),
+      items: orderItems,
       totalAmount: Number(totalAmount || 0),
+      advertiserId,
+      advertCommissionUsd,
       shippingAddress: shippingAddress || {},
       paymentMethod: paymentMethod || 'cash_on_delivery',
       currency: items[0]?.currency || 'NGN',
@@ -98,6 +137,21 @@ router.post('/', authMiddleware, async (req, res) => {
     await rollbackVolumeUpdates();
     console.error('Create order error:', error);
     return res.status(500).json({ error: 'Unable to place order', details: error.message });
+  }
+});
+
+router.get('/advert/wallet', authMiddleware, async (req, res) => {
+  if (req.user.role !== 'advert') return res.status(403).json({ error: 'Advert access is required' });
+
+  try {
+    const [wallet, advertiser] = await Promise.all([
+      getAdvertCommissionWallet(req.user.id),
+      User.findById(req.user.id).select('promoCode'),
+    ]);
+    return res.status(200).json({ ...wallet, promoCode: advertiser?.promoCode || '' });
+  } catch (error) {
+    console.error('Advert wallet fetch error:', error);
+    return res.status(500).json({ error: 'Unable to fetch advert wallet' });
   }
 });
 
@@ -298,6 +352,7 @@ router.patch('/:id/arrived', authMiddleware, async (req, res) => {
     if (order.paymentStatus === 'paid') {
       order.status = 'delivered';
       await order.save();
+      await recordAdvertCommission(order);
       return res.status(200).json({ message: 'Delivery confirmed', order });
     }
 
@@ -345,6 +400,7 @@ router.post('/mpesa-callback', async (req, res) => {
       order.paymentError = callback.ResultDesc || callback.resultDescription || 'M-Pesa payment was not completed';
     }
     await order.save();
+    if (resultCode === 0) await recordAdvertCommission(order);
     return res.status(200).json({ success: true });
   } catch (error) {
     console.error('M-Pesa order callback error:', error);

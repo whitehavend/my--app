@@ -79,6 +79,15 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: '',
       trim: true,
+      uppercase: true,
+    },
+    referredByAdvertId: {
+      type: String,
+      default: '',
+    },
+    promoCodeUsedAt: {
+      type: Date,
+      default: null,
     },
     shopAddress: {
       type: String,
@@ -128,6 +137,15 @@ const userSchema = new mongoose.Schema(
   {
     timestamps: true,
   }
+);
+
+userSchema.index(
+  { promoCode: 1 },
+  {
+    unique: true,
+    name: 'unique_advert_promo_code',
+    partialFilterExpression: { role: 'advert', promoCode: { $gt: '' } },
+  },
 );
 
 module.exports = mongoose.models.User || mongoose.model('User', userSchema);
