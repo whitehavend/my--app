@@ -18,7 +18,7 @@ router.get('/', authMiddleware, requireAdmin, (req, res) => {
 });
 
 const getCallbackUrl = (req) => {
-  const configuredBase = String(process.env.CALLBACK_URL_BASE || '').trim().replace(/\/$/, '');
+  const configuredBase = String(process.env.CALLBACK_URL_BASE || process.env.MPESA_CALLBACK_URL || '').trim().replace(/\/$/, '');
   const baseUrl = configuredBase || `${req.protocol}://${req.get('host')}`;
   return `${baseUrl}/api/vendors/mpesa-callback`;
 };

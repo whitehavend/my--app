@@ -435,7 +435,7 @@ router.patch('/:id/arrived', authMiddleware, async (req, res) => {
       phoneNumber,
       amount: Math.max(1, Math.round(Number(order.totalAmount || 0))),
       accountReference: `Order-${order._id}`,
-      callbackUrl: `${String(process.env.CALLBACK_URL_BASE || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '')}/api/orders/mpesa-callback`,
+      callbackUrl: `${String(process.env.CALLBACK_URL_BASE || process.env.MPESA_CALLBACK_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '')}/api/orders/mpesa-callback`,
     });
     const checkoutRequestId = stkResponse.CheckoutRequestID || stkResponse.checkoutRequestId || stkResponse.checkoutId || stkResponse.referenceId || '';
     if (!checkoutRequestId) return res.status(502).json({ error: 'M-Pesa did not return a checkout reference' });

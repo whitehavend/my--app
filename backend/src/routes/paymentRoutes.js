@@ -69,7 +69,7 @@ router.post('/stkpush', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: error.message });
     }
 
-    const callbackBase = String(process.env.CALLBACK_URL_BASE || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+    const callbackBase = String(process.env.CALLBACK_URL_BASE || process.env.MPESA_CALLBACK_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
     const stkResponse = await initiateMpesaStkPush({
       phoneNumber: promptedPhone,
       amount: storedAmount,
