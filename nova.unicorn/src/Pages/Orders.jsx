@@ -126,7 +126,7 @@ const Orders = () => {
                   </div>
                 ))}
               </div>
-              {!['delivered', 'cancelled'].includes(order.status) && (
+              {order.status === "pending" && (
                 <div className="mt-4 border-t pt-4">
                   {editingLocationOrderId === String(order._id || order.id) ? (
                     <div>

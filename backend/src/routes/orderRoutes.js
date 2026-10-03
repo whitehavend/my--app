@@ -320,7 +320,7 @@ router.patch('/:id/delivery-location', authMiddleware, async (req, res) => {
   try {
     const order = await Order.findOne({ _id: req.params.id, userId: String(req.user.id) });
     if (!order) return res.status(404).json({ error: 'Order not found' });
-    if (['delivered', 'cancelled'].includes(order.status)) return res.status(409).json({ error: 'The delivery location can no longer be changed' });
+    if (order.status !== 'pending') return res.status(409).json({ error: 'The delivery location can only be changed before fulfillment begins' });
 
     const address = String(req.body.address ?? order.shippingAddress?.address ?? '').trim();
     const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
