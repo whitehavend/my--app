@@ -255,7 +255,7 @@ const CustomerPage = () => {
         <section className="mt-10"><div className="flex flex-col justify-between gap-3 border-b-2 border-white/10 pb-3 sm:flex-row sm:items-end"><div><p className="text-xs font-black uppercase tracking-[0.25em] text-[#c4c8cc]">Vendor marketplace</p><h2 className="mt-1 text-3xl font-black uppercase text-[#f3f5f7]">Latest arrivals</h2></div><span className="text-sm font-semibold text-[#c4c8cc]">{displayedProducts.length < visibleProducts.length ? `Showing ${displayedProducts.length} of ${visibleProducts.length} products` : `${visibleProducts.length} products available`}</span></div>
           {error && error !== "nil" && <p className="mt-4 text-red-600">{error}</p>}
           {!visibleProducts.length && <div className="mt-6"><ComingSoonBanner label="Vendor marketplace" /></div>}
-          {displayedProducts.length > 0 && <div className="store-product-grid mt-6">{displayedProducts.map((product) => {
+          {displayedProducts.length > 0 && <div className="store-product-grid-viewport mt-6"><div className="store-product-grid" style={{ "--product-grid-columns": Math.min(displayedProducts.length, 11) }}>{displayedProducts.map((product) => {
             const flashSale = getFlashSaleState(product);
             const productId = product._id || product.id;
             const displayProduct = flashSale ? { ...product, price: flashSale.price } : product;
@@ -270,7 +270,7 @@ const CustomerPage = () => {
                 <div className="mt-4 flex gap-2"><button onClick={(event) => { event.stopPropagation(); handleSave(productId); }} className="flex-1 border border-[#102f2c] px-3 py-2 text-xs font-black uppercase hover:bg-gray-100">{savedItems.includes(productId) ? "Saved" : "Save"}</button>{(product.sellingMode === "retail" || product.sellingMode === "both" || !product.sellingMode) && <button onClick={(event) => { event.stopPropagation(); handleAddToCart(displayProduct, "retail"); }} className="flex-1 bg-[#102f2c] px-3 py-2 text-xs font-black uppercase text-white hover:bg-[#2f5d50]">Add to cart</button>}</div>
               </div>
             </article>;
-          })}</div>}
+          })}</div></div>}
           {!search.trim() && visibleProducts.length > displayedProducts.length && <p className="mt-4 text-sm text-[#c4c8cc]">Search to find more products in the marketplace.</p>}
         </section>
       </div>

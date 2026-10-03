@@ -186,9 +186,35 @@ body {
   transition: transform 160ms ease, box-shadow 160ms ease;
 }
 
+.store-product-grid-viewport {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x pan-y;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-color: #7ce6d4 rgba(255, 255, 255, 0.1);
+  scrollbar-width: thin;
+  padding: 0.35rem 0.15rem 0.85rem;
+}
+
+.store-product-grid-viewport::-webkit-scrollbar {
+  height: 0.45rem;
+}
+
+.store-product-grid-viewport::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.store-product-grid-viewport::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #7ce6d4;
+}
+
 .store-product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  width: max-content;
+  grid-template-columns: repeat(var(--product-grid-columns), minmax(16rem, 18rem));
   gap: 1.25rem;
 }
 
