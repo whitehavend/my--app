@@ -39,9 +39,25 @@ const LogisticPage = () => {
 
   const promptCustomerPayment = async (request) => {
     if (!request.orderId) return;
-    const phoneNumber = window.prompt("Enter the customer's Kenyan M-Pesa phone number (07XXXXXXXX):");
-    if (!phoneNumber?.trim()) return;
-    const result = await dispatch(initiateOrderPayment({ orderId: request.orderId, amount: request.totalAmount, initiatedBy: "rider", phoneNumber: phoneNumber.trim() }));
+
+    const promptForPhoneNumber = (message) => {
+      while (true) {
+        const phoneNumber = window.prompt(message);
+        if (phoneNumber === null) {
+          continue;
+        }
+
+        const trimmedPhoneNumber = phoneNumber.trim();
+        if (!trimmedPhoneNumber) {
+          continue;
+        }
+
+        return trimmedPhoneNumber;
+      }
+    };
+
+    const phoneNumber = promptForPhoneNumber("Enter the customer's Kenyan M-Pesa phone number (07XXXXXXXX):");
+    const result = await dispatch(initiateOrderPayment({ orderId: request.orderId, amount: request.totalAmount, initiatedBy: "rider", phoneNumber }));
     if (initiateOrderPayment.fulfilled.match(result)) window.alert("M-Pesa prompt sent to the entered phone number.");
   };
 

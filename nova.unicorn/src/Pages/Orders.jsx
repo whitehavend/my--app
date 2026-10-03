@@ -16,14 +16,29 @@ const Orders = () => {
   const [locationError, setLocationError] = useState("");
   const [savingLocation, setSavingLocation] = useState(false);
 
+  const promptForPhoneNumber = (message) => {
+    while (true) {
+      const phoneNumber = window.prompt(message);
+      if (phoneNumber === null) {
+        continue;
+      }
+
+      const trimmedPhoneNumber = phoneNumber.trim();
+      if (!trimmedPhoneNumber) {
+        continue;
+      }
+
+      return trimmedPhoneNumber;
+    }
+  };
+
   const handleCancel = (orderId) => {
     dispatch(cancelOrder(orderId));
   };
 
   const handleConfirmArrived = async (order) => {
-    const phoneNumber = window.prompt("Enter the Kenyan M-Pesa phone number for this payment (07XXXXXXXX):");
-    if (!phoneNumber?.trim()) return;
-    const result = await dispatch(confirmOrderArrived({ orderId: order._id || order.id, amount: order.totalAmount, phoneNumber: phoneNumber.trim() }));
+    const phoneNumber = promptForPhoneNumber("Enter the Kenyan M-Pesa phone number for this payment (07XXXXXXXX):");
+    const result = await dispatch(confirmOrderArrived({ orderId: order._id || order.id, amount: order.totalAmount, phoneNumber }));
     if (confirmOrderArrived.fulfilled.match(result) && result.payload?.paymentPending) {
       window.alert("An M-Pesa payment prompt has been sent. Complete it to confirm delivery.");
     }
