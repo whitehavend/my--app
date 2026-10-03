@@ -308,6 +308,45 @@ router.patch('/collection-officer/:orderId/drop-off-location', authMiddleware, r
   }
 });
 
+router.patch('/:id/delivery-location', authMiddleware, async (req, res) => {
+  if (req.user.role !== 'customer') return res.status(403).json({ error: 'Only customers can update their delivery location' });
+
+  const latitude = Number(req.body.latitude);
+  const longitude = Number(req.body.longitude);
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+    return res.status(400).json({ error: 'A valid delivery pin is required' });
+  }
+
+  try {
+    const order = await Order.findOne({ _id: req.params.id, userId: String(req.user.id) });
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+    if (['delivered', 'cancelled'].includes(order.status)) return res.status(409).json({ error: 'The delivery location can no longer be changed' });
+
+    const address = String(req.body.address ?? order.shippingAddress?.address ?? '').trim();
+    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+    order.shippingAddress = { ...(order.shippingAddress || {}), address, latitude, longitude, googleMapsUrl };
+    await order.save();
+
+    await User.updateMany(
+      { 'logisticRequests.orderId': String(order._id) },
+      {
+        $set: {
+          'logisticRequests.$[request].dropOffAddress': address,
+          'logisticRequests.$[request].dropOffLatitude': latitude,
+          'logisticRequests.$[request].dropOffLongitude': longitude,
+          'logisticRequests.$[request].dropOffGoogleMapsUrl': googleMapsUrl,
+        },
+      },
+      { arrayFilters: [{ 'request.orderId': String(order._id) }] },
+    );
+
+    return res.status(200).json({ message: 'Delivery pin updated', order });
+  } catch (error) {
+    console.error('Update customer delivery location error:', error);
+    return res.status(500).json({ error: 'Unable to update delivery location' });
+  }
+});
+
 router.patch('/:id/fulfill', authMiddleware, async (req, res) => {
   try {
     if (req.user.role !== 'vendor') {

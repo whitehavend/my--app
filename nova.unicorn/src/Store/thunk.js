@@ -407,6 +407,21 @@ export const cancelOrder = createAsyncThunk(
   }
 );
 
+export const updateOrderDeliveryLocation = createAsyncThunk(
+  "updateOrderDeliveryLocation",
+  async ({ orderId, latitude, longitude, address }, thunkAPI) => {
+    const token = localStorage.getItem("unicorn_token");
+    try {
+      const response = await axios.patch(`${apiBaseUrl}/orders/${orderId}/delivery-location`, { latitude, longitude, address }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.error || error.message || "Unable to update delivery location");
+    }
+  }
+);
+
 export const confirmOrderArrived = createAsyncThunk(
   "confirmOrderArrived",
   async ({ orderId, amount, phoneNumber }, thunkAPI) => {

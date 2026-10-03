@@ -4,6 +4,7 @@ import { clearCart } from "../../Store/cart/CartSlice";
 import { createOrder } from "../../Store/thunk";
 import { useNavigate } from "react-router-dom";
 import { formatCurrency } from "../../utils/currency";
+import DeliveryLocationPicker from "../DeliveryLocationPicker";
 
 const CartSummary = () => {
   const navigate = useNavigate();
@@ -20,6 +21,26 @@ const CartSummary = () => {
   const calculateTotalPrice = carts.reduce((total, cart) => {
     return total + cart.price * cart.quantity;
   }, 0);
+
+  const selectDeliveryLocation = (point) => {
+    const latitude = Number(point.latitude ?? point.lat);
+    const longitude = Number(point.longitude ?? point.lng);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return;
+    setDeliveryLocation({ latitude, longitude });
+    setLocationError("");
+  };
+
+  const pinCurrentLocation = () => {
+    setLocationError("");
+    if (!navigator.geolocation) {
+      setLocationError("Location services are not available in this browser.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => selectDeliveryLocation({ latitude: position.coords.latitude, longitude: position.coords.longitude }),
+      () => setLocationError("Allow location access so we can place an initial pin, or choose a point on the map."),
+    );
+  };
 
   const handleCheckout = async () => {
     if (!user) {
@@ -81,8 +102,13 @@ const CartSummary = () => {
         <div className="border-b p-3">
           <p className="text-sm font-semibold text-gray-900">Delivery location</p>
           <input value={deliveryAddress} onChange={(event) => setDeliveryAddress(event.target.value)} placeholder="Delivery address or landmark" className="mt-2 w-full rounded-md border border-gray-300 p-2 text-sm text-gray-900 placeholder:text-gray-600" />
-          <button type="button" onClick={() => { setLocationError(""); if (!navigator.geolocation) { setLocationError("Location services are not available in this browser."); return; } navigator.geolocation.getCurrentPosition((position) => setDeliveryLocation({ latitude: position.coords.latitude, longitude: position.coords.longitude }), () => setLocationError("Allow location access so we can pin the delivery point.")); }} className="mt-2 w-full rounded-md border border-primary px-3 py-2 text-sm font-semibold text-primary">{deliveryLocation ? "Delivery location pinned" : "Pin delivery location on Google Maps"}</button>
-          {deliveryLocation && <a href={`https://www.google.com/maps/search/?api=1&query=${deliveryLocation.latitude},${deliveryLocation.longitude}`} target="_blank" rel="noreferrer" className="mt-2 block text-xs font-medium text-primary underline">Open pinned location in Google Maps</a>}
+          <p className="mt-2 text-xs text-gray-600">Click the map or drag the pin to the exact building or drop-off point.</p>
+          <div className="mt-3"><DeliveryLocationPicker value={deliveryLocation} onChange={selectDeliveryLocation} /></div>
+          <button type="button" onClick={pinCurrentLocation} className="mt-2 w-full rounded-md border border-primary px-3 py-2 text-sm font-semibold text-primary">Use my current location</button>
+          {deliveryLocation && <>
+            <p className="mt-2 text-xs text-gray-700">Pinned: {deliveryLocation.latitude.toFixed(6)}, {deliveryLocation.longitude.toFixed(6)}</p>
+            <a href={`https://www.google.com/maps/search/?api=1&query=${deliveryLocation.latitude},${deliveryLocation.longitude}`} target="_blank" rel="noreferrer" className="mt-1 block text-xs font-medium text-primary underline">Preview pinned location in Google Maps</a>
+          </>}
           {locationError && <p className="mt-2 text-xs text-red-600">{locationError}</p>}
         </div>
         <div className="p-3">
