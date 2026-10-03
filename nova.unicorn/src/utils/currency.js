@@ -1,3 +1,5 @@
+import { parsePhoneNumberFromString } from "libphonenumber-js";
+
 const currencyByCountry = {
   AE: "AED",
   AU: "AUD",
@@ -62,7 +64,7 @@ const currencySymbols = {
   TZS: "TSh", UGX: "USh", USD: "$", ZAR: "R", ZMW: "ZK",
 };
 
-export const getCurrencyForCountry = (countryCode) => currencyByCountry[countryCode] || "NGN";
+export const getCurrencyForCountry = (countryCode) => currencyByCountry[String(countryCode || "").trim().toUpperCase()] || "NGN";
 
 export const convertCurrency = (amount, fromCurrency = "NGN", toCurrency = "NGN") => {
   const numericAmount = Number(amount) || 0;
@@ -81,14 +83,19 @@ const getLocaleCountryCode = () => {
 };
 
 export const detectVisitorCurrency = async (user = null) => {
-  const profileCountry = user?.countryCode || user?.country || "";
-  if (profileCountry) {
-    return getCurrencyForCountry(String(profileCountry).toUpperCase());
+  const profileCountry = String(user?.country || "").trim().toUpperCase();
+  if (currencyByCountry[profileCountry]) {
+    return currencyByCountry[profileCountry];
   }
 
-  const localeCountry = getLocaleCountryCode();
-  if (localeCountry) {
-    return getCurrencyForCountry(localeCountry);
+  const phoneNumber = String(user?.phoneNumber || "").trim();
+  const callingCode = String(user?.countryCode || "").trim();
+  if (phoneNumber) {
+    const fullPhoneNumber = phoneNumber.startsWith("+") ? phoneNumber : `${callingCode}${phoneNumber}`;
+    const parsedPhoneNumber = parsePhoneNumberFromString(fullPhoneNumber);
+    if (parsedPhoneNumber?.country && currencyByCountry[parsedPhoneNumber.country]) {
+      return currencyByCountry[parsedPhoneNumber.country];
+    }
   }
 
   try {
@@ -100,7 +107,12 @@ export const detectVisitorCurrency = async (user = null) => {
       return getCurrencyForCountry(String(countryCode).toUpperCase());
     }
   } catch (error) {
-    // Ignore geolocation failures and fall back to default local market currency.
+    // Ignore geolocation failures and use the browser locale as a fallback.
+  }
+
+  const localeCountry = getLocaleCountryCode();
+  if (localeCountry && currencyByCountry[localeCountry]) {
+    return currencyByCountry[localeCountry];
   }
 
   return "NGN";
