@@ -431,11 +431,13 @@ router.patch('/:id/arrived', authMiddleware, async (req, res) => {
     const phoneNumber = `${customer?.countryCode || ''}${customer?.phoneNumber || ''}`.replace(/\s+/g, '');
     if (!phoneNumber) return res.status(400).json({ error: 'A registered phone number is required before confirming delivery' });
 
+    const callbackBase = String(process.env.CALLBACK_URL_BASE || process.env.MPESA_CALLBACK_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+    const callbackUrl = callbackBase.includes('/api/callback') ? callbackBase : `${callbackBase}/api/callback`;
     const stkResponse = await initiateMpesaStkPush({
       phoneNumber,
       amount: Math.max(1, Math.round(Number(order.totalAmount || 0))),
       accountReference: `Order-${order._id}`,
-      callbackUrl: `${String(process.env.CALLBACK_URL_BASE || process.env.MPESA_CALLBACK_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '')}/api/orders/mpesa-callback`,
+      callbackUrl,
     });
     const checkoutRequestId = stkResponse.CheckoutRequestID || stkResponse.checkoutRequestId || stkResponse.checkoutId || stkResponse.referenceId || '';
     if (!checkoutRequestId) return res.status(502).json({ error: 'M-Pesa did not return a checkout reference' });

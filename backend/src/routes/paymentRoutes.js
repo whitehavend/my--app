@@ -70,12 +70,13 @@ router.post('/stkpush', authMiddleware, async (req, res) => {
     }
 
     const callbackBase = String(process.env.CALLBACK_URL_BASE || process.env.MPESA_CALLBACK_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+    const callbackUrl = callbackBase.includes('/api/callback') ? callbackBase : `${callbackBase}/api/callback`;
     const stkResponse = await initiateMpesaStkPush({
       phoneNumber: promptedPhone,
       amount: storedAmount,
       accountReference: String(order._id),
       transactionDesc: `Order payment initiated by ${initiatedBy}`,
-      callbackUrl: `${callbackBase}/api/payments/mpesa-callback`,
+      callbackUrl,
     });
     const checkoutRequestId = stkResponse.CheckoutRequestID || stkResponse.checkoutRequestId || stkResponse.checkoutId || stkResponse.referenceId || '';
     if (!checkoutRequestId) return res.status(502).json({ error: 'M-Pesa did not return a checkout reference' });

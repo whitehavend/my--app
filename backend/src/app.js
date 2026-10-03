@@ -5,8 +5,60 @@ const productRoutes = require('./routes/productRoutes');
 const authRoutes = require('./routes/authRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+const Order = require('./models/Order');
 
 const app = express();
+
+const handleMpesaCallback = async (req, res) => {
+  try {
+    const callback = req.body?.Body?.stkCallback || req.body?.stkCallback || req.body || {};
+    const resultCode = Number(callback.ResultCode ?? callback.resultCode ?? 1);
+    const resultDesc = callback.ResultDesc || callback.resultDescription || 'Unknown error';
+    const checkoutRequestId = callback.CheckoutRequestID || callback.checkoutRequestId || callback.referenceId;
+
+    if (resultCode === 0) {
+      const metadata = callback.CallbackMetadata?.Item || [];
+      const callbackData = {};
+      metadata.forEach(({ Name, Value }) => {
+        if (Name === 'Amount') callbackData.amount = Value;
+        if (Name === 'MpesaReceiptNumber') callbackData.mpesaReceiptNumber = Value;
+        if (Name === 'TransactionDate') callbackData.transactionDate = Value;
+        if (Name === 'PhoneNumber') callbackData.phoneNumber = Value;
+      });
+      console.log('STK Push success callback received:', callbackData);
+    } else {
+      console.log('STK Push failed callback:', resultDesc);
+    }
+
+    if (checkoutRequestId) {
+      const order = await Order.findOne({ paymentReference: checkoutRequestId });
+      if (order) {
+        const attempt = order.paymentAttempts.find((item) => item.checkoutRequestId === checkoutRequestId);
+
+        if (resultCode === 0) {
+          order.paymentStatus = 'paid';
+          order.paymentError = '';
+          order.status = 'delivered';
+          if (attempt) attempt.status = 'paid';
+        } else {
+          order.paymentStatus = 'insufficient_funds';
+          order.paymentError = resultDesc;
+          if (attempt) {
+            attempt.status = 'insufficient_funds';
+            attempt.errorMessage = resultDesc;
+          }
+        }
+
+        await order.save();
+      }
+    }
+
+    return res.status(200).json({ ResultCode: 0, ResultDesc: 'Success' });
+  } catch (error) {
+    console.error('M-Pesa callback processing error:', error);
+    return res.status(200).json({ ResultCode: 0, ResultDesc: 'Success' });
+  }
+};
 
 const defaultAllowedOrigins = [
   'http://localhost:3000',
@@ -70,6 +122,10 @@ app.get('/', (req, res) => {
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'Unicorn backend is running' });
 });
+
+app.post('/api/callback', handleMpesaCallback);
+app.post('/api/payments/mpesa-callback', handleMpesaCallback);
+app.post('/api/orders/mpesa-callback', handleMpesaCallback);
 
 app.use('/api', productRoutes);
 app.use('/api/auth', authRoutes);
