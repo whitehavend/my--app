@@ -123,7 +123,7 @@ const VendorProductUpload = ({ vendorType = "retailshopvendor" }) => {
     const basePriceValue = Number(formData.basePrice || formData.price || 0);
     const stockValue = Number(formData.stock || 0);
 
-    if (!title || !brand || !category || !description || !Number.isFinite(basePriceValue) || basePriceValue < 0 || !Number.isFinite(stockValue) || stockValue < 0) {
+    if ((!isPropertyOrVehicleVendor && !title) || !brand || !category || !description || !Number.isFinite(basePriceValue) || basePriceValue < 0 || !Number.isFinite(stockValue) || stockValue < 0) {
       setLocalValidationError("Title, brand, category, description, price, and stock are required.");
       return;
     }
