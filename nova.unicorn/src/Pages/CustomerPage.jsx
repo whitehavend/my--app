@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { getAllProducts } from "../Store/thunk";
 import { addToCart } from "../Store/cart/CartSlice";
@@ -78,6 +78,60 @@ const CustomerPage = () => {
     return !query || searchableFields.some((value) => String(value || "").toLowerCase().includes(query));
   });
 
+  const heroSlides = useMemo(() => {
+    const featuredProductSlides = [...products]
+      .filter((product) => product?.images?.length)
+      .filter((product) => {
+        const label = String(product.vendorType || product.category || "").toLowerCase();
+        return label.includes("cardealer") || label.includes("realestate");
+      })
+      .map((product) => ({
+        id: `hero-${product._id || product.id}`,
+        type: "product",
+        title: product.title || product.brand || "Featured listing",
+        subtitle: product.vendorType === "realestate" ? "Luxury homes and investment property" : "Fresh vehicle deals and trusted listings",
+        image: product.images?.[0] || "",
+        accent: product.vendorType === "realestate" ? "from-emerald-500/80 via-cyan-500/70 to-sky-900/80" : "from-amber-500/80 via-red-500/70 to-slate-900/80",
+        link: product.vendorType === "realestate" ? "/category/realestate" : "/category/cardealer",
+      }))
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 6);
+
+    const welcomeSlide = {
+      id: "welcome-slide",
+      type: "welcome",
+      title: "Welcome to NovaUnicorn",
+      subtitle: "A market filled with unlimited opportunities",
+      image: "/images/unicorn-banner-black.svg",
+      accent: "from-[#02070d] via-[#1a1d20] to-[#0f172a]",
+      link: "/category/shopvendor",
+    };
+
+    const fallbackSlides = [
+      { id: "fallback-1", type: "promo", title: "Car Dealer Picks", subtitle: "Premium rides and trusted listings", accent: "from-amber-500/80 via-orange-500/70 to-slate-900/80", link: "/category/cardealer" },
+      { id: "fallback-2", type: "promo", title: "Real Estate Homes", subtitle: "Luxury spaces and lifestyle living", accent: "from-emerald-500/80 via-cyan-500/70 to-slate-900/80", link: "/category/realestate" },
+      { id: "fallback-3", type: "promo", title: "Daily Deals", subtitle: "Fresh finds for every part of life", accent: "from-violet-500/80 via-fuchsia-500/70 to-slate-900/80", link: "/category/shopvendor" },
+      { id: "fallback-4", type: "promo", title: "Smart Shopping", subtitle: "Discover the next perfect fit", accent: "from-sky-500/80 via-cyan-500/70 to-slate-900/80", link: "/category/shopvendor" },
+      { id: "fallback-5", type: "promo", title: "New Arrivals", subtitle: "Fresh inventory across the marketplace", accent: "from-rose-500/80 via-pink-500/70 to-slate-900/80", link: "/category/shopvendor" },
+      { id: "fallback-6", type: "promo", title: "Trending Vendors", subtitle: "Curated stores and verified sellers", accent: "from-teal-500/80 via-emerald-500/70 to-slate-900/80", link: "/category/shopvendor" },
+    ];
+
+    const mixedSlides = [welcomeSlide, ...featuredProductSlides, ...fallbackSlides]
+      .slice(0, 7);
+
+    return mixedSlides.length >= 7 ? mixedSlides : [...mixedSlides, ...fallbackSlides].slice(0, 7);
+  }, [products]);
+
+  const [heroIndex, setHeroIndex] = useState(0);
+
+  useEffect(() => {
+    if (!heroSlides.length) return undefined;
+    const heroTimer = setInterval(() => {
+      setHeroIndex((currentIndex) => (currentIndex + 1) % heroSlides.length);
+    }, 4500);
+    return () => clearInterval(heroTimer);
+  }, [heroSlides.length]);
+
   const getFlashSaleState = (product) => {
     const endsAt = product.retailPricingType === "flash_sale" ? new Date(product.flashSaleEndsAt).getTime() : 0;
     const remaining = endsAt - now;
@@ -115,7 +169,52 @@ const CustomerPage = () => {
       {actionMessage && <div role="status" className="fixed right-4 top-4 z-50 rounded-md bg-emerald-600 px-4 py-3 text-sm font-medium text-white shadow-lg">{actionMessage}</div>}
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <section className="store-hero relative overflow-hidden bg-gradient-to-r from-[#02070d] via-[#17191c] to-[#202225] px-6 py-10 text-white sm:px-12 sm:py-16"><div className="relative z-10 max-w-3xl"><p className="font-serif text-3xl italic text-[#a8b0bb] sm:text-5xl">Welcome to NovaUnicorn</p><h1 className="mt-3 bg-gradient-to-r from-[#f3f5f7] via-[#d1d3d5] to-[#c4c8cc] bg-clip-text text-4xl font-black uppercase leading-[0.95] tracking-tight text-transparent sm:text-7xl">A market filled with unlimited opportunities</h1><p className="mt-5 max-w-2xl text-sm font-medium leading-6 text-[#d1d3d5] sm:text-base">Discover trusted vendors, explore new categories, and find something made for your everyday life.</p><Link to="/category/shopvendor" className="mt-7 inline-flex items-center gap-2 bg-[#c4c8cc] px-6 py-3 text-sm font-black uppercase text-[#202225] hover:bg-[#e3e5e7]">Start exploring <FiArrowRight /></Link></div><div className="absolute -right-10 bottom-[-5rem] h-72 w-72 rounded-full bg-[#c4c8cc]/10 sm:right-12 sm:h-96 sm:w-96" /><div className="absolute right-16 top-12 h-28 w-28 rounded-full border-[18px] border-white/10 sm:right-40 sm:h-44 sm:w-44" /></section>
+        <section className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[#111315] shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
+          <div className="relative h-[350px] overflow-hidden sm:h-[420px]">
+            <div className="flex h-full transition-transform duration-700 ease-in-out" style={{ transform: `translateX(-${heroIndex * 100}%)` }}>
+              {heroSlides.map((slide) => (
+                <div key={slide.id} className="relative min-w-full h-full overflow-hidden bg-slate-900">
+                  <div className={`absolute inset-0 bg-gradient-to-r ${slide.accent}`} />
+                  {slide.image && (
+                    <img src={slide.image} alt={slide.title} className="absolute inset-0 h-full w-full object-cover opacity-55" />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#02070d]/80 via-[#02070d]/45 to-transparent" />
+                  <div className="relative z-10 flex h-full max-w-3xl items-center px-6 py-8 sm:px-12 sm:py-12">
+                    <div>
+                      <p className="font-serif text-2xl italic text-[#dfe7ee] sm:text-4xl">{slide.type === "welcome" ? "Welcome to NovaUnicorn" : slide.title}</p>
+                      <h1 className="mt-3 max-w-xl text-3xl font-black uppercase leading-[0.95] tracking-tight text-white sm:text-5xl lg:text-6xl">
+                        {slide.type === "welcome" ? "A market filled with unlimited opportunities" : slide.title}
+                      </h1>
+                      <p className="mt-4 max-w-xl text-sm text-slate-200 sm:text-base">{slide.subtitle}</p>
+                      <Link to={slide.link} className="mt-7 inline-flex items-center gap-2 bg-[#c4c8cc] px-5 py-3 text-xs font-black uppercase tracking-[0.2em] text-[#202225] transition hover:bg-white">
+                        Explore now <FiArrowRight />
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <button type="button" onClick={() => setHeroIndex((current) => (current === 0 ? heroSlides.length - 1 : current - 1))} className="absolute left-4 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/20 bg-black/20 p-3 text-lg text-white backdrop-blur-sm transition hover:bg-black/40" aria-label="Previous banner">
+              ‹
+            </button>
+            <button type="button" onClick={() => setHeroIndex((current) => (current + 1) % heroSlides.length)} className="absolute right-4 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/20 bg-black/20 p-3 text-lg text-white backdrop-blur-sm transition hover:bg-black/40" aria-label="Next banner">
+              ›
+            </button>
+
+            <div className="absolute bottom-5 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/10 bg-black/20 px-3 py-2 backdrop-blur-sm">
+              {heroSlides.map((slide, index) => (
+                <button
+                  key={`${slide.id}-dot`}
+                  type="button"
+                  onClick={() => setHeroIndex(index)}
+                  aria-label={`Go to slide ${index + 1}`}
+                  className={`h-2.5 w-2.5 rounded-full transition ${index === heroIndex ? "bg-white" : "bg-white/40"}`}
+                />
+              ))}
+            </div>
+          </div>
+        </section>
         <div className="mt-5 grid gap-4 md:grid-cols-3"><Link to="/category/shopvendor" className="promo-tile bg-[#111315]">Shop vendor <span>Everyday finds</span><FiArrowRight /></Link><Link to="/category/cardealer" className="promo-tile bg-[#191b1e]">Car dealer <span>Drive something great</span><FiArrowRight /></Link><Link to="/category/blackmarket" className="promo-tile bg-[#222528]">Blackmarket <span>Unique offers</span><FiArrowRight /></Link></div>
         <section className="mt-10"><div className="flex flex-col justify-between gap-3 border-b-2 border-white/10 pb-3 sm:flex-row sm:items-end"><div><p className="text-xs font-black uppercase tracking-[0.25em] text-[#c4c8cc]">Vendor marketplace</p><h2 className="mt-1 text-3xl font-black uppercase text-[#f3f5f7]">Latest arrivals</h2></div><span className="text-sm font-semibold text-[#c4c8cc]">{visibleProducts.length} products available</span></div>
           {error && error !== "nil" && <p className="mt-4 text-red-600">{error}</p>}
