@@ -112,6 +112,7 @@ const CustomerPage = () => {
       })
       .sort((first, second) => getDailyShuffleKey(first, dailyShuffleSeed) - getDailyShuffleKey(second, dailyShuffleSeed));
   }, [products, search, dailyShuffleSeed]);
+  const displayedProducts = search.trim() ? visibleProducts : visibleProducts.slice(0, 24);
 
   const heroSlides = useMemo(() => {
     const featuredProductSlides = [...products]
@@ -251,10 +252,10 @@ const CustomerPage = () => {
           </div>
         </section>
         <div className="mt-5 grid gap-4 md:grid-cols-3"><Link to="/category/shopvendor" className="promo-tile bg-[#111315]">Shop vendor <span>Everyday finds</span><FiArrowRight /></Link><Link to="/category/cardealer" className="promo-tile bg-[#191b1e]">Car dealer <span>Drive something great</span><FiArrowRight /></Link><Link to="/category/blackmarket" className="promo-tile bg-[#222528]">Blackmarket <span>Unique offers</span><FiArrowRight /></Link></div>
-        <section className="mt-10"><div className="flex flex-col justify-between gap-3 border-b-2 border-white/10 pb-3 sm:flex-row sm:items-end"><div><p className="text-xs font-black uppercase tracking-[0.25em] text-[#c4c8cc]">Vendor marketplace</p><h2 className="mt-1 text-3xl font-black uppercase text-[#f3f5f7]">Latest arrivals</h2></div><span className="text-sm font-semibold text-[#c4c8cc]">{visibleProducts.length} products available</span></div>
+        <section className="mt-10"><div className="flex flex-col justify-between gap-3 border-b-2 border-white/10 pb-3 sm:flex-row sm:items-end"><div><p className="text-xs font-black uppercase tracking-[0.25em] text-[#c4c8cc]">Vendor marketplace</p><h2 className="mt-1 text-3xl font-black uppercase text-[#f3f5f7]">Latest arrivals</h2></div><span className="text-sm font-semibold text-[#c4c8cc]">{displayedProducts.length < visibleProducts.length ? `Showing ${displayedProducts.length} of ${visibleProducts.length} products` : `${visibleProducts.length} products available`}</span></div>
           {error && error !== "nil" && <p className="mt-4 text-red-600">{error}</p>}
           {!visibleProducts.length && <div className="mt-6"><ComingSoonBanner label="Vendor marketplace" /></div>}
-          {visibleProducts.length > 0 && <div className="store-product-scroll mt-6">{visibleProducts.map((product) => {
+          {displayedProducts.length > 0 && <div className="store-product-grid mt-6">{displayedProducts.map((product) => {
             const flashSale = getFlashSaleState(product);
             const productId = product._id || product.id;
             const displayProduct = flashSale ? { ...product, price: flashSale.price } : product;
@@ -270,6 +271,7 @@ const CustomerPage = () => {
               </div>
             </article>;
           })}</div>}
+          {!search.trim() && visibleProducts.length > displayedProducts.length && <p className="mt-4 text-sm text-[#c4c8cc]">Search to find more products in the marketplace.</p>}
         </section>
       </div>
     </main>
