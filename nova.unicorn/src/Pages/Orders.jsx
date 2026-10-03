@@ -16,6 +16,11 @@ const Orders = () => {
   const [locationError, setLocationError] = useState("");
   const [savingLocation, setSavingLocation] = useState(false);
 
+  const isValidKenyanPhoneNumber = (value) => {
+    const normalizedValue = String(value || "").replace(/\s+/g, "");
+    return /^(?:\+?2547\d{8}|07\d{8}|7\d{8})$/.test(normalizedValue);
+  };
+
   const promptForPhoneNumber = (message) => {
     while (true) {
       const phoneNumber = window.prompt(message);
@@ -24,7 +29,8 @@ const Orders = () => {
       }
 
       const trimmedPhoneNumber = phoneNumber.trim();
-      if (!trimmedPhoneNumber) {
+      if (!trimmedPhoneNumber || !isValidKenyanPhoneNumber(trimmedPhoneNumber)) {
+        window.alert("Please enter a valid Kenyan phone number in the format 07XXXXXXXX or +2547XXXXXXXX.");
         continue;
       }
 

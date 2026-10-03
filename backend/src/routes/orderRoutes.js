@@ -420,7 +420,9 @@ router.patch('/:id/arrived', authMiddleware, async (req, res) => {
     if (!order) return res.status(404).json({ error: 'Order not found' });
     if (order.status !== 'picked_up') return res.status(400).json({ error: 'Goods can be confirmed after pickup' });
 
-    if (order.paymentStatus === 'paid') {
+    if (order.paymentStatus === 'paid' || order.paymentStatus === 'pending') {
+      order.paymentStatus = 'paid';
+      order.paymentError = '';
       order.status = 'delivered';
       await order.save();
       await recordAdvertCommission(order);
