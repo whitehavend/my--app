@@ -4,7 +4,7 @@ import Rating from "./Rating";
 import { MdAddShoppingCart, MdBookmarkBorder } from "react-icons/md";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { addToCart, resetNotify } from "../Store/cart/CartSlice";
-import { formatCurrency } from "../utils/currency";
+import { detectVisitorCurrency, formatCurrency } from "../utils/currency";
 
 const ProductCard = ({ product }) => {
   const navigate = useNavigate();
@@ -14,6 +14,7 @@ const ProductCard = ({ product }) => {
   const [selectedImage, setSelectedImage] = useState(product.images?.[0] || "images/phones.png");
   const productId = product._id || product.id;
   const [isSaved, setIsSaved] = useState(() => user ? JSON.parse(localStorage.getItem(`nova_saved_${user.uid}`) || "[]").includes(productId) : false);
+  const [visitorCurrency, setVisitorCurrency] = useState("NGN");
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
     if (notify) {
@@ -28,6 +29,22 @@ const ProductCard = ({ product }) => {
     const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    let ignore = false;
+
+    const resolveVisitorCurrency = async () => {
+      try {
+        const detectedCurrency = await detectVisitorCurrency(user);
+        if (!ignore) setVisitorCurrency(detectedCurrency);
+      } catch (error) {
+        if (!ignore) setVisitorCurrency("NGN");
+      }
+    };
+
+    resolveVisitorCurrency();
+    return () => { ignore = true; };
+  }, [user]);
 
   const flashSaleEndsAt = product.retailPricingType === "flash_sale" ? new Date(product.flashSaleEndsAt).getTime() : 0;
   const flashSaleRemaining = flashSaleEndsAt - now;
@@ -92,9 +109,14 @@ const ProductCard = ({ product }) => {
           <h2 className="text-xs border-b w-full border-gray-100 pb-2 lg:pb-3">
             Brand: <span className="text-sky-600">{product.brand}</span>
           </h2>
-          <h1 className="text-xl py-1">{formatCurrency(product.price, product.currency)}</h1>
+          <div className="py-1">
+            <h1 className="text-xl">{formatCurrency(product.price, product.currency, { convert: true, localCurrency: visitorCurrency })}</h1>
+            {visitorCurrency && visitorCurrency !== product.currency && (
+              <p className="text-[10px] text-gray-500">Original: {formatCurrency(product.price, product.currency)}</p>
+            )}
+          </div>
           <p className="text-xs text-gray-600">Item type: <span className="capitalize font-medium">{product.itemCondition || "generic"}</span></p>
-          {flashSaleActive && <p className="mt-2 rounded-md bg-red-50 p-2 text-xs font-semibold text-red-700">Flash sale: {formatCurrency(product.flashSalePrice, product.currency)} · ends in {flashSaleHours}h {flashSaleMinutes}m {flashSaleSeconds}s</p>}
+          {flashSaleActive && <p className="mt-2 rounded-md bg-red-50 p-2 text-xs font-semibold text-red-700">Flash sale: {formatCurrency(product.flashSalePrice, product.currency, { convert: true, localCurrency: visitorCurrency })} · ends in {flashSaleHours}h {flashSaleMinutes}m {flashSaleSeconds}s</p>}
           <p className="text-[10px] text-gray-500">
             {product.availabilityStatus}
           </p>

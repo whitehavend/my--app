@@ -8,8 +8,20 @@ import { BsBuildings, BsShop } from "react-icons/bs";
 import { FaCarSide, FaCapsules, FaUber } from "react-icons/fa";
 import { GiPlantRoots } from "react-icons/gi";
 import ComingSoonBanner from "../components/ComingSoonBanner";
-import { formatCurrency } from "../utils/currency";
+import { detectVisitorCurrency, formatCurrency } from "../utils/currency";
 import { getUserDashboardPath } from "../utils/userRoutes";
+
+const getDailyShuffleKey = (product, daySeed) => {
+  const productId = product._id || product.id || product.title || "";
+  const value = `${productId}:${daySeed}`;
+  let hash = 2166136261;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash = Math.imul(hash ^ value.charCodeAt(index), 16777619);
+  }
+
+  return hash >>> 0;
+};
 
 const CustomerPage = () => {
   const dispatch = useAppDispatch();
@@ -20,6 +32,7 @@ const CustomerPage = () => {
   const [search, setSearch] = useState("");
   const [savedItems, setSavedItems] = useState([]);
   const [actionMessage, setActionMessage] = useState("");
+  const [visitorCurrency, setVisitorCurrency] = useState("NGN");
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
@@ -47,6 +60,22 @@ const CustomerPage = () => {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    let ignore = false;
+
+    const resolveVisitorCurrency = async () => {
+      try {
+        const detectedCurrency = await detectVisitorCurrency(user);
+        if (!ignore) setVisitorCurrency(detectedCurrency);
+      } catch (error) {
+        if (!ignore) setVisitorCurrency("NGN");
+      }
+    };
+
+    resolveVisitorCurrency();
+    return () => { ignore = true; };
+  }, [user]);
+
   const requireCustomerLogin = () => {
     if (!user) {
       navigate("/login");
@@ -72,11 +101,17 @@ const CustomerPage = () => {
     setActionMessage(`${product.title} added to cart at ${priceType} price`);
   };
 
-  const visibleProducts = products.filter((product) => product.vendorId).filter((product) => {
+  const dailyShuffleSeed = Math.floor(now / 86400000);
+  const visibleProducts = useMemo(() => {
     const query = search.toLowerCase().trim();
-    const searchableFields = [product.brand, product.description, product.category, product.subcategory];
-    return !query || searchableFields.some((value) => String(value || "").toLowerCase().includes(query));
-  });
+    return products
+      .filter((product) => product.vendorId)
+      .filter((product) => {
+        const searchableFields = [product.brand, product.description, product.category, product.subcategory];
+        return !query || searchableFields.some((value) => String(value || "").toLowerCase().includes(query));
+      })
+      .sort((first, second) => getDailyShuffleKey(first, dailyShuffleSeed) - getDailyShuffleKey(second, dailyShuffleSeed));
+  }, [products, search, dailyShuffleSeed]);
 
   const heroSlides = useMemo(() => {
     const featuredProductSlides = [...products]
@@ -101,9 +136,9 @@ const CustomerPage = () => {
       id: "welcome-slide",
       type: "welcome",
       title: "Welcome to NovaUnicorn",
-      subtitle: "A market filled with unlimited opportunities",
+      subtitle: "Discover better finds. Shop confidently. Sell boldly.",
       image: "/images/unicorn-banner-black.svg",
-      accent: "from-[#02070d] via-[#1a1d20] to-[#0f172a]",
+      accent: "from-[#071c1a] via-[#102b26] to-[#1c3027]",
       link: "/category/shopvendor",
     };
 
@@ -173,20 +208,20 @@ const CustomerPage = () => {
           <div className="relative h-[350px] overflow-hidden sm:h-[420px]">
             <div className="flex h-full transition-transform duration-700 ease-in-out" style={{ transform: `translateX(-${heroIndex * 100}%)` }}>
               {heroSlides.map((slide) => (
-                <div key={slide.id} className="relative min-w-full h-full overflow-hidden bg-slate-900">
+                <div key={slide.id} className={`relative min-w-full h-full overflow-hidden ${slide.type === "welcome" ? "bg-[#0b1715]" : "bg-slate-900"}`}>
                   <div className={`absolute inset-0 bg-gradient-to-r ${slide.accent}`} />
                   {slide.image && (
-                    <img src={slide.image} alt={slide.title} className="absolute inset-0 h-full w-full object-cover opacity-55" />
+                    <img src={slide.image} alt={slide.title} className={slide.type === "welcome" ? "absolute right-0 top-0 h-full w-[72%] object-contain object-right opacity-95 mix-blend-screen sm:w-[62%]" : "absolute inset-0 h-full w-full object-cover opacity-55"} />
                   )}
                   <div className="absolute inset-0 bg-gradient-to-r from-[#02070d]/80 via-[#02070d]/45 to-transparent" />
-                  <div className="relative z-10 flex h-full max-w-3xl items-center px-6 py-8 sm:px-12 sm:py-12">
-                    <div>
-                      <p className="font-serif text-2xl italic text-[#dfe7ee] sm:text-4xl">{slide.type === "welcome" ? "Welcome to NovaUnicorn" : slide.title}</p>
-                      <h1 className="mt-3 max-w-xl text-3xl font-black uppercase leading-[0.95] tracking-tight text-white sm:text-5xl lg:text-6xl">
-                        {slide.type === "welcome" ? "A market filled with unlimited opportunities" : slide.title}
+                  <div className={`relative z-10 flex h-full items-center px-6 py-8 sm:px-12 sm:py-12 ${slide.type === "welcome" ? "max-w-2xl" : "max-w-3xl"}`}>
+                    <div className={slide.type === "welcome" ? "max-w-[22rem] sm:max-w-[27rem]" : ""}>
+                      <p className={slide.type === "welcome" ? "text-xs font-black uppercase tracking-[0.24em] text-[#a7f3d0] sm:text-sm" : "font-serif text-2xl italic text-[#dfe7ee] sm:text-4xl"}>{slide.type === "welcome" ? "Your next great find starts here" : slide.title}</p>
+                      <h1 className={`mt-3 max-w-xl font-black uppercase leading-[0.95] text-white ${slide.type === "welcome" ? "text-4xl sm:text-6xl lg:text-7xl" : "text-3xl tracking-tight sm:text-5xl lg:text-6xl"}`}>
+                        {slide.type === "welcome" ? "Nova Unicorn" : slide.title}
                       </h1>
                       <p className="mt-4 max-w-xl text-sm text-slate-200 sm:text-base">{slide.subtitle}</p>
-                      <Link to={slide.link} className="mt-7 inline-flex items-center gap-2 bg-[#c4c8cc] px-5 py-3 text-xs font-black uppercase tracking-[0.2em] text-[#202225] transition hover:bg-white">
+                      <Link to={slide.link} className={`mt-7 inline-flex items-center gap-2 px-5 py-3 text-xs font-black uppercase tracking-[0.2em] transition ${slide.type === "welcome" ? "bg-[#a7f3d0] text-[#10231f] hover:bg-white" : "bg-[#c4c8cc] text-[#202225] hover:bg-white"}`}>
                         Explore now <FiArrowRight />
                       </Link>
                     </div>
@@ -219,14 +254,16 @@ const CustomerPage = () => {
         <section className="mt-10"><div className="flex flex-col justify-between gap-3 border-b-2 border-white/10 pb-3 sm:flex-row sm:items-end"><div><p className="text-xs font-black uppercase tracking-[0.25em] text-[#c4c8cc]">Vendor marketplace</p><h2 className="mt-1 text-3xl font-black uppercase text-[#f3f5f7]">Latest arrivals</h2></div><span className="text-sm font-semibold text-[#c4c8cc]">{visibleProducts.length} products available</span></div>
           {error && error !== "nil" && <p className="mt-4 text-red-600">{error}</p>}
           {!visibleProducts.length && <div className="mt-6"><ComingSoonBanner label="Vendor marketplace" /></div>}
-          {visibleProducts.length > 0 && <div className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{visibleProducts.map((product) => {
+          {visibleProducts.length > 0 && <div className="store-product-scroll mt-6">{visibleProducts.map((product) => {
             const flashSale = getFlashSaleState(product);
             const productId = product._id || product.id;
             const displayProduct = flashSale ? { ...product, price: flashSale.price } : product;
             const shopLabel = product.vendorType === "blackmarket" ? "Visit black market" : "Visit vendor shop";
+            const mainPrice = formatCurrency(displayProduct.price, product.currency, { convert: true, localCurrency: visitorCurrency });
+            const originalPrice = formatCurrency(displayProduct.price, product.currency);
             return <article key={productId} role="button" tabIndex="0" onClick={() => navigate(`/${encodeURIComponent(product.title)}`, { state: { product } })} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") navigate(`/${encodeURIComponent(product.title)}`, { state: { product } }); }} className="store-product-card cursor-pointer">
               <div className="relative bg-[#f0eee7] p-3"><img src={product.images?.[0] || "images/phones.png"} alt={product.title} className="h-56 w-full object-contain mix-blend-multiply" />{(product.isFragile || product.isHighValue) && <div className="absolute left-5 top-5 flex flex-wrap gap-1">{product.isFragile && <span className="bg-black px-2 py-1 text-[10px] font-black uppercase text-white">Fragile</span>}{product.isHighValue && <span className="bg-lime-200 px-2 py-1 text-[10px] font-black uppercase text-[#102f2c]">High value</span>}</div>}</div>
-              <div className="p-4"><p className="text-[10px] font-black uppercase tracking-[0.15em] text-[#2f5d50]">{product.brand} · {product.category}</p><h3 className="mt-2 text-lg font-black capitalize">{product.title}</h3><p className="mt-2 line-clamp-2 text-sm text-gray-600">{product.description}</p>{flashSale && <p className="mt-3 bg-red-50 p-2 text-xs font-bold text-red-700">Flash sale: {formatCurrency(flashSale.price, product.currency)} · {flashSale.time}</p>}<div className="mt-4 flex items-end justify-between border-t border-gray-200 pt-3"><strong className="text-xl">{formatCurrency(displayProduct.price, product.currency)}</strong><span className="text-xs font-semibold capitalize text-gray-500">{product.itemCondition || "generic"}</span></div>
+              <div className="p-4"><p className="text-[10px] font-black uppercase tracking-[0.15em] text-[#2f5d50]">{product.brand} · {product.category}</p><h3 className="mt-2 text-lg font-black capitalize">{product.title}</h3><p className="mt-2 line-clamp-2 text-sm text-gray-600">{product.description}</p>{flashSale && <p className="mt-3 bg-red-50 p-2 text-xs font-bold text-red-700">Flash sale: {formatCurrency(flashSale.price, product.currency, { convert: true, localCurrency: visitorCurrency })} · {flashSale.time}</p>}<div className="mt-4 flex items-end justify-between border-t border-gray-200 pt-3"><div className="flex flex-col"><strong className="text-xl">{mainPrice}</strong>{visitorCurrency && visitorCurrency !== product.currency && <span className="text-[10px] text-gray-500">Original: {originalPrice}</span>}</div><span className="text-xs font-semibold capitalize text-gray-500">{product.itemCondition || "generic"}</span></div>
                 <p className="mt-2 text-xs text-gray-500">From {product.vendorName || "Verified vendor"}</p>
                 {product.vendorId && <Link to={`/shop/${encodeURIComponent(product.vendorId)}`} state={{ vendor: product }} onClick={(event) => event.stopPropagation()} onKeyDown={(event) => event.stopPropagation()} className="mt-2 inline-flex items-center gap-1 text-xs font-bold uppercase text-[#2f5d50] underline">{shopLabel}<FiArrowRight /></Link>}
                 <div className="mt-4 flex gap-2"><button onClick={(event) => { event.stopPropagation(); handleSave(productId); }} className="flex-1 border border-[#102f2c] px-3 py-2 text-xs font-black uppercase hover:bg-gray-100">{savedItems.includes(productId) ? "Saved" : "Save"}</button>{(product.sellingMode === "retail" || product.sellingMode === "both" || !product.sellingMode) && <button onClick={(event) => { event.stopPropagation(); handleAddToCart(displayProduct, "retail"); }} className="flex-1 bg-[#102f2c] px-3 py-2 text-xs font-black uppercase text-white hover:bg-[#2f5d50]">Add to cart</button>}</div>

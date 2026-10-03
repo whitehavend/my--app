@@ -186,6 +186,38 @@ body {
   transition: transform 160ms ease, box-shadow 160ms ease;
 }
 
+.store-product-scroll {
+  display: flex;
+  gap: 1.25rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  touch-action: pan-x pan-y;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-color: #7ce6d4 rgba(255, 255, 255, 0.1);
+  scrollbar-width: thin;
+  padding: 0.35rem 0.15rem 0.85rem;
+}
+
+.store-product-scroll::-webkit-scrollbar {
+  height: 0.45rem;
+}
+
+.store-product-scroll::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.store-product-scroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #7ce6d4;
+}
+
+.store-product-scroll > .store-product-card {
+  flex: 0 0 min(86vw, 20rem);
+  scroll-snap-align: start;
+}
+
 .store-product-card > div:first-child {
   background: #c4c8cc;
 }
@@ -218,6 +250,12 @@ body {
 
   .store-hero {
     min-height: 330px;
+  }
+}
+
+@media (min-width: 640px) {
+  .store-product-scroll > .store-product-card {
+    flex-basis: 21rem;
   }
 }
 

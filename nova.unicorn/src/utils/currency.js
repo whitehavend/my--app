@@ -29,7 +29,31 @@ const currencyByCountry = {
   ZM: "ZMW",
 };
 
-export const getCurrencyForCountry = (countryCode) => currencyByCountry[countryCode] || "NGN";
+const usdBaseRates = {
+  USD: 1,
+  NGN: 1500,
+  KES: 130,
+  EUR: 0.92,
+  GBP: 0.79,
+  ZAR: 18.5,
+  GHS: 12.5,
+  UGX: 3700,
+  TZS: 2550,
+  RWF: 1220,
+  AED: 3.67,
+  AUD: 1.5,
+  CAD: 1.35,
+  CHF: 0.9,
+  CNY: 7.25,
+  EGP: 49,
+  INR: 83,
+  JPY: 157,
+  NZD: 1.62,
+  SAR: 3.75,
+  SEK: 10.2,
+  SGD: 1.35,
+  ZMW: 25,
+};
 
 const currencySymbols = {
   AED: "د.إ", AUD: "A$", CAD: "C$", CHF: "CHF", CNY: "¥", EGP: "E£",
@@ -38,11 +62,64 @@ const currencySymbols = {
   TZS: "TSh", UGX: "USh", USD: "$", ZAR: "R", ZMW: "ZK",
 };
 
-export const formatCurrency = (amount, currency = "NGN") => {
+export const getCurrencyForCountry = (countryCode) => currencyByCountry[countryCode] || "NGN";
+
+export const convertCurrency = (amount, fromCurrency = "NGN", toCurrency = "NGN") => {
+  const numericAmount = Number(amount) || 0;
+  if (!fromCurrency || !toCurrency || fromCurrency === toCurrency) return numericAmount;
+
+  const fromRate = usdBaseRates[fromCurrency] || 1;
+  const toRate = usdBaseRates[toCurrency] || 1;
+
+  return numericAmount * (toRate / fromRate);
+};
+
+const getLocaleCountryCode = () => {
+  const locale = Intl.NumberFormat().resolvedOptions().locale || "en-US";
+  const match = locale.match(/-([A-Z]{2})$/);
+  return match ? match[1] : "";
+};
+
+export const detectVisitorCurrency = async (user = null) => {
+  const profileCountry = user?.countryCode || user?.country || "";
+  if (profileCountry) {
+    return getCurrencyForCountry(String(profileCountry).toUpperCase());
+  }
+
+  const localeCountry = getLocaleCountryCode();
+  if (localeCountry) {
+    return getCurrencyForCountry(localeCountry);
+  }
+
   try {
-    const formattedAmount = new Intl.NumberFormat("en", { maximumFractionDigits: 2 }).format(Number(amount) || 0);
-    return `${currencySymbols[currency] || currency} ${formattedAmount}`;
+    const response = await fetch("https://ipapi.co/json/");
+    if (!response.ok) throw new Error("Geolocation unavailable");
+    const data = await response.json();
+    const countryCode = data?.country_code || data?.country;
+    if (countryCode) {
+      return getCurrencyForCountry(String(countryCode).toUpperCase());
+    }
+  } catch (error) {
+    // Ignore geolocation failures and fall back to default local market currency.
+  }
+
+  return "NGN";
+};
+
+export const formatCurrency = (amount, currency = "NGN", options = {}) => {
+  const { localCurrency = null, convert = false } = options;
+  let displayCurrency = currency;
+  let displayAmount = Number(amount) || 0;
+
+  if (convert && localCurrency && localCurrency !== currency && usdBaseRates[currency] && usdBaseRates[localCurrency]) {
+    displayAmount = convertCurrency(displayAmount, currency, localCurrency);
+    displayCurrency = localCurrency;
+  }
+
+  try {
+    const formattedAmount = new Intl.NumberFormat("en", { maximumFractionDigits: 2 }).format(displayAmount);
+    return `${currencySymbols[displayCurrency] || displayCurrency} ${formattedAmount}`;
   } catch {
-    return `${currencySymbols[currency] || currency} ${Number(amount) || 0}`;
+    return `${currencySymbols[displayCurrency] || displayCurrency} ${displayAmount}`;
   }
 };
