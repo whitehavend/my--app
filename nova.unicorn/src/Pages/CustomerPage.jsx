@@ -114,35 +114,10 @@ const CustomerPage = () => {
   }, [products, search, dailyShuffleSeed]);
   const displayedProducts = search.trim() ? visibleProducts : visibleProducts.slice(0, 24);
 
+  const [heroCarousel, setHeroCarousel] = useState({ index: 0, round: 0 });
+  const heroIndex = heroCarousel.index;
+
   const heroSlides = useMemo(() => {
-    const featuredProductSlides = [...products]
-      .filter((product) => product?.images?.length)
-      .filter((product) => {
-        const label = String(product.vendorType || product.category || "").toLowerCase();
-        return label.includes("cardealer") || label.includes("realestate");
-      })
-      .map((product) => ({
-        id: `hero-${product._id || product.id}`,
-        type: "product",
-        title: product.title || product.brand || "Featured listing",
-        subtitle: product.vendorType === "realestate" ? "Luxury homes and investment property" : "Fresh vehicle deals and trusted listings",
-        image: product.images?.[0] || "",
-        accent: product.vendorType === "realestate" ? "from-emerald-500/80 via-cyan-500/70 to-sky-900/80" : "from-amber-500/80 via-red-500/70 to-slate-900/80",
-        link: product.vendorType === "realestate" ? "/category/realestate" : "/category/cardealer",
-      }))
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 6);
-
-    const welcomeSlide = {
-      id: "welcome-slide",
-      type: "welcome",
-      title: "Welcome to NovaUnicorn",
-      subtitle: "Discover better finds. Shop confidently. Sell boldly.",
-      image: "/images/unicorn-banner-black.svg",
-      accent: "from-[#071c1a] via-[#102b26] to-[#1c3027]",
-      link: "/category/shopvendor",
-    };
-
     const fallbackSlides = [
       { id: "fallback-1", type: "promo", title: "Car Dealer Picks", subtitle: "Premium rides and trusted listings", accent: "from-amber-500/80 via-orange-500/70 to-slate-900/80", link: "/category/cardealer" },
       { id: "fallback-2", type: "promo", title: "Real Estate Homes", subtitle: "Luxury spaces and lifestyle living", accent: "from-emerald-500/80 via-cyan-500/70 to-slate-900/80", link: "/category/realestate" },
@@ -152,18 +127,44 @@ const CustomerPage = () => {
       { id: "fallback-6", type: "promo", title: "Trending Vendors", subtitle: "Curated stores and verified sellers", accent: "from-teal-500/80 via-emerald-500/70 to-slate-900/80", link: "/category/shopvendor" },
     ];
 
-    const mixedSlides = [welcomeSlide, ...featuredProductSlides, ...fallbackSlides]
-      .slice(0, 7);
+    const featuredProductSlides = products
+      .filter((product) => Array.isArray(product?.images) && product.images[0])
+      .map((product) => {
+        const listingLabels = [product.vendorType, product.category, product.subcategory]
+          .map((value) => String(value || "").toLowerCase().replace(/[^a-z]/g, ""))
+          .join(" ");
+        const listingType = listingLabels.includes("realestate")
+          ? "realestate"
+          : listingLabels.includes("cardealer") ? "cardealer" : "";
 
-    return mixedSlides.length >= 7 ? mixedSlides : [...mixedSlides, ...fallbackSlides].slice(0, 7);
-  }, [products]);
+        return {
+          id: `hero-${product._id || product.id}`,
+          type: "product",
+          listingType,
+          title: product.title || product.brand || "Featured listing",
+          subtitle: listingType === "realestate" ? "Luxury homes and investment property" : "Fresh vehicle deals and trusted listings",
+          image: product.images[0],
+          accent: listingType === "realestate" ? "from-emerald-500/80 via-cyan-500/70 to-sky-900/80" : "from-amber-500/80 via-red-500/70 to-slate-900/80",
+          link: listingType === "realestate" ? "/category/realestate" : "/category/cardealer",
+        };
+      })
+      .filter((slide) => slide.listingType)
+      .sort((first, second) => getDailyShuffleKey(first, heroCarousel.round) - getDailyShuffleKey(second, heroCarousel.round));
 
-  const [heroIndex, setHeroIndex] = useState(0);
+    const leadSlide = featuredProductSlides.find((slide) => slide.listingType === "realestate") || fallbackSlides[1];
+    const remainingFeaturedSlides = featuredProductSlides.filter((slide) => slide.id !== leadSlide.id);
+    const remainingFallbackSlides = fallbackSlides.filter((slide) => slide.id !== leadSlide.id);
+    const mixedSlides = [leadSlide, ...remainingFeaturedSlides, ...remainingFallbackSlides];
+
+    return mixedSlides.slice(0, 7);
+  }, [products, heroCarousel.round]);
 
   useEffect(() => {
     if (!heroSlides.length) return undefined;
     const heroTimer = setInterval(() => {
-      setHeroIndex((currentIndex) => (currentIndex + 1) % heroSlides.length);
+      setHeroCarousel((current) => current.index >= heroSlides.length - 1
+        ? { index: 0, round: current.round + 1 }
+        : { ...current, index: current.index + 1 });
     }, 4500);
     return () => clearInterval(heroTimer);
   }, [heroSlides.length]);
@@ -231,10 +232,12 @@ const CustomerPage = () => {
               ))}
             </div>
 
-            <button type="button" onClick={() => setHeroIndex((current) => (current === 0 ? heroSlides.length - 1 : current - 1))} className="absolute left-4 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/20 bg-black/20 p-3 text-lg text-white backdrop-blur-sm transition hover:bg-black/40" aria-label="Previous banner">
+            <button type="button" onClick={() => setHeroCarousel((current) => ({ ...current, index: current.index === 0 ? heroSlides.length - 1 : current.index - 1 }))} className="absolute left-4 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/20 bg-black/20 p-3 text-lg text-white backdrop-blur-sm transition hover:bg-black/40" aria-label="Previous banner">
               ‹
             </button>
-            <button type="button" onClick={() => setHeroIndex((current) => (current + 1) % heroSlides.length)} className="absolute right-4 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/20 bg-black/20 p-3 text-lg text-white backdrop-blur-sm transition hover:bg-black/40" aria-label="Next banner">
+            <button type="button" onClick={() => setHeroCarousel((current) => current.index >= heroSlides.length - 1
+              ? { index: 0, round: current.round + 1 }
+              : { ...current, index: current.index + 1 })} className="absolute right-4 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/20 bg-black/20 p-3 text-lg text-white backdrop-blur-sm transition hover:bg-black/40" aria-label="Next banner">
               ›
             </button>
 
@@ -243,7 +246,7 @@ const CustomerPage = () => {
                 <button
                   key={`${slide.id}-dot`}
                   type="button"
-                  onClick={() => setHeroIndex(index)}
+                  onClick={() => setHeroCarousel((current) => ({ ...current, index }))}
                   aria-label={`Go to slide ${index + 1}`}
                   className={`h-2.5 w-2.5 rounded-full transition ${index === heroIndex ? "bg-white" : "bg-white/40"}`}
                 />
@@ -251,7 +254,7 @@ const CustomerPage = () => {
             </div>
           </div>
         </section>
-        <div className="mt-5 grid gap-4 md:grid-cols-3"><Link to="/category/shopvendor" className="promo-tile bg-[#111315]">Shop vendor <span>Everyday finds</span><FiArrowRight /></Link><Link to="/category/cardealer" className="promo-tile bg-[#191b1e]">Car dealer <span>Drive something great</span><FiArrowRight /></Link><Link to="/category/blackmarket" className="promo-tile bg-[#222528]">Blackmarket <span>Unique offers</span><FiArrowRight /></Link></div>
+        <div className="mt-5 grid gap-4 md:grid-cols-3"><Link to="/category/shopvendor" className="promo-tile promo-tile-shopvendor">Shop vendor <span>Everyday finds</span><FiArrowRight /></Link><Link to="/category/cardealer" className="promo-tile promo-tile-cardealer">Car dealer <span>Drive something great</span><FiArrowRight /></Link><Link to="/category/blackmarket" className="promo-tile promo-tile-blackmarket">Blackmarket <span>Unique offers</span><FiArrowRight /></Link></div>
         <section className="mt-10"><div className="flex flex-col justify-between gap-3 border-b-2 border-white/10 pb-3 sm:flex-row sm:items-end"><div><p className="text-xs font-black uppercase tracking-[0.25em] text-[#c4c8cc]">Vendor marketplace</p><h2 className="mt-1 text-3xl font-black uppercase text-[#f3f5f7]">Latest arrivals</h2></div><span className="text-sm font-semibold text-[#c4c8cc]">{displayedProducts.length < visibleProducts.length ? `Showing ${displayedProducts.length} of ${visibleProducts.length} products` : `${visibleProducts.length} products available`}</span></div>
           {error && error !== "nil" && <p className="mt-4 text-red-600">{error}</p>}
           {!visibleProducts.length && <div className="mt-6"><ComingSoonBanner label="Vendor marketplace" /></div>}

@@ -160,15 +160,38 @@ body {
   flex-direction: column;
   justify-content: flex-end;
   gap: 0.25rem;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.24);
   padding: 1.25rem;
   color: white;
   font-size: 1.5rem;
   font-weight: 900;
   text-transform: uppercase;
+  background-size: 180% 180%;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+  transition: background-position 350ms ease, transform 180ms ease, box-shadow 180ms ease;
+}
+
+.promo-tile-shopvendor {
+  background-image: linear-gradient(115deg, #0e7490 0%, #0f766e 30%, #65a30d 62%, #ca8a04 100%);
+}
+
+.promo-tile-cardealer {
+  background-image: linear-gradient(115deg, #b91c1c 0%, #ea580c 34%, #ca8a04 65%, #4f46e5 100%);
+}
+
+.promo-tile-blackmarket {
+  background-image: linear-gradient(115deg, #be185d 0%, #7c3aed 35%, #2563eb 68%, #0f766e 100%);
+}
+
+.promo-tile:hover {
+  transform: translateY(-3px);
+  background-position: 100% 50%;
+  box-shadow: 0 16px 28px rgba(0, 0, 0, 0.3);
 }
 
 .promo-tile span {
-  color: #c4c8cc;
+  color: rgba(255, 255, 255, 0.82);
   font-size: 0.7rem;
   letter-spacing: 0.14em;
 }

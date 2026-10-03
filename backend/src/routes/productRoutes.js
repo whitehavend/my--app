@@ -61,8 +61,23 @@ router.get('/products', async (req, res) => {
       return res.status(200).json({ products: demoProducts.slice().reverse() });
     }
 
-    const products = await Product.find().sort({ createdAt: -1 });
-    return res.status(200).json({ products });
+    const products = await Product.find().sort({ createdAt: -1 }).lean();
+    const vendorIds = [...new Set(products.map((product) => product.vendorId).filter((vendorId) => mongoose.Types.ObjectId.isValid(vendorId)))];
+    const vendors = vendorIds.length
+      ? await User.find({ _id: { $in: vendorIds }, role: { $in: ['vendor', 'blackmarket'] } }).select('email phoneNumber countryCode').lean()
+      : [];
+    const vendorById = new Map(vendors.map((vendor) => [String(vendor._id), vendor]));
+    const productsWithVendorContact = products.map((product) => {
+      const vendor = vendorById.get(String(product.vendorId));
+      const vendorPhoneNumber = product.vendorContactInfo || [vendor?.countryCode, vendor?.phoneNumber].filter(Boolean).join(' ');
+      return {
+        ...product,
+        vendorEmail: vendor?.email || '',
+        vendorPhoneNumber,
+      };
+    });
+
+    return res.status(200).json({ products: productsWithVendorContact });
   } catch (error) {
     console.error('Get products error:', error);
     return res.status(200).json({ products: demoProducts.slice().reverse() });

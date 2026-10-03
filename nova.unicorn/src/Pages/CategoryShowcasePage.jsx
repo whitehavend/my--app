@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { FiArrowLeft, FiChevronRight } from "react-icons/fi";
 import { useAppDispatch, useAppSelector } from "../Store/hooks";
 import { getAllProducts } from "../Store/thunk";
@@ -79,11 +79,14 @@ const categoryConfig = {
 
 const CategoryShowcasePage = () => {
   const { category = "shopvendor", subcategory: routeSubcategory = "" } = useParams();
+  const navigate = useNavigate();
   const details = categoryConfig[category] || categoryConfig.shopvendor;
   const dispatch = useAppDispatch();
   const { products } = useAppSelector((state) => state.products);
   const { user } = useAppSelector((state) => state.auth);
   const [selectedSubcategory, setSelectedSubcategory] = useState(routeSubcategory);
+  const [savedProductIds, setSavedProductIds] = useState([]);
+  const isPropertyOrVehicleCategory = category === "realestate" || category === "cardealer";
 
   useEffect(() => {
     const refreshProducts = () => dispatch(getAllProducts());
@@ -93,6 +96,15 @@ const CategoryShowcasePage = () => {
 
     return () => clearInterval(refreshTimer);
   }, [category, dispatch, routeSubcategory]);
+
+  useEffect(() => {
+    if (!user?.uid) {
+      setSavedProductIds([]);
+      return;
+    }
+
+    setSavedProductIds(JSON.parse(localStorage.getItem(`nova_saved_${user.uid}`) || "[]"));
+  }, [user]);
 
   const categorySlugs = useMemo(() => details.subcategories.flatMap((group) => [
     toCategorySlug(group.title),
@@ -128,6 +140,39 @@ const CategoryShowcasePage = () => {
       return;
     }
     dispatch(addToCart({ product: { ...product, id: product._id || product.id, price: product.price, priceType: "retail" }, quantity: 1 }));
+  };
+
+  const toggleSavedProduct = (event, product) => {
+    event.stopPropagation();
+    if (!user || user.role !== "customer") {
+      navigate("/login");
+      return;
+    }
+
+    const savedKey = `nova_saved_${user.uid}`;
+    const productId = product._id || product.id;
+    const nextSavedProductIds = savedProductIds.includes(productId)
+      ? savedProductIds.filter((id) => id !== productId)
+      : [...savedProductIds, productId];
+    localStorage.setItem(savedKey, JSON.stringify(nextSavedProductIds));
+    setSavedProductIds(nextSavedProductIds);
+  };
+
+  const openProduct = (product) => {
+    const detailProduct = isShowingVendorProducts ? product : {
+      ...product,
+      _id: `category-${category}-${product.title}`,
+      images: product.image ? [product.image] : [],
+      description: product.description || product.tag || details.description,
+      brand: product.brand || details.label,
+      category: product.category || product.tag,
+      currency: "NGN",
+      price: Number(String(product.price).replace(/[^0-9.]/g, "")) || 0,
+      rating: product.rating || 0,
+      reviews: product.reviews || [],
+    };
+
+    navigate(`/${encodeURIComponent(product.title)}`, { state: { product: detailProduct } });
   };
 
   return (
@@ -186,19 +231,23 @@ const CategoryShowcasePage = () => {
 
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
             {displayedProducts.map((product) => (
-              <article key={product._id || product.title} className="overflow-hidden rounded-2xl border border-white/10 bg-[#101822] shadow-[0_12px_28px_rgba(2,6,23,0.45)] transition hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(124,230,212,0.12)]">
+              <article key={product._id || product.title} role="link" tabIndex={0} aria-label={`View ${product.title}`} onClick={() => openProduct(product)} onKeyDown={(event) => { if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); openProduct(product); } }} className="cursor-pointer overflow-hidden rounded-xl border border-white/10 bg-[#101822] shadow-[0_12px_28px_rgba(2,6,23,0.45)] transition hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(124,230,212,0.12)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#7ce6d4]">
                 <img src={isShowingVendorProducts ? product.images?.[0] || "images/phones.png" : product.image} alt={product.title} className="h-44 w-full object-cover" onError={(event) => { event.currentTarget.src = "images/phones.png"; }} />
                 <div className="p-4">
                   <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#7ce6d4]">{isShowingVendorProducts ? product.subcategory || product.category : product.tag}</p>
                   <h3 className="mt-2 text-lg font-bold text-[#f3f5f7]">{product.title}</h3>
                   <p className="mt-3 text-2xl font-black text-[#f3f5f7]">{isShowingVendorProducts ? formatCurrency(product.price, product.currency) : product.price}</p>
+                  {isPropertyOrVehicleCategory && (
+                    <div className="mt-3 space-y-1 border-t border-white/10 pt-3 text-xs text-[#c4c8cc]">
+                      <p>Phone: {product.vendorContactInfo || product.vendorPhoneNumber || product.contactInfo || "Not provided"}</p>
+                      <p>Email: {product.vendorEmail || product.email || "Not provided"}</p>
+                    </div>
+                  )}
                   <div className="mt-4 flex gap-2">
-                    <button type="button" onClick={() => window.location.assign(user ? "/saved-items" : "/login")} className="flex-1 rounded-xl border border-white/10 bg-[#0b1118] px-3 py-2.5 text-sm font-semibold text-[#dfe7ee] transition hover:bg-[#111b26]">
-                      Save
+                    <button type="button" onClick={(event) => toggleSavedProduct(event, product)} className="flex-1 rounded-lg border border-white/10 bg-[#0b1118] px-3 py-2.5 text-sm font-semibold text-[#dfe7ee] transition hover:bg-[#111b26]">
+                      {savedProductIds.includes(product._id || product.id) ? "Saved" : "Save"}
                     </button>
-                    <button type="button" onClick={() => isShowingVendorProducts && addProductToCart(product)} className="flex-1 rounded-xl bg-[#7ce6d4] px-3 py-2.5 text-sm font-semibold text-[#071118] transition hover:bg-[#60e0c4]">
-                      Add to cart
-                    </button>
+                    {!isPropertyOrVehicleCategory && <button type="button" onClick={(event) => { event.stopPropagation(); if (isShowingVendorProducts) addProductToCart(product); }} className="flex-1 rounded-lg bg-[#7ce6d4] px-3 py-2.5 text-sm font-semibold text-[#071118] transition hover:bg-[#60e0c4]">Add to cart</button>}
                   </div>
                 </div>
               </article>
