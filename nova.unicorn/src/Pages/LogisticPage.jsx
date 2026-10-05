@@ -175,7 +175,9 @@ const LogisticPage = () => {
                   <p className="mt-1 text-slate-600">Shop: {request.vendorShopName || "Not provided"}</p>
                   <p className="mt-1 text-slate-600">Phone: {request.vendorPhoneNumber || "Not provided"}</p>
                   <p className="mt-1 text-slate-600">Shop address: {request.vendorShopAddress || "Not provided"}</p>
-                  {request.orderStatus && request.orderStatus !== "delivering" && <p className="mt-3 rounded-md bg-amber-50 p-2 text-xs font-semibold text-amber-800">Waiting for the vendor to fulfill this order.</p>}
+                  {request.orderStatus === "delivering"
+                    ? <p className="mt-3 rounded-md bg-emerald-50 p-2 text-xs font-semibold text-emerald-800">Vendor already fulfilled order.</p>
+                    : request.orderStatus && <p className="mt-3 rounded-md bg-amber-50 p-2 text-xs font-semibold text-amber-800">Waiting for the vendor to fulfill this order.</p>}
                   {request.status === "pending" && (
                     <div className="mt-3 flex flex-wrap gap-2">
                       <button type="button" onClick={() => updateRequest(request._id, "accepted")} className="rounded-md bg-emerald-700 px-3 py-2 font-semibold text-white hover:bg-emerald-800">Accept</button>

@@ -122,7 +122,7 @@ const CollectionOfficerPage = () => {
                 <article key={order._id} className="rounded-xl border border-gray-100 p-4">
                   <div className="flex flex-col justify-between gap-2 sm:flex-row">
                     <div><p className="font-bold text-gray-900">Order {order._id}</p><p className="mt-1 text-sm text-gray-700">Customer: {order.customer?.fullName || order.customer?.email || "Customer details unavailable"}</p></div>
-                    <span className="h-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-bold capitalize text-slate-700">{order.status}</span>
+                    <span className="h-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-bold capitalize text-slate-700">{order.status === "pending" && order.collectionOfficerAcceptedAt ? "accepted" : order.status}</span>
                   </div>
                   <div className="mt-3 grid gap-2 text-sm text-gray-800 sm:grid-cols-3">
                     <p>Total: {order.currency} {Number(order.totalAmount || 0).toLocaleString()}</p>
