@@ -283,16 +283,17 @@ const LoginPage = () => {
                   </div>
                 )}
 
-                {!isLogin && selectedRole === "vendor" && (
+                {!isLogin && ["vendor", "uberdriver"].includes(selectedRole) && (
                   <button
                     type="button"
                     onClick={() => {
-                      const vendorType = novaVerifyTypeMap[selectedVendorType] || "RETAIL";
+                      const verificationType = selectedRole === "uberdriver" ? "uberdriver" : selectedVendorType;
+                      const vendorType = novaVerifyTypeMap[verificationType] || "RETAIL";
                       window.location.assign(`${vendorVerificationUrl}?vendorType=${encodeURIComponent(vendorType)}`);
                     }}
                     className="w-full rounded-2xl border border-primary bg-white px-4 py-3 text-sm font-semibold text-primary transition hover:bg-primary/5"
                   >
-                    Verify your business first
+                    {selectedRole === "uberdriver" ? "Verify your driver profile in Nova Verify" : "Verify your business first"}
                   </button>
                 )}
 
